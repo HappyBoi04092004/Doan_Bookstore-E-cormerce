@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql" // hoặc postgresql nếu ông dùng pg
+  provider = "mysql"
 }
 
 enum Role {
@@ -12,27 +12,26 @@ enum Role {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  role      Role     @default(USER)
-  orders    Order[]
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+  role     Role   @default(USER)
+
   createdAt DateTime @default(now())
+}
+
+model Category {
+  id   String @id @default(uuid())
+  name String
+
+  products Product[]
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  title       String
-  author      String
-  price       Float
-  description String?
-  createdAt   DateTime @default(now())
-}
+  id    String @id @default(uuid())
+  title String
+  price Float
 
-model Order {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  total     Float
-  createdAt DateTime @default(now())
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
 }
