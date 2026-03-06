@@ -4,34 +4,121 @@ generator client {
 
 datasource db {
   provider = "mysql"
-}
-
-enum Role {
-  ADMIN
-  USER
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id       String @id @default(uuid())
-  email    String @unique
-  password String
-  role     Role   @default(USER)
-
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  roleId    Int
+  role      Role     @relation(fields: [roleId], references: [id])
+  orders    Order[]
+  reviews   Review[]
   createdAt DateTime @default(now())
 }
 
-model Category {
-  id   String @id @default(uuid())
-  name String
-
-  products Product[]
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String
+  users User[]
 }
 
-model Product {
-  id    String @id @default(uuid())
-  title String
-  price Float
+model Category {
+  id       Int    @id @default(autoincrement())
+  name     String
+  products Book[]
+}
 
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
+model Author {
+  id    Int    @id @default(autoincrement())
+  name  String
+  books Book[]
+}
+
+model Book {
+  id         Int         @id @default(autoincrement())
+  title      String
+  price      Float
+  stock      Int
+  authorId   Int
+  categoryId Int
+  author     Author      @relation(fields: [authorId], references: [id])
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+  reviews    Review[]
+}
+
+model Cart {
+  id     Int        @id @default(autoincrement())
+  userId Int
+  items  CartItem[]
+}
+
+model CartItem {
+  id     Int  @id @default(autoincrement())
+  cartId Int
+  bookId Int
+  qty    Int
+  cart   Cart @relation(fields: [cartId], references: [id])
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  status    String
+  total     Float
+  items     OrderItem[]
+  payment   Payment?
+  user      User        @relation(fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+}
+
+model OrderItem {
+  id      Int   @id @default(autoincrement())
+  orderId Int
+  bookId  Int
+  qty     Int
+  price   Float
+  order   Order @relation(fields: [orderId], references: [id])
+  book    Book  @relation(fields: [bookId], references: [id])
+}
+
+model Review {
+  id      Int    @id @default(autoincrement())
+  rating  Int
+  comment String
+  userId  Int
+  bookId  Int
+  user    User   @relation(fields: [userId], references: [id])
+  book    Book   @relation(fields: [bookId], references: [id])
+}
+
+model Payment {
+  id      Int    @id @default(autoincrement())
+  orderId Int    @unique
+  method  String
+  status  String
+  order   Order  @relation(fields: [orderId], references: [id])
+}
+
+model Address {
+  id      Int    @id @default(autoincrement())
+  userId  Int
+  city    String
+  street  String
+  zipCode String
+}
+
+model Coupon {
+  id       Int    @id @default(autoincrement())
+  code     String @unique
+  discount Float
+}
+
+model Wishlist {
+  id     Int @id @default(autoincrement())
+  userId Int
+  bookId Int
 }
