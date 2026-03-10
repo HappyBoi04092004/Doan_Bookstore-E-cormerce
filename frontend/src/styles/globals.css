@@ -1,9 +1,16 @@
+@import "tailwindcss";
+
+/* Reset nhẹ */
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
 body {
-  font-family: sans-serif;
+  font-family: system-ui, Arial, sans-serif;
+}
+
+/* custom utilities nếu cần */
+.container-custom {
+  max-width: 1200px;
+  margin: 0 auto;
 }
