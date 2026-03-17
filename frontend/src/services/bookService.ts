@@ -2,31 +2,27 @@ import apiClient from "./api";
 import type {
   Book,
   BookFilters,
-  PaginatedResponse,
   ApiResponse,
 } from "../types";
 
 export const bookService = {
   /** Fetch paginated and filtered list of books */
-  getBooks: async (
-    filters: BookFilters = {}
-  ): Promise<PaginatedResponse<Book>> => {
-    const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Book>>>(
-      "/books",
-      { params: filters }
-    );
+  getBooks: async (filters: BookFilters = {}): Promise<Book[]> => {
+    const { data } = await apiClient.get<ApiResponse<Book[]>>("/api/books", {
+      params: filters,
+    });
     return data.data;
   },
 
   /** Fetch a single book by id */
   getBookById: async (id: string): Promise<Book> => {
-    const { data } = await apiClient.get<ApiResponse<Book>>(`/books/${id}`);
+    const { data } = await apiClient.get<ApiResponse<Book>>(`/api/books/${id}`);
     return data.data;
   },
 
   /** Admin: create a new book */
   createBook: async (payload: Omit<Book, "id" | "createdAt">): Promise<Book> => {
-    const { data } = await apiClient.post<ApiResponse<Book>>("/books", payload);
+    const { data } = await apiClient.post<ApiResponse<Book>>("/api/books", payload);
     return data.data;
   },
 
@@ -36,7 +32,7 @@ export const bookService = {
     payload: Partial<Omit<Book, "id" | "createdAt">>
   ): Promise<Book> => {
     const { data } = await apiClient.put<ApiResponse<Book>>(
-      `/books/${id}`,
+      `/api/books/${id}`,
       payload
     );
     return data.data;
@@ -44,6 +40,6 @@ export const bookService = {
 
   /** Admin: delete a book */
   deleteBook: async (id: string): Promise<void> => {
-    await apiClient.delete(`/books/${id}`);
+    await apiClient.delete(`/api/books/${id}`);
   },
 };

@@ -34,21 +34,15 @@ export interface Category {
 }
 
 export interface Book {
-  id: string;
+  id: number;
   title: string;
-  author: string;
-  description: string;
+  author: { name: string };
+  category: { name: string };
   price: number;
-  originalPrice?: number;
-  coverImage: string;
-  isbn: string;
   stock: number;
-  rating: number;
-  reviewCount: number;
-  category: Category;
-  tags: string[];
-  publishedAt: string;
-  createdAt: string;
+  description?: string;
+  coverImage?: string;
+  createdAt?: string;
 }
 
 // ─── Cart ────────────────────────────────────────────────────────────────────
@@ -97,9 +91,8 @@ export interface Order {
 // ─── API Responses ────────────────────────────────────────────────────────────
 
 export interface ApiResponse<T> {
-  success: boolean;
+  message: string;
   data: T;
-  message?: string;
 }
 
 export interface PaginatedResponse<T> {

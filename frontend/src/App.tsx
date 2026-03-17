@@ -11,7 +11,7 @@ import AdminRoute from "./components/common/AdminRoute";
 
 // User Pages
 import HomePage from "./pages/HomePage";
-import BooksPage from "./pages/BooksPage";
+import BookListPage from "./pages/BookListPage";
 import BookDetailPage from "./pages/BookDetailPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -42,7 +42,7 @@ export default function App() {
           {/* ──────────────── PUBLIC / USER ROUTES ──────────────── */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<HomePage />} />
-            <Route path="/books" element={<BooksPage />} />
+            <Route path="/books" element={<BookListPage />} />
             <Route path="/books/:id" element={<BookDetailPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/login" element={<LoginPage />} />

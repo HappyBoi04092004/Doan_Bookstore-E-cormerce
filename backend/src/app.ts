@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import bookRoutes from "./routes/book.routes";
 
 dotenv.config();
 
@@ -13,6 +14,8 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Backend running 🚀");
 });
+
+app.use("/books", bookRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
