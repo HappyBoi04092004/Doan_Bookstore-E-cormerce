@@ -1,4 +1,5 @@
 import React from "react";
+import {Link} from "react-router-dom";
 import { useBooks } from "../hooks/useBooks";
 import Spinner from "../components/ui/Spinner";
 import Badge from "../components/ui/Badge";
@@ -66,6 +67,7 @@ const BookListPage: React.FC = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {books.map((book) => (
+          <Link to={`/books/${book.id}`} key={book.id} className="group">
           <div
             key={book.id}
             className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col overflow-hidden"
@@ -117,6 +119,7 @@ const BookListPage: React.FC = () => {
               </div>
             </div>
           </div>
+          </Link>
         ))}
       </div>
     </div>

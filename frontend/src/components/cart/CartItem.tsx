@@ -23,7 +23,7 @@ export default function CartItem({ item }: CartItemProps) {
           <p className="text-sm font-medium text-gray-900 line-clamp-2">
             {book.title}
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">{book.author}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{typeof book.author === 'object' ? book.author?.name : book.author}</p>
         </div>
         <div className="flex items-center justify-between mt-2">
           {/* Quantity stepper */}

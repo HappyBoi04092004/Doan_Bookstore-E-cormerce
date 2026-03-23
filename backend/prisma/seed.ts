@@ -75,6 +75,7 @@ async function main() {
   // ===== BOOK =====
   const cleanCode = await prisma.book.create({
     data: {
+      id: 1, // tạm set id cố định để dễ test, thực tế không nên hardcode
       title: "Clean Code",
       price: 25,
       stock: 100,
@@ -85,6 +86,7 @@ async function main() {
 
   const pragmatic = await prisma.book.create({
     data: {
+      id: 2, // tạm set id cố định để dễ test, thực tế không nên hardcode
       title: "The Pragmatic Programmer",
       price: 30,
       stock: 80,
@@ -95,6 +97,7 @@ async function main() {
 
   const leanStartup = await prisma.book.create({
     data: {
+      id: 3, // tạm set id cố định để dễ test, thực tế không nên hardcode
       title: "The Lean Startup",
       price: 28,
       stock: 60,
@@ -108,6 +111,7 @@ async function main() {
 
 const deepWork = await prisma.book.create({
   data: {
+    id: 4, // tạm set id cố định để dễ test, thực tế không nên hardcode
     title: "Deep Work",
     price: 22,
     stock: 70,
@@ -118,6 +122,7 @@ const deepWork = await prisma.book.create({
 
 const refactoring = await prisma.book.create({
   data: {
+    id:5,
     title: "Refactoring",
     price: 35,
     stock: 50,
@@ -128,6 +133,7 @@ const refactoring = await prisma.book.create({
 
 const atomicHabits = await prisma.book.create({
   data: {
+    id: 6,
     title: "Atomic Habits",
     price: 27,
     stock: 90,

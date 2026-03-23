@@ -57,7 +57,7 @@ export default function ProductCard({ book }: ProductCardProps) {
         </Link>
 
         {/* Author */}
-        <p className="text-[12px] text-slate-400 font-medium">{book.author}</p>
+        <p className="text-[12px] text-slate-400 font-medium">{typeof book.author === 'object' ? book.author?.name : book.author}</p>
 
         {/* Rating — pushed to bottom */}
         <div className="flex items-center gap-1 mt-auto pt-2">
