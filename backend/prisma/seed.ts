@@ -104,6 +104,39 @@ async function main() {
   });
 
   console.log("Books created");
+  // ===== BOOK (ADD MORE) =====
+
+const deepWork = await prisma.book.create({
+  data: {
+    title: "Deep Work",
+    price: 22,
+    stock: 70,
+    authorId: ries.id, // tạm dùng Eric Ries (hoặc ông có thể tạo author mới)
+    categoryId: business.id
+  }
+});
+
+const refactoring = await prisma.book.create({
+  data: {
+    title: "Refactoring",
+    price: 35,
+    stock: 50,
+    authorId: martin.id,
+    categoryId: programming.id
+  }
+});
+
+const atomicHabits = await prisma.book.create({
+  data: {
+    title: "Atomic Habits",
+    price: 27,
+    stock: 90,
+    authorId: hunt.id, // reuse tạm
+    categoryId: business.id
+  }
+});
+
+console.log("More books added");
 
 
   // ===== CART =====
