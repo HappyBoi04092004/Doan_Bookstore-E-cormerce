@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import bookRoutes from "./routes/book.routes";
+import authRoutes from "./routes/auth.routes";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.get("/", (req, res) => {
   res.send("Backend running 🚀");
 });
 
+app.use("/auth", authRoutes);
 app.use("/books", bookRoutes);
 
 app.listen(PORT, () => {

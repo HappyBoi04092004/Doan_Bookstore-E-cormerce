@@ -1,10 +1,11 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
 async function main() {
 
-  console.log("🌱 Seeding database...");
+  console.log(" Seeding database...");
 
   // ===== ROLE =====
   const adminRole = await prisma.role.create({
@@ -19,10 +20,12 @@ async function main() {
 
 
   // ===== USERS =====
+  const hassPassword = await bcrypt.hash("123456", 10);
+
   const admin = await prisma.user.create({
     data: {
       email: "admin@gmail.com",
-      password: "123456",
+      password: hassPassword,
       name: "Admin",
       roleId: adminRole.id
     }
@@ -31,7 +34,7 @@ async function main() {
   const user = await prisma.user.create({
     data: {
       email: "user@gmail.com",
-      password: "123456",
+      password: hassPassword,
       name: "Nguyen Van A",
       roleId: userRole.id
     }
@@ -75,7 +78,7 @@ async function main() {
   // ===== BOOK =====
   const cleanCode = await prisma.book.create({
     data: {
-      id: 1, // tạm set id cố định để dễ test, thực tế không nên hardcode
+      id: 1, 
       title: "Clean Code",
       price: 25,
       stock: 100,
@@ -86,7 +89,7 @@ async function main() {
 
   const pragmatic = await prisma.book.create({
     data: {
-      id: 2, // tạm set id cố định để dễ test, thực tế không nên hardcode
+      id: 2,
       title: "The Pragmatic Programmer",
       price: 30,
       stock: 80,
@@ -97,7 +100,7 @@ async function main() {
 
   const leanStartup = await prisma.book.create({
     data: {
-      id: 3, // tạm set id cố định để dễ test, thực tế không nên hardcode
+      id: 3,
       title: "The Lean Startup",
       price: 28,
       stock: 60,
@@ -111,11 +114,11 @@ async function main() {
 
 const deepWork = await prisma.book.create({
   data: {
-    id: 4, // tạm set id cố định để dễ test, thực tế không nên hardcode
+    id: 4, 
     title: "Deep Work",
     price: 22,
     stock: 70,
-    authorId: ries.id, // tạm dùng Eric Ries (hoặc ông có thể tạo author mới)
+    authorId: ries.id, 
     categoryId: business.id
   }
 });
@@ -137,7 +140,7 @@ const atomicHabits = await prisma.book.create({
     title: "Atomic Habits",
     price: 27,
     stock: 90,
-    authorId: hunt.id, // reuse tạm
+    authorId: hunt.id, 
     categoryId: business.id
   }
 });

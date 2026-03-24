@@ -14,35 +14,38 @@ interface AuthResponse {
 
 export const authService = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const { data } = await apiClient.post<ApiResponse<AuthResponse>>(
-      "/auth/login",
+    const { data } = await apiClient.post<{ user: User; token: string; message?: string }>(
+      "/api/auth/login",
       credentials
     );
-    return data.data;
+    return {
+      user: data.user,
+      tokens: { accessToken: data.token, refreshToken: "" },
+    };
   },
 
   register: async (payload: RegisterPayload): Promise<AuthResponse> => {
-    const { data } = await apiClient.post<ApiResponse<AuthResponse>>(
-      "/auth/register",
+    const { data } = await apiClient.post<{ user: User; token: string; message?: string }>(
+      "/api/auth/register",
       payload
     );
-    return data.data;
+    return {
+      user: data.user,
+      tokens: { accessToken: data.token, refreshToken: "" },
+    };
   },
 
   logout: async (): Promise<void> => {
-    await apiClient.post("/auth/logout");
+    await apiClient.post("/api/auth/logout").catch(() => {});
   },
 
   getProfile: async (): Promise<User> => {
-    const { data } = await apiClient.get<ApiResponse<User>>("/auth/me");
-    return data.data;
+    const { data } = await apiClient.get<{ user: User }>("/api/auth/me");
+    return data.user;
   },
 
   refreshToken: async (refreshToken: string): Promise<AuthTokens> => {
-    const { data } = await apiClient.post<ApiResponse<AuthTokens>>(
-      "/auth/refresh",
-      { refreshToken }
-    );
-    return data.data;
+    const { data } = await apiClient.post<{ token: string }>("/api/auth/refresh", { refreshToken });
+    return { accessToken: data.token, refreshToken: "" };
   },
 };
