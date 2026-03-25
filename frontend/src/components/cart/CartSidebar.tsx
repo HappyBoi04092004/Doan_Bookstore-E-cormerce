@@ -27,7 +27,7 @@ export default function CartSidebar() {
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="font-semibold text-slate-900 flex items-center gap-2.5">
             <ShoppingBag className="h-[18px] w-[18px] text-indigo-600" />
-            Your Cart
+            Giỏ hàng của bạn 
             {items.length > 0 && (
               <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
                 {items.length}
@@ -50,14 +50,14 @@ export default function CartSidebar() {
                 <ShoppingBag className="h-9 w-9 text-slate-300" />
               </div>
               <div>
-                <p className="font-semibold text-slate-700">Your cart is empty</p>
-                <p className="text-sm text-slate-400 mt-1">Add some books to get started</p>
+                <p className="font-semibold text-slate-700">Giỏ hàng của bạn đang trống </p>
+                <p className="text-sm text-slate-400 mt-1">Hãy thêm một vài cuốn sách để đặt hàng</p>
               </div>
               <button
                 onClick={closeCart}
                 className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
               >
-                Continue shopping
+                Tiếp tục mua sắm 
               </button>
             </div>
           ) : (
@@ -76,16 +76,16 @@ export default function CartSidebar() {
           <div className="border-t border-slate-100 bg-slate-50/60 px-6 py-5 space-y-3">
             {/* Subtotal */}
             <div className="flex items-center justify-between text-[13px] text-slate-500">
-              <span>Subtotal</span>
+              <span>Tiền sản phẩm</span>
               <span className="font-medium text-slate-700">{formatPrice(totalPrice)}</span>
             </div>
             <div className="flex items-center justify-between text-[13px] text-slate-500">
-              <span>Shipping</span>
+              <span>Phí giao hàng</span>
               <span className="font-medium text-emerald-600">Free</span>
             </div>
             {/* Total */}
             <div className="flex items-center justify-between border-t border-slate-200 pt-3 font-bold text-slate-900">
-              <span>Total</span>
+              <span>Thành tiền </span>
               <span className="text-indigo-600 text-[15px]">{formatPrice(totalPrice)}</span>
             </div>
 
@@ -95,14 +95,14 @@ export default function CartSidebar() {
               onClick={closeCart}
               className="flex items-center justify-center gap-2 w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
             >
-              Checkout <ArrowRight className="h-4 w-4" />
+              Đặt hàng <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               to="/cart"
               onClick={closeCart}
               className="flex items-center justify-center w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
             >
-              View Full Cart
+              Xem giỏ hàng đầy đủ
             </Link>
           </div>
         )}

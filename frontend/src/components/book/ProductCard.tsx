@@ -15,7 +15,7 @@ export default function ProductCard({ book }: ProductCardProps) {
   const outOfStock = book.stock === 0;
 
   return (
-    <div className="group flex flex-col rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+    <div className="group flex flex-col h-full rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
       {/* ── Cover ── */}
       <Link
         to={`/books/${book.id}`}

@@ -42,7 +42,7 @@ export default function BookDetailPage() {
         className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 mb-6 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Books
+        Quay lại 
       </Link>
 
       <div className="grid grid-cols-1 gap-10 md:grid-cols-[280px_1fr]">
