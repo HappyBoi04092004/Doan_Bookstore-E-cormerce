@@ -4,7 +4,6 @@ import type {
   AuthTokens,
   LoginCredentials,
   RegisterPayload,
-  ApiResponse,
 } from "../types";
 
 interface AuthResponse {

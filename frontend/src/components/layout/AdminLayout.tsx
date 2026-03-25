@@ -6,6 +6,7 @@ import {
   Package,
   BookOpen,
 } from "lucide-react";
+import UserMenu from "../common/UserMenu";
 
 const adminNav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -46,10 +47,11 @@ export default function AdminLayout() {
 
       {/* Main */}
       <div className="flex flex-1 flex-col">
-        <header className="border-b border-gray-200 bg-white px-8 py-4 shadow-sm">
+        <header className="border-b border-gray-200 bg-white px-8 py-4 shadow-sm flex items-center justify-between">
           <h1 className="text-lg font-semibold text-gray-800">
             Admin Panel
           </h1>
+          <UserMenu />
         </header>
         <main className="flex-1 overflow-auto p-8">
           <Outlet />

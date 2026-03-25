@@ -52,6 +52,9 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/profile" element={<div className="p-10 max-w-4xl mx-auto rounded-xl mt-10 shadow-sm bg-white border border-gray-100"><h2 className="text-2xl font-bold mb-4">Profile</h2><p>Trang thông tin tài khoản (Đang phát triển)</p></div>} />
+              <Route path="/orders" element={<div className="p-10 max-w-4xl mx-auto rounded-xl mt-10 shadow-sm bg-white border border-gray-100"><h2 className="text-2xl font-bold mb-4">My Orders</h2><p>Xem lịch sử đơn hàng (Đang phát triển)</p></div>} />
+              <Route path="/tests" element={<div className="p-10 max-w-4xl mx-auto rounded-xl mt-10 shadow-sm bg-white border border-gray-100"><h2 className="text-2xl font-bold mb-4">My Tests</h2><p>Xem lịch sử test (Đang phát triển)</p></div>} />
             </Route>
           </Route>
 

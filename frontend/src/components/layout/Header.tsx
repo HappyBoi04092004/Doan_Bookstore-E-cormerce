@@ -1,7 +1,8 @@
 import { Link, NavLink } from "react-router-dom";
-import { ShoppingCart, BookOpen, LogOut, User, LayoutDashboard } from "lucide-react";
+import { ShoppingCart, BookOpen, LayoutDashboard } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
+import UserMenu from "../common/UserMenu";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -10,7 +11,7 @@ const navLinks = [
 ];
 
 export default function Header() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { totalItems, toggleCart } = useCart();
 
   return (
@@ -84,23 +85,7 @@ export default function Header() {
 
           {/* Auth */}
           {isAuthenticated ? (
-            <div className="flex items-center gap-1.5">
-              <div className="hidden sm:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100">
-                  <User className="h-3.5 w-3.5 text-indigo-600" />
-                </div>
-                <span className="text-[13px] font-medium text-slate-700 max-w-[120px] truncate">
-                  {user?.name}
-                </span>
-              </div>
-              <button
-                onClick={logout}
-                title="Logout"
-                className="flex items-center justify-center h-9 w-9 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-              >
-                <LogOut className="h-[17px] w-[17px]" />
-              </button>
-            </div>
+            <UserMenu />
           ) : (
             <div className="flex items-center gap-2">
               <Link
