@@ -27,63 +27,63 @@ export default function RegisterPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100">
               <BookOpen className="h-6 w-6 text-indigo-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
-            <p className="text-sm text-gray-500">Join BookStore today</p>
+            <h1 className="text-2xl font-bold text-gray-900">Đăng ký tài khoản</h1>
+            <p className="text-sm text-gray-500">Tham gia BookStore ngay hôm nay</p>
           </div>
 
           {registerError && (
             <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-              Registration failed. This email may already be in use.
+              Đăng ký thất bại. Email này đã được sử dụng.
             </div>
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-              label="Full Name"
-              placeholder="John Doe"
-              {...register("name", { required: "Name is required" })}
+              label="Họ tên"
+              placeholder="Nguyễn Văn A"
+              {...register("name", { required: "Vui lòng nhập họ tên" })}
               error={errors.name?.message}
             />
             <Input
               label="Email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="ban@email.com"
               {...register("email", {
-                required: "Email is required",
-                pattern: { value: /\S+@\S+\.\S+/, message: "Invalid email" },
+                required: "Vui lòng nhập email",
+                pattern: { value: /\S+@\S+\.\S+/, message: "Email không hợp lệ" },
               })}
               error={errors.email?.message}
             />
             <Input
-              label="Password"
+              label="Mật khẩu"
               type="password"
               placeholder="••••••••"
               {...register("password", {
-                required: "Password is required",
-                minLength: { value: 6, message: "Min 6 characters" },
+                required: "Vui lòng nhập mật khẩu",
+                minLength: { value: 6, message: "Mật khẩu tối thiểu 6 ký tự" },
               })}
               error={errors.password?.message}
             />
             <Input
-              label="Confirm Password"
+              label="Nhập lại mật khẩu"
               type="password"
               placeholder="••••••••"
               {...register("confirmPassword", {
-                required: "Please confirm password",
+                required: "Vui lòng nhập lại mật khẩu",
                 validate: (val) =>
-                  val === watch("password") || "Passwords do not match",
+                  val === watch("password") || "Mật khẩu không khớp",
               })}
               error={errors.confirmPassword?.message}
             />
             <Button type="submit" isLoading={isRegistering} className="w-full" size="lg">
-              Create Account
+              Đăng ký
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-500">
-            Already have an account?{" "}
+            Đã có tài khoản?{" "}
             <Link to="/login" className="text-indigo-600 font-medium hover:underline">
-              Sign in
+              Đăng nhập
             </Link>
           </p>
         </div>

@@ -5,9 +5,9 @@ import { useCart } from "../../hooks/useCart";
 import UserMenu from "../common/UserMenu";
 
 const navLinks = [
-  { to: "/", label: "Home" },
-  { to: "/books", label: "Books" },
-  { to: "/contact", label: "Contact" },
+  { to: "/", label: "Trang chủ" },
+  { to: "/books", label: "Sách" },
+  { to: "/contact", label: "Liên hệ" },
 ];
 
 export default function Header() {
@@ -59,18 +59,18 @@ export default function Header() {
               }
             >
               <LayoutDashboard className="h-3.5 w-3.5" />
-              Admin
+              Quản trị
             </NavLink>
           )}
         </nav>
 
         {/* Right actions */}
         <div className="flex items-center gap-1.5">
-          {/* Cart */}
+          {/* Giỏ hàng */}
           <button
             onClick={toggleCart}
             className="relative flex items-center justify-center h-9 w-9 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
-            aria-label="Open cart"
+            aria-label="Mở giỏ hàng"
           >
             <ShoppingCart className="h-[19px] w-[19px]" />
             {totalItems > 0 && (
@@ -92,13 +92,13 @@ export default function Header() {
                 to="/login"
                 className="px-3.5 py-1.5 rounded-lg text-[13.5px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
               >
-                Log in
+                Đăng nhập
               </Link>
               <Link
                 to="/register"
                 className="px-3.5 py-1.5 rounded-lg text-[13.5px] font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
               >
-                Sign up
+                Đăng ký
               </Link>
             </div>
           )}

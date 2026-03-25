@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 
@@ -40,8 +41,8 @@ export default function Modal({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
@@ -50,7 +51,7 @@ export default function Modal({
       />
 
       {/* Dialog */}
-      <div className="relative z-50 w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all m-4 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative z-[10000] w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all m-4 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           <button
@@ -65,6 +66,7 @@ export default function Modal({
 
         {footer && <div className="flex justify-end gap-3 mt-2">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

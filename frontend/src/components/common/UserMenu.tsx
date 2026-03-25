@@ -82,7 +82,7 @@ export default function UserMenu() {
               className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
             >
               <User className="h-4 w-4 shrink-0" />
-              View Profile
+              Trang cá nhân 
             </Link>
 
             <Link
@@ -91,7 +91,7 @@ export default function UserMenu() {
               className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
             >
               <ShoppingBag className="h-4 w-4 shrink-0" />
-              Order History
+              Lịch sử đặt hàng
             </Link>
 
             <Link
@@ -100,7 +100,7 @@ export default function UserMenu() {
               className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
             >
               <FileText className="h-4 w-4 shrink-0" />
-              Test History
+              Lịch sử kiểm tra
             </Link>
 
             <div className="my-0.5 border-t border-gray-100" />
@@ -110,7 +110,7 @@ export default function UserMenu() {
               className="flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-md text-sm text-red-600 hover:bg-red-50 transition-colors"
             >
               <LogOut className="h-4 w-4 shrink-0 -ml-0.5" />
-              Logout
+              Đăng xuất
             </button>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function UserMenu() {
       <Modal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
-        title="Confirm Logout"
+        title="Đăng xuất"
         footer={
           <>
             <Button

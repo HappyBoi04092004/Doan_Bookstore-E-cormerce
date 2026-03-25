@@ -26,8 +26,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Overview of your bookstore</p>
+        <h1 className="text-2xl font-bold text-gray-900">Trang quản trị</h1>
+        <p className="text-sm text-gray-500 mt-1">Tổng quan về cửa hàng sách của bạn</p>
       </div>
 
       {/* Stats */}
@@ -51,7 +51,7 @@ export default function DashboardPage() {
       {/* Recent Orders */}
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Recent Orders</h2>
+          <h2 className="font-semibold text-gray-900">Đơn hàng gần đây</h2>
         </div>
         <table className="min-w-full divide-y divide-gray-100">
           <thead className="bg-gray-50">

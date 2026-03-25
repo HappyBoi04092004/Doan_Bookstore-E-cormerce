@@ -28,9 +28,9 @@ export default function ContactPage() {
   return (
     <div className="container mx-auto max-w-5xl px-4 sm:px-6 py-16">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-3">Contact Us</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-3">Liên hệ</h1>
         <p className="text-gray-500 max-w-lg mx-auto">
-          Have a question or feedback? We&apos;d love to hear from you.
+          Bạn có câu hỏi hoặc góp ý? Hãy gửi cho chúng tôi!
         </p>
       </div>
 
@@ -42,37 +42,37 @@ export default function ContactPage() {
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
                 <Send className="h-8 w-8 text-green-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Message Sent!</h2>
+              <h2 className="text-xl font-bold text-gray-900">Đã gửi tin nhắn!</h2>
               <p className="text-gray-500 text-sm">
-                Thanks for reaching out. We&apos;ll get back to you within 24 hours.
+                Cảm ơn bạn đã liên hệ. Chúng tôi sẽ phản hồi trong vòng 24h.
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <Input
-                  label="Name"
-                  {...register("name", { required: "Required" })}
+                  label="Họ tên"
+                  {...register("name", { required: "Bắt buộc" })}
                   error={errors.name?.message}
                 />
                 <Input
                   label="Email"
                   type="email"
-                  {...register("email", { required: "Required" })}
+                  {...register("email", { required: "Bắt buộc" })}
                   error={errors.email?.message}
                 />
               </div>
               <Input
-                label="Subject"
-                {...register("subject", { required: "Required" })}
+                label="Chủ đề"
+                {...register("subject", { required: "Bắt buộc" })}
                 error={errors.subject?.message}
               />
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">Message</label>
+                <label className="text-sm font-medium text-gray-700">Nội dung</label>
                 <textarea
                   rows={5}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                  {...register("message", { required: "Required" })}
+                  {...register("message", { required: "Bắt buộc" })}
                 />
                 {errors.message && (
                   <p className="text-xs text-red-600">{errors.message.message}</p>
@@ -80,7 +80,7 @@ export default function ContactPage() {
               </div>
               <Button type="submit" isLoading={isSubmitting} size="lg" className="w-full">
                 <Send className="h-4 w-4 mr-1" />
-                Send Message
+                Gửi tin nhắn
               </Button>
             </form>
           )}
@@ -90,8 +90,8 @@ export default function ContactPage() {
         <div className="space-y-6">
           {[
             { icon: Mail, label: "Email", value: "support@bookstore.vn" },
-            { icon: Phone, label: "Phone", value: "+84 90 123 4567" },
-            { icon: MapPin, label: "Address", value: "123 Nguyen Hue, District 1, Ho Chi Minh City" },
+            { icon: Phone, label: "Điện thoại", value: "+84 90 123 4567" },
+            { icon: MapPin, label: "Địa chỉ", value: "123 Nguyễn Huệ, Quận 1, TP.HCM" },
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="flex items-start gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100">

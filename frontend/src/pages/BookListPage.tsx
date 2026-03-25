@@ -1,6 +1,7 @@
 import React from "react";
 import {Link} from "react-router-dom";
 import { useBooks } from "../hooks/useBooks";
+import { useCart } from "../hooks/useCart";
 import Spinner from "../components/ui/Spinner";
 import Badge from "../components/ui/Badge";
 import { Book as BookIcon, User, Tag, ShoppingCart } from "lucide-react";
@@ -12,7 +13,7 @@ const BookListPage: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <Spinner size="lg" />
-        <p className="text-gray-500 animate-pulse font-medium">Loading your library...</p>
+        <p className="text-gray-500 animate-pulse font-medium">Đang tải thư viện sách...</p>
       </div>
     );
   }
@@ -23,15 +24,15 @@ const BookListPage: React.FC = () => {
         <div className="bg-red-100 p-3 rounded-full mb-4">
           <BookIcon className="w-8 h-8 text-red-600" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Failed to load books</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Không thể tải sách</h2>
         <p className="text-red-600/80 mb-6 max-w-md">
-          Something went wrong while fetching the collection. Please check your connection or try again.
+          Đã xảy ra lỗi khi tải danh sách sách. Vui lòng kiểm tra kết nối hoặc thử lại.
         </p>
         <button
           onClick={() => refetch()}
           className="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all shadow-md active:scale-95"
         >
-          Try Again
+          Thử lại
         </button>
       </div>
     );
@@ -43,8 +44,8 @@ const BookListPage: React.FC = () => {
         <div className="bg-gray-100 p-3 rounded-full mb-4">
           <BookIcon className="w-8 h-8 text-gray-400" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">No books available</h2>
-        <p className="text-gray-500 mb-0">Our shelves are empty at the moment. Check back soon!</p>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Chưa có sách</h2>
+        <p className="text-gray-500 mb-0">Hiện chưa có sách nào. Vui lòng quay lại sau!</p>
       </div>
     );
   }
@@ -54,14 +55,14 @@ const BookListPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
         <div>
           <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
-            Explore Collection
+            Khám phá kho sách
           </h1>
           <p className="text-lg text-gray-600 font-medium">
-            Discover your next favorite read among our curated selection.
+            Tìm kiếm cuốn sách yêu thích tiếp theo trong bộ sưu tập chọn lọc của chúng tôi.
           </p>
         </div>
         <div className="text-sm font-semibold text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
-          {books.length} Books Found
+          Đã tìm thấy {books.length} sách
         </div>
       </div>
 
@@ -78,7 +79,7 @@ const BookListPage: React.FC = () => {
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/2 duration-300" />
                 <div className="absolute top-3 right-3">
                   <Badge variant={book.stock > 0 ? "success" : "danger"} className="shadow-sm">
-                    {book.stock > 0 ? `${book.stock} in stock` : "Out of stock"}
+                    {book.stock > 0 ? `${book.stock} còn hàng` : "Hết hàng"}
                   </Badge>
                 </div>
             </div>
@@ -105,9 +106,9 @@ const BookListPage: React.FC = () => {
 
               <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
                 <div className="flex flex-col">
-                  <span className="text-xs text-gray-400 font-bold uppercase tracking-tighter">Price</span>
+                  <span className="text-xs text-gray-400 font-bold uppercase tracking-tighter">Giá</span>
                   <span className="text-2xl font-black text-gray-900">
-                    ${book.price.toFixed(2)}
+                    {book.price.toLocaleString('vi-VN', {style: 'currency', currency: 'VND'})}
                   </span>
                 </div>
                 <button 
@@ -115,6 +116,7 @@ const BookListPage: React.FC = () => {
                   className="p-3 bg-gray-900 text-white rounded-xl hover:bg-indigo-600 disabled:opacity-30 disabled:hover:bg-gray-900 transition-all shadow-lg shadow-gray-200 hover:shadow-indigo-200"
                 >
                   <ShoppingCart className="w-5 h-5" />
+                  <span className="sr-only">Thêm vào giỏ</span>
                 </button>
               </div>
             </div>

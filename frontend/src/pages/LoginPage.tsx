@@ -25,14 +25,14 @@ export default function LoginPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100">
               <BookOpen className="h-6 w-6 text-indigo-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Sign in</h1>
-            <p className="text-sm text-gray-500">Welcome back to BookStore</p>
+            <h1 className="text-2xl font-bold text-gray-900">Đăng nhập</h1>
+            <p className="text-sm text-gray-500">Chào mừng quay lại BookStore</p>
           </div>
 
           {/* Error */}
           {loginError && (
             <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-              Invalid email or password. Please try again.
+              Email hoặc mật khẩu không đúng. Vui lòng thử lại.
             </div>
           )}
 
@@ -48,25 +48,25 @@ export default function LoginPage() {
               error={errors.email?.message}
             />
             <Input
-              label="Password"
+              label="Mật khẩu"
               type="password"
               placeholder="••••••••"
               {...register("password", {
-                required: "Password is required",
-                minLength: { value: 6, message: "Min 6 characters" },
+                required: "Vui lòng nhập mật khẩu",
+                minLength: { value: 6, message: "Mật khẩu tối thiểu 6 ký tự" },
               })}
               error={errors.password?.message}
             />
 
             <Button type="submit" isLoading={isLoggingIn} className="w-full" size="lg">
-              Sign In
+              Đăng nhập
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-500">
-            Don&apos;t have an account?{" "}
+            Hiện tại bạn chưa có tài khoản?{" "}
             <Link to="/register" className="text-indigo-600 font-medium hover:underline">
-              Register
+              Đăng ký ngay
             </Link>
           </p>
         </div>

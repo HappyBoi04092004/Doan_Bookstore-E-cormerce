@@ -25,7 +25,7 @@ export default function CheckoutPage() {
     <div className="container mx-auto max-w-5xl px-4 sm:px-6 py-10">
       <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
         <CreditCard className="h-6 w-6 text-indigo-600" />
-        Checkout
+        Thanh toán
       </h1>
 
       <form
@@ -36,37 +36,37 @@ export default function CheckoutPage() {
         <div className="space-y-6">
           {/* Shipping */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="font-semibold text-gray-900 mb-4">Shipping Address</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">Địa chỉ nhận hàng</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input
-                label="Full Name"
-                {...register("fullName", { required: "Required" })}
+                label="Họ tên"
+                {...register("fullName", { required: "Bắt buộc" })}
                 error={errors.fullName?.message}
               />
               <Input
-                label="Phone Number"
-                {...register("phone", { required: "Required" })}
+                label="Số điện thoại"
+                {...register("phone", { required: "Bắt buộc" })}
                 error={errors.phone?.message}
               />
               <div className="sm:col-span-2">
                 <Input
-                  label="Street Address"
-                  {...register("street", { required: "Required" })}
+                  label="Địa chỉ"
+                  {...register("street", { required: "Bắt buộc" })}
                   error={errors.street?.message}
                 />
               </div>
               <Input
-                label="City"
-                {...register("city", { required: "Required" })}
+                label="Tỉnh/Thành phố"
+                {...register("city", { required: "Bắt buộc" })}
                 error={errors.city?.message}
               />
               <Input
-                label="Province"
-                {...register("province", { required: "Required" })}
+                label="Quận/Huyện"
+                {...register("province", { required: "Bắt buộc" })}
                 error={errors.province?.message}
               />
               <Input
-                label="Postal Code"
+                label="Mã bưu điện"
                 {...register("postalCode")}
                 error={errors.postalCode?.message}
               />
@@ -75,12 +75,12 @@ export default function CheckoutPage() {
 
           {/* Payment */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="font-semibold text-gray-900 mb-4">Payment Method</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">Phương thức thanh toán</h2>
             <div className="space-y-2">
               {[
-                { value: "cod", label: "💵 Cash on Delivery" },
-                { value: "card", label: "💳 Credit / Debit Card" },
-                { value: "banking", label: "🏦 Bank Transfer" },
+                { value: "cod", label: "💵 Thanh toán khi nhận hàng" },
+                { value: "card", label: "💳 Thẻ tín dụng/ghi nợ" },
+                { value: "banking", label: "🏦 Chuyển khoản ngân hàng" },
               ].map(({ value, label }) => (
                 <label
                   key={value}
@@ -102,7 +102,7 @@ export default function CheckoutPage() {
         {/* Right: Summary */}
         <div>
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4 sticky top-24">
-            <h2 className="font-semibold text-gray-900 text-lg">Order Summary</h2>
+            <h2 className="font-semibold text-gray-900 text-lg">Tóm tắt đơn hàng</h2>
             <ul className="space-y-2 text-sm text-gray-600">
               {items.map((item) => (
                 <li key={item.book.id} className="flex justify-between">
@@ -114,11 +114,11 @@ export default function CheckoutPage() {
               ))}
             </ul>
             <div className="border-t pt-3 flex justify-between font-bold text-gray-900">
-              <span>Total</span>
+              <span>Tổng cộng</span>
               <span className="text-indigo-600">{formatPrice(totalPrice)}</span>
             </div>
             <Button type="submit" isLoading={isSubmitting} className="w-full" size="lg">
-              Place Order
+              Đặt hàng
             </Button>
           </div>
         </div>

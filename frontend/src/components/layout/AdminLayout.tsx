@@ -9,10 +9,10 @@ import {
 import UserMenu from "../common/UserMenu";
 
 const adminNav = [
-  { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/admin/products", label: "Products", icon: Package, end: false },
-  { to: "/admin/orders", label: "Orders", icon: ShoppingBag, end: false },
-  { to: "/admin/users", label: "Users", icon: Users, end: false },
+  { to: "/admin", label: "Bảng điều khiển", icon: LayoutDashboard, end: true },
+  { to: "/admin/products", label: "Sản phẩm", icon: Package, end: false },
+  { to: "/admin/orders", label: "Đơn hàng", icon: ShoppingBag, end: false },
+  { to: "/admin/users", label: "Người dùng", icon: Users, end: false },
 ];
 
 export default function AdminLayout() {
@@ -22,7 +22,7 @@ export default function AdminLayout() {
       <aside className="w-64 shrink-0 bg-gray-900 text-white">
         <div className="flex items-center gap-2 px-6 py-5 border-b border-gray-700">
           <BookOpen className="h-6 w-6 text-indigo-400" />
-          <span className="font-bold text-lg">BookStore Admin</span>
+          <span className="font-bold text-lg">Quản trị BookStore</span>
         </div>
         <nav className="mt-4 px-3">
           {adminNav.map(({ to, label, icon: Icon, end }) => (
@@ -49,7 +49,7 @@ export default function AdminLayout() {
       <div className="flex flex-1 flex-col">
         <header className="border-b border-gray-200 bg-white px-8 py-4 shadow-sm flex items-center justify-between">
           <h1 className="text-lg font-semibold text-gray-800">
-            Admin Panel
+            Trang quản trị
           </h1>
           <UserMenu />
         </header>
