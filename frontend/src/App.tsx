@@ -24,6 +24,7 @@ import DashboardPage from "./pages/admin/DashboardPage";
 import UsersPage from "./pages/admin/UsersPage";
 import ProductsPage from "./pages/admin/ProductsPage";
 import OrdersPage from "./pages/admin/OrdersPage";
+import ProfilePage from "./pages/usermenu/ProfilePage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,7 +53,7 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/profile" element={<div className="p-10 max-w-4xl mx-auto rounded-xl mt-10 shadow-sm bg-white border border-gray-100"><h2 className="text-2xl font-bold mb-4">Profile</h2><p>Trang thông tin tài khoản </p></div>} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/orders" element={<div className="p-10 max-w-4xl mx-auto rounded-xl mt-10 shadow-sm bg-white border border-gray-100"><h2 className="text-2xl font-bold mb-4">My Orders</h2><p>Xem lịch sử đơn hàng </p></div>} />
               <Route path="/tests" element={<div className="p-10 max-w-4xl mx-auto rounded-xl mt-10 shadow-sm bg-white border border-gray-100"><h2 className="text-2xl font-bold mb-4">My Tests</h2><p>Xem lịch sử test </p></div>} />
             </Route>

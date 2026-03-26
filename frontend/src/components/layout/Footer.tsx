@@ -31,33 +31,33 @@ export default function Footer() {
               <span className="text-[16px]">BookStore</span>
             </Link>
             <p className="text-[13px] leading-relaxed text-slate-400">
-              Vietnam's favourite online bookstore. Discover your next great read today.
+              BookStore không chỉ bán sản phẩm, chúng tôi còn mang những trí thức đến gần hơn với người Việt
             </p>
 
             {/* Contact info */}
             <div className="mt-5 space-y-2">
               <a
-                href="mailto:support@bookstore.vn"
+                href="mailto:nguyenhanhphuc08102004@gmail.com"
                 className="flex items-center gap-2 text-[12.5px] text-slate-500 hover:text-slate-300 transition-colors"
               >
                 <Mail className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
-                support@bookstore.vn
+                nguyenhanhphuc08102004@gmail.com
               </a>
               <a
                 href="tel:+84901234567"
                 className="flex items-center gap-2 text-[12.5px] text-slate-500 hover:text-slate-300 transition-colors"
               >
                 <Phone className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
-                +84 90 123 4567
+                +84941579339
               </a>
               <a
-                href="https://github.com"
+                href="https://github.com/HappyBoi04092004"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-[12.5px] text-slate-500 hover:text-slate-300 transition-colors"
               >
                 <Github className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
-                GitHub
+                GitHub của nhà sáng lập
               </a>
             </div>
           </div>

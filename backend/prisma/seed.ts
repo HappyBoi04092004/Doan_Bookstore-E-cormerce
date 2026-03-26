@@ -36,6 +36,7 @@ async function main() {
       email: "user@gmail.com",
       password: hassPassword,
       name: "Nguyen Van A",
+      avatar: "https://i.pravatar.cc/150?img=1",
       roleId: userRole.id
     }
   });

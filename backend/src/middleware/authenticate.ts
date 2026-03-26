@@ -12,7 +12,6 @@ export const authenticate = (
   res: Response,
   next: NextFunction
 ): void => {
-  // Fix 1: Removed `await` from string operation.
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     res.status(401).json({ message: "Unauthorized: Missing Token" });
@@ -22,7 +21,6 @@ export const authenticate = (
   const token = authHeader.split(" ")[1];
 
   try {
-    // Fix 2: Cast to JwtPayload and attach safely to req.user
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET as string

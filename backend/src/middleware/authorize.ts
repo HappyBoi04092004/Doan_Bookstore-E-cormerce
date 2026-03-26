@@ -7,7 +7,6 @@ export const authorize = (roles: string[]) => {
       res.status(401).json({ message: "Unauthorized" });
       return;
     }
-
     if (!roles.includes(req.user.role.toLowerCase())) {
       res.status(403).json({ message: "Forbidden" });
       return;
