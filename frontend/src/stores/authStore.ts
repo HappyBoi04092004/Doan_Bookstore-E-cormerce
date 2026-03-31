@@ -26,8 +26,10 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user, accessToken) =>
         set({ user, accessToken, isAuthenticated: true }),
 
-      logout: () =>
-        set({ user: null, accessToken: null, isAuthenticated: false }),
+      logout: () => {
+        // Clear state - Zustand persist middleware will automatically update localStorage
+        set({ user: null, accessToken: null, isAuthenticated: false });
+      },
 
       setLoading: (isLoading) => set({ isLoading }),
 

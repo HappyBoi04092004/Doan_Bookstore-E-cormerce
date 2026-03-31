@@ -79,7 +79,6 @@ export default function CheckoutPage() {
             <div className="space-y-2">
               {[
                 { value: "cod", label: "💵 Thanh toán khi nhận hàng" },
-                { value: "card", label: "💳 Thẻ tín dụng/ghi nợ" },
                 { value: "banking", label: "🏦 Chuyển khoản ngân hàng" },
               ].map(({ value, label }) => (
                 <label
@@ -106,7 +105,7 @@ export default function CheckoutPage() {
             <ul className="space-y-2 text-sm text-gray-600">
               {items.map((item) => (
                 <li key={item.book.id} className="flex justify-between">
-                  <span className="truncate max-w-[180px]">
+                  <span className="truncate max-w-[flex]">
                     {item.book.title} × {item.quantity}
                   </span>
                   <span>{formatPrice(item.book.price * item.quantity)}</span>

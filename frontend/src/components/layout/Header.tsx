@@ -26,7 +26,7 @@ export default function Header() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
             <BookOpen className="h-4.5 w-4.5 text-white h-[18px] w-[18px]" />
           </div>
-          <span className="text-[17px] tracking-tight">BookStore</span>
+          <span className="text-[17px] tracking-tight">HPStore</span>
         </Link>
 
         {/* Nav — center */}

@@ -81,7 +81,7 @@ async function main() {
     data: {
       id: 1, 
       title: "Clean Code",
-      price: 25,
+      price: 25000,
       stock: 100,
       authorId: martin.id,
       categoryId: programming.id
@@ -92,7 +92,7 @@ async function main() {
     data: {
       id: 2,
       title: "The Pragmatic Programmer",
-      price: 30,
+      price: 30000,
       stock: 80,
       authorId: hunt.id,
       categoryId: programming.id
@@ -103,7 +103,7 @@ async function main() {
     data: {
       id: 3,
       title: "The Lean Startup",
-      price: 28,
+      price: 28000,
       stock: 60,
       authorId: ries.id,
       categoryId: business.id
@@ -117,7 +117,7 @@ const deepWork = await prisma.book.create({
   data: {
     id: 4, 
     title: "Deep Work",
-    price: 22,
+    price: 22000,
     stock: 70,
     authorId: ries.id, 
     categoryId: business.id
@@ -128,7 +128,7 @@ const refactoring = await prisma.book.create({
   data: {
     id:5,
     title: "Refactoring",
-    price: 35,
+    price: 35000,
     stock: 50,
     authorId: martin.id,
     categoryId: programming.id
@@ -139,7 +139,7 @@ const atomicHabits = await prisma.book.create({
   data: {
     id: 6,
     title: "Atomic Habits",
-    price: 27,
+    price: 27000,
     stock: 90,
     authorId: hunt.id, 
     categoryId: business.id

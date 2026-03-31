@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { BookOpen } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
@@ -7,7 +8,14 @@ import Button from "../components/ui/Button";
 import type { LoginCredentials } from "../types";
 
 export default function LoginPage() {
-  const { login, isLoggingIn, loginError } = useAuth();
+  const { login, isLoggingIn, loginError, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
   const {
     register,
     handleSubmit,

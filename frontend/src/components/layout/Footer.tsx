@@ -28,10 +28,10 @@ export default function Footer() {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600">
                 <BookOpen className="h-4 w-4 text-white" />
               </div>
-              <span className="text-[16px]">BookStore</span>
+              <span className="text-[16px]">HPStore</span>
             </Link>
             <p className="text-[13px] leading-relaxed text-slate-400">
-              BookStore không chỉ bán sản phẩm, chúng tôi còn mang những trí thức đến gần hơn với người Việt
+              HPStore không chỉ bán sản phẩm, chúng tôi còn mang những trí thức đến gần hơn với người Việt
             </p>
 
             {/* Contact info */}

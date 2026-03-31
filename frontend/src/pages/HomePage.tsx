@@ -19,12 +19,12 @@ const features = [
   },
 ];
 
-const stats = [
-  { value: "50,000+", label: "Books" },
-  { value: "120,000+", label: "Happy Readers" },
-  { value: "4.9 ★", label: "Average Rating" },
-  { value: "Free", label: "Shipping on ₫500k+" },
-];
+// const stats = [
+//   { value: "50,000+", label: "Books" },
+//   { value: "120,000+", label: "Happy Readers" },
+//   { value: "4.9 ★", label: "Average Rating" },
+//   { value: "Free", label: "Shipping on ₫500k+" },
+// ];
 
 export default function HomePage() {
   return (
@@ -97,7 +97,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Stats strip ───────────────────────────────────────── */}
-      <section className="border-b border-slate-200 bg-white">
+      {/* <section className="border-b border-slate-200 bg-white">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-100">
             {stats.map(({ value, label }) => (
@@ -108,7 +108,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ── Features ──────────────────────────────────────────── */}
       <section className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
