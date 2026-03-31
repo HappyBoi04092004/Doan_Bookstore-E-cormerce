@@ -8,16 +8,19 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
   password  String
   avatar    String?
   name      String
   roleId    Int
-  role      Role     @relation(fields: [roleId], references: [id])
+  role      Role       @relation(fields: [roleId], references: [id])
   orders    Order[]
   reviews   Review[]
-  createdAt DateTime @default(now())
+  cart      Cart?
+  addresses Address[]
+  wishlist  Wishlist[]
+  createdAt DateTime   @default(now())
 }
 
 model Role {
@@ -39,41 +42,52 @@ model Author {
 }
 
 model Book {
-  id         Int         @id @default(autoincrement())
+  id         Int    @id @default(autoincrement())
   title      String
   price      Float
   stock      Int
   authorId   Int
   categoryId Int
+
   author     Author      @relation(fields: [authorId], references: [id])
   category   Category    @relation(fields: [categoryId], references: [id])
   orderItems OrderItem[]
   reviews    Review[]
+  wishlists  Wishlist[]
+  cartItems  CartItem[]
 }
 
 model Cart {
   id     Int        @id @default(autoincrement())
-  userId Int
+  userId Int        @unique
+  user   User       @relation(fields: [userId], references: [id])
   items  CartItem[]
 }
 
 model CartItem {
-  id     Int  @id @default(autoincrement())
+  id     Int @id @default(autoincrement())
   cartId Int
   bookId Int
   qty    Int
-  cart   Cart @relation(fields: [cartId], references: [id])
+
+  cart Cart @relation(fields: [cartId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
 }
 
 model Order {
-  id        Int         @id @default(autoincrement())
-  userId    Int
-  status    String
-  total     Float
-  items     OrderItem[]
-  payment   Payment?
-  user      User        @relation(fields: [userId], references: [id])
-  createdAt DateTime    @default(now())
+  id     Int    @id @default(autoincrement())
+  userId Int
+  status String // PENDING | PAID | FAILED
+  total  Float
+
+  paymentMethod String? // MOMO | COD
+  paymentStatus String? // PENDING | SUCCESS | FAILED
+
+  items   OrderItem[]
+  payment Payment?
+
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model OrderItem {
@@ -82,8 +96,9 @@ model OrderItem {
   bookId  Int
   qty     Int
   price   Float
-  order   Order @relation(fields: [orderId], references: [id])
-  book    Book  @relation(fields: [bookId], references: [id])
+
+  order Order @relation(fields: [orderId], references: [id])
+  book  Book  @relation(fields: [bookId], references: [id])
 }
 
 model Review {
@@ -92,16 +107,22 @@ model Review {
   comment String
   userId  Int
   bookId  Int
-  user    User   @relation(fields: [userId], references: [id])
-  book    Book   @relation(fields: [bookId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
 }
 
 model Payment {
-  id      Int    @id @default(autoincrement())
-  orderId Int    @unique
-  method  String
-  status  String
-  order   Order  @relation(fields: [orderId], references: [id])
+  id      Int @id @default(autoincrement())
+  orderId Int @unique
+
+  method String // MOMO, COD
+  status String // PENDING, SUCCESS, FAILED
+
+  transactionId String?
+  amount        Float?
+
+  order Order @relation(fields: [orderId], references: [id])
 }
 
 model Address {
@@ -110,6 +131,8 @@ model Address {
   city    String
   street  String
   zipCode String
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 model Coupon {
@@ -122,4 +145,7 @@ model Wishlist {
   id     Int @id @default(autoincrement())
   userId Int
   bookId Int
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
 }

@@ -90,8 +90,8 @@ export default function ContactPage() {
         <div className="space-y-6">
           {[
             { icon: Mail, label: "Email", value: "support@bookstore.vn" },
-            { icon: Phone, label: "Điện thoại", value: "+84 90 123 4567" },
-            { icon: MapPin, label: "Địa chỉ", value: "123 Nguyễn Huệ, Quận 1, TP.HCM" },
+            { icon: Phone, label: "Điện thoại", value: "+84941579339" },
+            { icon: MapPin, label: "Địa chỉ", value: "Số nhà 31/134 Nguyên Xá, Minh Khai, Bắc Từ Liêm, Hà Nội" },
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="flex items-start gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100">
