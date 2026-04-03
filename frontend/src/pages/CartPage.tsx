@@ -1,12 +1,35 @@
-import { Link } from "react-router-dom";
-import { ShoppingBag, Trash2, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ShoppingBag, Trash2, ArrowRight, ArrowLeft } from "lucide-react";
 import { useCart } from "../hooks/useCart";
 import { formatPrice } from "../utils";
 import CartItem from "../components/cart/CartItem";
 import Button from "../components/ui/Button";
+import { bookService } from "../services/bookService";
 
 export default function CartPage() {
   const { items, totalItems, totalPrice, clearCart } = useCart();
+  const navigate = useNavigate();
+  const [isChecking, setIsChecking] = useState(false);
+
+  const handleCheckoutClick = async () => {
+    setIsChecking(true);
+    try {
+      for (const item of items) {
+        const liveBook = await bookService.getBookById(item.book.id.toString());
+        if (liveBook.stock < item.quantity) {
+          alert(`Sách "${liveBook.title}" không đủ số lượng (còn ${liveBook.stock}). Vui lòng giảm số lượng để tiếp tục.`);
+          setIsChecking(false);
+          return;
+        }
+      }
+      navigate("/checkout");
+    } catch (error) {
+      alert("Có lỗi xảy ra khi kiểm tra kho. Vui lòng thử lại.");
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -23,6 +46,13 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-4 sm:px-6 py-10">
+      <Link
+        to="/books"
+        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 mb-6 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Quay lại 
+      </Link>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">
           Giỏ hàng ({totalItems} sản phẩm)
@@ -64,11 +94,9 @@ export default function CartPage() {
             <span>Tổng cộng</span>
             <span className="text-indigo-600">{formatPrice(totalPrice)}</span>
           </div>
-          <Link to="/checkout">
-            <Button className="w-full" size="lg">
-              Thanh toán <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
-          </Link>
+          <Button onClick={handleCheckoutClick} isLoading={isChecking} className="w-full" size="lg">
+            Thanh toán <ArrowRight className="h-4 w-4 ml-1" />
+          </Button>
           <Link to="/books">
             <Button variant="outline" className="w-full" size="md">
               Tiếp tục mua sắm

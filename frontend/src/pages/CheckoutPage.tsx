@@ -1,32 +1,94 @@
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { CreditCard } from "lucide-react";
+import { CreditCard, CheckCircle, ArrowLeft } from "lucide-react";
 import { useCart } from "../hooks/useCart";
 import { formatPrice } from "../utils";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
-import type { ShippingAddress } from "../types";
+import { orderService } from "../services/orderService";
 
-type CheckoutForm = ShippingAddress & { paymentMethod: "cod" | "card" | "banking" };
+type CheckoutForm = {
+  fullName: string;
+  phone: string;
+  street: string;
+  city: string;
+  province: string;
+  postalCode?: string;
+  paymentMethod: "cod" | "banking";
+};
 
 export default function CheckoutPage() {
-  const { items, totalPrice } = useCart();
+  const navigate = useNavigate();
+  const { items, totalPrice, clearCart } = useCart();
+  const [orderError, setOrderError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutForm>({ defaultValues: { paymentMethod: "cod" } });
 
-  const onSubmit = (data: CheckoutForm) => {
-    console.log("Order payload:", data, items);
-    // TODO: connect to orderService.createOrder()
+  const onSubmit = async (formData: CheckoutForm) => {
+    setOrderError(null);
+
+    if (items.length === 0) {
+      setOrderError("Giỏ hàng trống. Vui lòng thêm sách trước khi đặt hàng.");
+      return;
+    }
+
+    try {
+      const payload = {
+        idempotencyKey: crypto.randomUUID(),
+        items: items.map((item) => ({
+          bookId: item.book.id,
+          quantity: item.quantity,
+        })),
+        paymentMethod: formData.paymentMethod,
+      };
+
+      await orderService.createOrder(payload);
+      clearCart();
+      navigate("/myorders", { state: { orderSuccess: true } });
+    } catch (err: any) {
+      setOrderError(
+        err?.response?.data?.message || "Đặt hàng thất bại. Vui lòng thử lại."
+      );
+    }
   };
+
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-4">
+        <p className="text-xl font-semibold text-gray-700">Giỏ hàng trống</p>
+        <a href="/books" className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors">
+          Khám phá sách
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-5xl px-4 sm:px-6 py-10">
+      <Link
+        to="/cart"
+        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 mb-6 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Quay lại 
+      </Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
         <CreditCard className="h-6 w-6 text-indigo-600" />
         Thanh toán
       </h1>
+
+      {orderError && (
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+          {orderError}
+        </div>
+      )}
 
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -117,6 +179,7 @@ export default function CheckoutPage() {
               <span className="text-indigo-600">{formatPrice(totalPrice)}</span>
             </div>
             <Button type="submit" isLoading={isSubmitting} className="w-full" size="lg">
+              <CheckCircle className="h-4 w-4 mr-2" />
               Đặt hàng
             </Button>
           </div>

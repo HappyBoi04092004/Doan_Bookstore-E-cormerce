@@ -44,7 +44,7 @@ model Author {
 model Book {
   id         Int    @id @default(autoincrement())
   title      String
-  price      Float
+  price      Int
   stock      Int
   authorId   Int
   categoryId Int
@@ -77,8 +77,9 @@ model CartItem {
 model Order {
   id     Int    @id @default(autoincrement())
   userId Int
-  status String // PENDING | PAID | FAILED
-  total  Float
+  status         String // PENDING | PAID | CANCELLED | FAILED
+  total          Int
+  idempotencyKey String? @unique
 
   paymentMethod String? // MOMO | COD
   paymentStatus String? // PENDING | SUCCESS | FAILED
@@ -95,7 +96,7 @@ model OrderItem {
   orderId Int
   bookId  Int
   qty     Int
-  price   Float
+  price   Int
 
   order Order @relation(fields: [orderId], references: [id])
   book  Book  @relation(fields: [bookId], references: [id])
@@ -120,7 +121,7 @@ model Payment {
   status String // PENDING, SUCCESS, FAILED
 
   transactionId String?
-  amount        Float?
+  amount        Int?
 
   order Order @relation(fields: [orderId], references: [id])
 }
@@ -138,7 +139,7 @@ model Address {
 model Coupon {
   id       Int    @id @default(autoincrement())
   code     String @unique
-  discount Float
+  discount Int
 }
 
 model Wishlist {

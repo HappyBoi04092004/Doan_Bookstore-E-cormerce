@@ -86,7 +86,7 @@ export default function UserMenu() {
             </Link>
 
             <Link
-              to="/orders"
+              to="/myorders"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
             >

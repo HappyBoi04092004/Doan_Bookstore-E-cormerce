@@ -20,6 +20,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ContactPage from "./pages/ContactPage";
+import MyOrdersPage from "./pages/usermenu/MyOrdersPage";
 
 // Admin Pages
 import DashboardPage from "./pages/admin/DashboardPage";
@@ -68,7 +69,7 @@ export default function App() {
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/orders" element={<div className="p-10 max-w-4xl mx-auto rounded-xl mt-10 shadow-sm bg-white border border-gray-100"><h2 className="text-2xl font-bold mb-4">My Orders</h2><p>Xem lịch sử đơn hàng </p></div>} />
+              <Route path="/myorders" element={<MyOrdersPage />} />
               <Route path="/tests" element={<div className="p-10 max-w-4xl mx-auto rounded-xl mt-10 shadow-sm bg-white border border-gray-100"><h2 className="text-2xl font-bold mb-4">My Tests</h2><p>Xem lịch sử test </p></div>} />
             </Route>
           </Route>

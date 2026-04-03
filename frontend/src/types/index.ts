@@ -54,38 +54,24 @@ export interface CartItem {
 
 // ─── Order ───────────────────────────────────────────────────────────────────
 
-export type OrderStatus =
-  | "pending"
-  | "confirmed"
-  | "shipping"
-  | "delivered"
-  | "cancelled";
+export type OrderStatus = "PENDING" | "PAID" | "CANCELLED" | "FAILED";
 
 export interface OrderItem {
+  id: number;
+  bookId: number;
+  qty: number;
+  price: number;
   book: Book;
-  quantity: number;
-  unitPrice: number;
-}
-
-export interface ShippingAddress {
-  fullName: string;
-  phone: string;
-  street: string;
-  city: string;
-  province: string;
-  postalCode: string;
 }
 
 export interface Order {
-  id: string;
-  user: User;
-  items: OrderItem[];
+  id: number;
+  userId: number;
   status: OrderStatus;
-  shippingAddress: ShippingAddress;
-  totalAmount: number;
-  paymentMethod: "cod" | "card" | "banking";
+  total: number;
   createdAt: string;
-  updatedAt: string;
+  items: OrderItem[];
+  user?: Pick<User, "id" | "name" | "email">;
 }
 
 // ─── API Responses ────────────────────────────────────────────────────────────

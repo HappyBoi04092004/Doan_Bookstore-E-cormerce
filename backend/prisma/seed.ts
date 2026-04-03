@@ -247,7 +247,7 @@ console.log("More books added");
 
   console.log("Wishlist created");
 
-  console.log("🎉 Seeding completed!");
+  console.log(" Seeding completed!");
 
 }
 

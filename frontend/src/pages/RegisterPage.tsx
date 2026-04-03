@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ArrowLeft } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
@@ -30,6 +30,13 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-gray-50 px-4 py-12">
       <div className="w-full max-w-md">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 mb-6 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Quay lại trang chủ
+        </Link>
         <div className="rounded-2xl border border-gray-200 bg-white px-8 py-10 shadow-sm">
           <div className="flex flex-col items-center gap-2 mb-8">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100">

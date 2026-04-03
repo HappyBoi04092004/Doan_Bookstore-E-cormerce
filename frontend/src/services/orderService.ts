@@ -1,47 +1,43 @@
 import apiClient from "./api";
-import type { Order, ShippingAddress, ApiResponse, PaginatedResponse } from "../types";
+import type { Order, OrderStatus, ApiResponse } from "../types";
 
 interface CreateOrderPayload {
-  items: { bookId: string; quantity: number }[];
-  shippingAddress: ShippingAddress;
-  paymentMethod: "cod" | "card" | "banking";
+  idempotencyKey: string;
+  items: { bookId: number; quantity: number }[];
+  paymentMethod?: string;
 }
 
 export const orderService = {
+  // ── User ──────────────────────────────────────────────────────────────────
+
   createOrder: async (payload: CreateOrderPayload): Promise<Order> => {
-    const { data } = await apiClient.post<ApiResponse<Order>>(
-      "/orders",
-      payload
-    );
+    const { data } = await apiClient.post<ApiResponse<Order>>("/api/orders", payload);
     return data.data;
   },
 
-  getMyOrders: async (): Promise<PaginatedResponse<Order>> => {
-    const { data } =
-      await apiClient.get<ApiResponse<PaginatedResponse<Order>>>("/orders/me");
+  getMyOrders: async (): Promise<Order[]> => {
+    const { data } = await apiClient.get<ApiResponse<Order[]>>("/api/orders/myorder");
     return data.data;
   },
 
-  getOrderById: async (id: string): Promise<Order> => {
-    const { data } = await apiClient.get<ApiResponse<Order>>(`/orders/${id}`);
+  getOrderById: async (id: number): Promise<Order> => {
+    const { data } = await apiClient.get<ApiResponse<Order>>(`/api/orders/${id}`);
     return data.data;
   },
 
-  /** Admin */
-  getAllOrders: async (): Promise<PaginatedResponse<Order>> => {
-    const { data } =
-      await apiClient.get<ApiResponse<PaginatedResponse<Order>>>("/orders");
+  // ── Admin ─────────────────────────────────────────────────────────────────
+
+  adminGetAllOrders: async (): Promise<Order[]> => {
+    const { data } = await apiClient.get<ApiResponse<Order[]>>("/api/admin/orders");
     return data.data;
   },
 
-  updateOrderStatus: async (
-    id: string,
-    status: Order["status"]
-  ): Promise<Order> => {
-    const { data } = await apiClient.patch<ApiResponse<Order>>(
-      `/orders/${id}/status`,
+  adminUpdateOrderStatus: async (id: number, status: OrderStatus): Promise<Order> => {
+    const { data } = await apiClient.put<ApiResponse<Order>>(
+      `/api/admin/orders/${id}/status`,
       { status }
     );
     return data.data;
   },
+
 };

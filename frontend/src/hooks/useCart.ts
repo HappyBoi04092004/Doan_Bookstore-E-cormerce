@@ -6,7 +6,6 @@ export function useCart() {
 
   const addToCart = (book: Book, quantity = 1) => {
     store.addItem(book, quantity);
-    store.openCart();
   };
 
   return {

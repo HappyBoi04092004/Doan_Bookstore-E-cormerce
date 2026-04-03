@@ -1,11 +1,36 @@
 import { X, ShoppingBag, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../hooks/useCart";
 import { formatPrice } from "../../utils";
 import CartItem from "./CartItem";
+import { bookService } from "../../services/bookService";
 
 export default function CartSidebar() {
   const { items, isOpen, closeCart, totalPrice } = useCart();
+  const navigate = useNavigate();
+  const [isChecking, setIsChecking] = useState(false);
+
+  const handleCheckoutClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsChecking(true);
+    try {
+      for (const item of items) {
+        const liveBook = await bookService.getBookById(item.book.id.toString());
+        if (liveBook.stock < item.quantity) {
+          alert(`Sách "${liveBook.title}" không đủ số lượng (còn ${liveBook.stock}). Vui lòng giảm số lượng trong giỏ hàng để tiếp tục.`);
+          setIsChecking(false);
+          return;
+        }
+      }
+      closeCart();
+      navigate("/checkout");
+    } catch (error) {
+      alert("Có lỗi xảy ra khi kiểm tra kho. Vui lòng thử lại.");
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   return (
     <>
@@ -90,13 +115,13 @@ export default function CartSidebar() {
             </div>
 
             {/* Actions */}
-            <Link
-              to="/checkout"
-              onClick={closeCart}
-              className="flex items-center justify-center gap-2 w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+            <button
+              onClick={handleCheckoutClick}
+              disabled={isChecking}
+              className={`flex items-center justify-center gap-2 w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors ${isChecking ? "opacity-75 cursor-not-allowed" : ""}`}
             >
-              Đặt hàng <ArrowRight className="h-4 w-4" />
-            </Link>
+              {isChecking ? "Đang kiểm tra kho..." : "Đặt hàng"} <ArrowRight className="h-4 w-4" />
+            </button>
             <Link
               to="/cart"
               onClick={closeCart}

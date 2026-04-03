@@ -40,19 +40,30 @@ export default function ProfilePage() {
 
   if (isError || !user) {
     return (
-      <div className="text-center text-red-500 mt-10">
-        Lỗi khi tải thông tin tài khoản
+      <div className="max-w-3xl mx-auto p-6">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 mb-6 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Quay lại 
+        </Link>
+        <div className="text-center text-red-500 mt-10 font-medium">
+          Lỗi khi tải thông tin tài khoản
+        </div>
       </div>
     );
   }
 
   return (
-    //Back
-    // <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 mb-6 transition-colors">
-    //     <ArrowLeft className="h-4 w-4" />
-    //     Quay lại 
-    // </Link>
     <div className="max-w-3xl mx-auto p-6">
+      <Link
+        to="/"
+        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 mb-6 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Quay lại 
+      </Link>
       <h1 className="text-2xl font-bold mb-6 text-gray-800">
         Thông tin tài khoản
       </h1>
