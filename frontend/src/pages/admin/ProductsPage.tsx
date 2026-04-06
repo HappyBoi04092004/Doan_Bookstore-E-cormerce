@@ -146,16 +146,21 @@ export default function ProductsPage() {
           placeholder="Search books by title…"
           className="w-full sm:max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
         />
-        <input
-          type="text"
+        
+        <select
           value={category}
           onChange={(e) => {
             setCategory(e.target.value);
             setPage(1);
           }}
-          placeholder="Filter category…"
-          className="w-full sm:max-w-[150px] rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-        />
+          className="w-full sm:max-w-[180px] rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+        >
+          <option value="">All Categories</option>
+          <option value="Programming">Programming</option>
+          <option value="Science">Science</option>
+          <option value="History">History</option>
+          <option value="Business">Business</option>
+        </select>
       </div>
 
       {isLoading ? (

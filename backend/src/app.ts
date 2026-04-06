@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.routes";
 import orderRoutes from "./routes/order.routes";
 import adminRoutes from "./routes/admin.order.routes";
 import userRoutes from "./routes/user.routes";
+import categoryRoutes from "./routes/category.routers";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use("/books", bookRoutes);
 app.use("/orders", orderRoutes);
 app.use("/admin", adminRoutes);
 app.use("/users", userRoutes);
+app.use("/categories", categoryRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

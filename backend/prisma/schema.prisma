@@ -30,9 +30,10 @@ model Role {
 }
 
 model Category {
-  id       Int    @id @default(autoincrement())
-  name     String
-  products Book[]
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  image String?
+  books Book[]  @relation("CategoryBooks")
 }
 
 model Author {
@@ -53,7 +54,7 @@ model Book {
   createdAt   DateTime @default(now())
 
   author     Author      @relation(fields: [authorId], references: [id])
-  category   Category    @relation(fields: [categoryId], references: [id])
+  category   Category    @relation("CategoryBooks", fields: [categoryId], references: [id])
   orderItems OrderItem[]
   reviews    Review[]
   wishlists  Wishlist[]

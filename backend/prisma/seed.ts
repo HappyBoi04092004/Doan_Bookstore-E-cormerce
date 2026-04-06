@@ -46,15 +46,24 @@ async function main() {
 
   // ===== CATEGORY =====
   const programming = await prisma.category.create({
-    data: { name: "Programming" }
+    data: {
+      name: "Programming",
+      image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=400&q=80"
+    }
   });
 
   const business = await prisma.category.create({
-    data: { name: "Business" }
+    data: {
+      name: "Business",
+      image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80"
+    }
   });
 
   const novel = await prisma.category.create({
-    data: { name: "Novel" }
+    data: {
+      name: "Novel",
+      image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80"
+    }
   });
 
   console.log("Categories created");

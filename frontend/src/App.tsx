@@ -27,6 +27,7 @@ import DashboardPage from "./pages/admin/DashboardPage";
 import UsersPage from "./pages/admin/UsersPage";
 import ProductsPage from "./pages/admin/ProductsPage";
 import OrdersPage from "./pages/admin/OrdersPage";
+import CategoriesPage from "./pages/admin/CategoriesPage";
 import ProfilePage from "./pages/usermenu/ProfilePage";
 
 const queryClient = new QueryClient({
@@ -80,6 +81,7 @@ export default function App() {
               <Route path="/admin" element={<DashboardPage />} />
               <Route path="/admin/users" element={<UsersPage />} />
               <Route path="/admin/products" element={<ProductsPage />} />
+              <Route path="/admin/categories" element={<CategoriesPage />} />
               <Route path="/admin/orders" element={<OrdersPage />} />
             </Route>
           </Route>

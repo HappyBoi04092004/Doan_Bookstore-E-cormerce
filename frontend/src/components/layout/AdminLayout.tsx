@@ -5,12 +5,14 @@ import {
   ShoppingBag,
   Package,
   BookOpen,
+  Tag,
 } from "lucide-react";
 import UserMenu from "../common/UserMenu";
 
 const adminNav = [
   { to: "/admin", label: "Bảng điều khiển", icon: LayoutDashboard, end: true },
   { to: "/admin/products", label: "Sản phẩm", icon: Package, end: false },
+  { to: "/admin/categories", label: "Danh mục", icon: Tag, end: false },
   { to: "/admin/orders", label: "Đơn hàng", icon: ShoppingBag, end: false },
   { to: "/admin/users", label: "Người dùng", icon: Users, end: false },
 ];
