@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 import bookRoutes from "./routes/book.routes";
 import authRoutes from "./routes/auth.routes";
 import orderRoutes from "./routes/order.routes";
-import adminOrderRoutes from "./routes/admin.order.routes";
+import adminRoutes from "./routes/admin.order.routes";
+import userRoutes from "./routes/user.routes";
 
 dotenv.config();
 
@@ -21,7 +22,8 @@ app.get("/", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/books", bookRoutes);
 app.use("/orders", orderRoutes);
-app.use("/admin", adminOrderRoutes);
+app.use("/admin", adminRoutes);
+app.use("/users", userRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -41,7 +41,7 @@ export interface Book {
   price: number;
   stock: number;
   description?: string;
-  coverImage?: string;
+  imageUrl?: string;
   createdAt?: string;
 }
 

@@ -50,7 +50,7 @@ export default function BookDetailPage() {
         {/* Cover */}
         <div className="relative">
           <img
-            src={book.coverImage || "https://via.placeholder.com/300x400"}
+            src={book.imageUrl || "https://via.placeholder.com/300x400"}
             alt={book.title}
             className="w-full rounded-xl object-cover shadow-md"
           />
@@ -66,7 +66,7 @@ export default function BookDetailPage() {
             </h1>
 
             <p className="text-gray-500 mt-1">
-              by <span className="font-medium">{book.author.name}</span>
+              được viết bởi <span className="font-medium">{book.author.name}</span>
             </p>
           </div>
 
@@ -85,8 +85,8 @@ export default function BookDetailPage() {
               }`}
             >
               {book.stock > 0
-                ? `${book.stock} copies available`
-                : "Out of stock"}
+                ? ` còn ${book.stock} sản phẩm`
+                : "Hết hàng"}
             </p>
           </div>
 

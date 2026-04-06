@@ -42,12 +42,15 @@ model Author {
 }
 
 model Book {
-  id         Int    @id @default(autoincrement())
-  title      String
-  price      Int
-  stock      Int
-  authorId   Int
-  categoryId Int
+  id          Int      @id @default(autoincrement())
+  title       String
+  authorId    Int
+  price       Int
+  stock       Int
+  description String?
+  imageUrl    String?
+  categoryId  Int
+  createdAt   DateTime @default(now())
 
   author     Author      @relation(fields: [authorId], references: [id])
   category   Category    @relation(fields: [categoryId], references: [id])

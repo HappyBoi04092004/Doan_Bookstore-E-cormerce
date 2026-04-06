@@ -12,8 +12,8 @@ interface CartState {
 
   // Actions
   addItem: (book: Book, quantity?: number) => void;
-  removeItem: (bookId: string) => void;
-  updateQuantity: (bookId: string, quantity: number) => void;
+  removeItem: (bookId: number) => void;
+  updateQuantity: (bookId: number, quantity: number) => void;
   clearCart: () => void;
   toggleCart: () => void;
   openCart: () => void;
@@ -39,6 +39,10 @@ export const useCartStore = create<CartState>()(
         set((state) => {
           const existing = state.items.find((i) => i.book.id === book.id);
           if (existing) {
+            if (existing.quantity + quantity > book.stock) {
+              alert("Số lượng vượt quá số lượng trong kho.");
+              return state;
+            }
             return {
               items: state.items.map((i) =>
                 i.book.id === book.id
@@ -46,6 +50,10 @@ export const useCartStore = create<CartState>()(
                   : i
               ),
             };
+          }
+          if (quantity > book.stock) {
+            alert("Không đủ số lượng trong kho.");
+            return state;
           }
           return { items: [...state.items, { book, quantity }] };
         });
@@ -63,9 +71,16 @@ export const useCartStore = create<CartState>()(
           return;
         }
         set((state) => ({
-          items: state.items.map((i) =>
-            i.book.id === bookId ? { ...i, quantity } : i
-          ),
+          items: state.items.map((i) => {
+            if (i.book.id === bookId) {
+              if (quantity > i.book.stock) {
+                alert("Vượt quá hàng trong kho!");
+                return i;
+              }
+              return { ...i, quantity };
+            }
+            return i;
+          }),
         }));
       },
 
