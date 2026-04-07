@@ -181,7 +181,7 @@ console.log("More books added");
     data: {
       userId: user.id,
       status: "PAID",
-      total: 50
+      total: 50000
     }
   });
 
@@ -190,7 +190,7 @@ console.log("More books added");
       orderId: order.id,
       bookId: cleanCode.id,
       qty: 2,
-      price: 25
+      price: 25000
     }
   });
 

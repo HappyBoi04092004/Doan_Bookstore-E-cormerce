@@ -49,7 +49,7 @@ model Book {
   price       Int
   stock       Int
   description String?
-  imageUrl    String?
+  image       String?
   categoryId  Int
   createdAt   DateTime @default(now())
 
@@ -79,8 +79,8 @@ model CartItem {
 }
 
 model Order {
-  id     Int    @id @default(autoincrement())
-  userId Int
+  id             Int     @id @default(autoincrement())
+  userId         Int
   status         String // PENDING | PAID | CANCELLED | FAILED
   total          Int
   idempotencyKey String? @unique
@@ -96,7 +96,7 @@ model Order {
 }
 
 model OrderItem {
-  id      Int   @id @default(autoincrement())
+  id      Int @id @default(autoincrement())
   orderId Int
   bookId  Int
   qty     Int
