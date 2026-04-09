@@ -31,6 +31,7 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
+  image?: string;
 }
 
 export interface Book {
@@ -41,7 +42,7 @@ export interface Book {
   price: number;
   stock: number;
   description?: string;
-  imageUrl?: string;
+  image?: string;
   createdAt?: string;
 }
 

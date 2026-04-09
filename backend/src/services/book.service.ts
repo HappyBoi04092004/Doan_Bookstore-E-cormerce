@@ -36,7 +36,7 @@ export const bookService = {
   },
 
   async createBook(data: any) {
-    const { title, author, price, stock, category, description, imageUrl } = data;
+    const { title, author, price, stock, category, description, image } = data;
     
     if (!title || !author) throw new Error("Title and Author are required");
     if (price <= 0) throw new Error("Price must be > 0");
@@ -61,7 +61,7 @@ export const bookService = {
         stock: parseInt(stock),
         categoryId: catRecord.id,
         description,
-        imageUrl,
+        image,
       },
       include: { category: true, author: true }
     });
@@ -70,13 +70,15 @@ export const bookService = {
   },
 
   async updateBook(id: number, data: any) {
-    const { title, author, price, stock, category, description, imageUrl } = data;
+    const { title, author, price, stock, category, description, image } = data;
     
     if (price && price <= 0) throw new Error("Price must be > 0");
     if (stock && stock < 0) throw new Error("Stock cannot be negative");
 
     const bookToUpdate = await prisma.book.findUnique({ where: { id } });
     if (!bookToUpdate) throw new Error("Book not found");
+
+    // Handle old file deletion if new image is uploaded - REMOVED AS PER USER REQUEST
 
     let categoryId = bookToUpdate.categoryId;
     if (category) {
@@ -101,7 +103,7 @@ export const bookService = {
     if (price !== undefined) updateData.price = parseInt(price);
     if (stock !== undefined) updateData.stock = parseInt(stock);
     if (description !== undefined) updateData.description = description;
-    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+    if (image !== undefined) updateData.image = image;
 
     const book = await prisma.book.update({
       where: { id },
@@ -113,6 +115,8 @@ export const bookService = {
   },
 
   async deleteBook(id: number) {
+     const book = await prisma.book.findUnique({ where: { id } });
+     // Deletion REMAINS in folder - REMOVED AS PER USER REQUEST
      await prisma.book.delete({ where: { id } });
      return true;
   },

@@ -27,7 +27,8 @@ async function main() {
       email: "admin@gmail.com",
       password: hassPassword,
       name: "Admin",
-      roleId: adminRole.id
+      roleId: adminRole.id,
+      avatar: "/uploads/avatar/a-2243-183313.jpg"
     }
   });
 
@@ -36,7 +37,7 @@ async function main() {
       email: "user@gmail.com",
       password: hassPassword,
       name: "Nguyen Van A",
-      avatar: "https://i.pravatar.cc/150?img=1",
+      avatar: "/uploads/avatar/image_2024_10_16t02_04_10_067z_aa3729e6c3a64c2893fc99751fe83be6_master.png",
       roleId: userRole.id
     }
   });
@@ -48,21 +49,21 @@ async function main() {
   const programming = await prisma.category.create({
     data: {
       name: "Programming",
-      image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=400&q=80"
+      image: "/uploads/categories/default-category.jpg"
     }
   });
 
   const business = await prisma.category.create({
     data: {
       name: "Business",
-      image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80"
+      image: "/uploads/categories/default-category.jpg"
     }
   });
 
   const novel = await prisma.category.create({
     data: {
       name: "Novel",
-      image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80"
+      image: "/uploads/categories/default-category.jpg"
     }
   });
 
@@ -93,7 +94,8 @@ async function main() {
       price: 25000,
       stock: 100,
       authorId: martin.id,
-      categoryId: programming.id
+      categoryId: programming.id,
+      image: "/uploads/books/image_2024_10_16t02_04_10_067z_aa3729e6c3a64c2893fc99751fe83be6_master.png"
     }
   });
 
@@ -104,7 +106,8 @@ async function main() {
       price: 30000,
       stock: 80,
       authorId: hunt.id,
-      categoryId: programming.id
+      categoryId: programming.id,
+      image: "/uploads/books/a-2243-183313.jpg"
     }
   });
 
@@ -115,7 +118,8 @@ async function main() {
       price: 28000,
       stock: 60,
       authorId: ries.id,
-      categoryId: business.id
+      categoryId: business.id,
+      image: "/uploads/books/OIP.jfif"
     }
   });
 
@@ -129,7 +133,8 @@ const deepWork = await prisma.book.create({
     price: 22000,
     stock: 70,
     authorId: ries.id, 
-    categoryId: business.id
+    categoryId: business.id,
+    image: "/uploads/books/default-book.jpg"
   }
 });
 
@@ -140,7 +145,8 @@ const refactoring = await prisma.book.create({
     price: 35000,
     stock: 50,
     authorId: martin.id,
-    categoryId: programming.id
+    categoryId: programming.id,
+    image: "/uploads/books/default-book.jpg"
   }
 });
 
@@ -151,7 +157,8 @@ const atomicHabits = await prisma.book.create({
     price: 27000,
     stock: 90,
     authorId: hunt.id, 
-    categoryId: business.id
+    categoryId: business.id,
+    image: "/uploads/books/default-book.jpg"
   }
 });
 

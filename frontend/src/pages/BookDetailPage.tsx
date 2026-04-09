@@ -50,9 +50,10 @@ export default function BookDetailPage() {
         {/* Cover */}
         <div className="relative">
           <img
-            src={book.imageUrl || "https://via.placeholder.com/300x400"}
+            src={book.image || "/default-book.png"}
             alt={book.title}
             className="w-full rounded-xl object-cover shadow-md"
+            onError={(e) => (e.currentTarget.src = "/default-book.png")}
           />
         </div>
 

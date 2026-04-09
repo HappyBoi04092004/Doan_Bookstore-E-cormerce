@@ -46,7 +46,7 @@ export const userService = {
 
   async createUser(data: any) {
     // data.email, password, name, role (id or name)
-    const { email, password, name, role } = data;
+    const { email, password, name, role, avatar } = data;
     const exist = await prisma.user.findUnique({ where: { email } });
     if (exist) throw new Error("Email already exists");
 
@@ -65,7 +65,8 @@ export const userService = {
         email,
         name,
         password: hashed,
-        roleId: roleRecord.id
+        roleId: roleRecord.id,
+        avatar: avatar || null
       },
       include: { role: true }
     });
@@ -75,10 +76,12 @@ export const userService = {
   },
 
   async updateUser(id: number, data: any) {
-    const { email, password, name, role } = data;
+    const { email, password, name, role, avatar } = data;
     
     const userToUpdate = await prisma.user.findUnique({ where: { id } });
     if (!userToUpdate) throw new Error("User not found");
+
+    // Cleanup old avatar if update includes a new one - REMOVED
 
     if (email && email !== userToUpdate.email) {
       const exist = await prisma.user.findUnique({ where: { email } });
@@ -95,6 +98,7 @@ export const userService = {
       const roleRecord = await prisma.role.findFirst({ where: { name: role.toUpperCase() } });
       if (roleRecord) updateData.roleId = roleRecord.id;
     }
+    if (avatar !== undefined) updateData.avatar = avatar;
 
     const user = await prisma.user.update({
       where: { id },
@@ -107,16 +111,19 @@ export const userService = {
   },
 
   async deleteUser(id: number) {
+     // Deletion REMAINS in folder - REMOVED AS PER USER REQUEST
      await prisma.user.delete({ where: { id } });
      return true;
   },
 
   // user profile self-update
   async updateProfile(id: number, data: any) {
-    const { email, password, name } = data;
+    const { email, password, name, avatar } = data;
     
     const userToUpdate = await prisma.user.findUnique({ where: { id } });
     if (!userToUpdate) throw new Error("User not found");
+
+    // Cleanup old avatar if update includes a new one - REMOVED
 
     if (email && email !== userToUpdate.email) {
       const exist = await prisma.user.findUnique({ where: { email } });
@@ -129,6 +136,7 @@ export const userService = {
     if (password) {
       updateData.password = await bcrypt.hash(password, 10);
     }
+    if (avatar !== undefined) updateData.avatar = avatar;
 
     const user = await prisma.user.update({
       where: { id },

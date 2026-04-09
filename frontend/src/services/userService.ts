@@ -15,12 +15,28 @@ export const userService = {
   },
 
   async createUser(data: any) {
-    const response = await api.post("/api/users", data);
+    const formData = new FormData();
+    Object.keys(data).forEach(key => {
+      if (data[key] !== undefined && data[key] !== null) {
+        formData.append(key, data[key]);
+      }
+    });
+    const response = await api.post("/api/users", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
     return response.data;
   },
 
   async updateUser(id: number, data: any) {
-    const response = await api.put(`/api/users/${id}`, data);
+    const formData = new FormData();
+    Object.keys(data).forEach(key => {
+      if (data[key] !== undefined && data[key] !== null) {
+        formData.append(key, data[key]);
+      }
+    });
+    const response = await api.put(`/api/users/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
     return response.data;
   },
 
@@ -30,8 +46,17 @@ export const userService = {
   },
 
   // Profile update
-  async updateProfile(data: { name?: string; email?: string; password?: string }) {
-    const response = await api.put("/api/users/me", data);
+  async updateProfile(data: { name?: string; email?: string; password?: string; image?: any }) {
+    const formData = new FormData();
+    Object.keys(data).forEach(key => {
+      const val = (data as any)[key];
+      if (val !== undefined && val !== null) {
+        formData.append(key, val);
+      }
+    });
+    const response = await api.put("/api/users/me", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
     return response.data;
   },
 };

@@ -21,6 +21,7 @@ export default function UserFormModal({
     email: "",
     password: "",
     role: "user",
+    image: null as File | null,
   });
 
   const [errorMsg, setErrorMsg] = useState("");
@@ -32,6 +33,7 @@ export default function UserFormModal({
         email: initialData.email || "",
         password: "", // don't show existing password
         role: initialData.role || "user",
+        image: null,
       });
     } else {
       setFormData({
@@ -39,6 +41,7 @@ export default function UserFormModal({
         email: "",
         password: "",
         role: "user",
+        image: null,
       });
     }
   }, [initialData, isOpen]);
@@ -46,7 +49,12 @@ export default function UserFormModal({
   if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (e.target.type === "file") {
+       const fileInput = e.target as HTMLInputElement;
+       setFormData({ ...formData, [e.target.name]: fileInput.files?.[0] || null });
+    } else {
+       setFormData({ ...formData, [e.target.name]: e.target.value });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -126,6 +134,20 @@ export default function UserFormModal({
               <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Avatar</label>
+            <input
+              type="file"
+              name="image"
+              onChange={handleChange}
+              accept="image/*"
+              className="mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            />
+            {initialData?.avatar && !formData.image && (
+                <p className="mt-1 text-xs text-gray-400 italic">Current: {initialData.avatar}</p>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 mt-6">

@@ -12,13 +12,25 @@ export const categoryService = {
     return data.data;
   },
 
-  async create(payload: { name: string; image?: string }): Promise<Category> {
-    const { data } = await apiClient.post("/api/categories", payload);
+  async create(payload: { name: string; image?: any }): Promise<Category> {
+    const formData = new FormData();
+    formData.append("name", payload.name);
+    if (payload.image) formData.append("image", payload.image);
+    
+    const { data } = await apiClient.post("/api/categories", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
     return data.data;
   },
 
-  async update(id: number, payload: { name?: string; image?: string }): Promise<Category> {
-    const { data } = await apiClient.put(`/api/categories/${id}`, payload);
+  async update(id: number, payload: { name?: string; image?: any }): Promise<Category> {
+    const formData = new FormData();
+    if (payload.name) formData.append("name", payload.name);
+    if (payload.image) formData.append("image", payload.image);
+    
+    const { data } = await apiClient.put(`/api/categories/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
     return data.data;
   },
 

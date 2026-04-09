@@ -29,6 +29,8 @@ export const categoryService = {
     const category = await prisma.category.findUnique({ where: { id } });
     if (!category) throw new Error("Category not found");
 
+    // Deletion REMAINS in folder - REMOVED AS PER USER REQUEST
+
     if (name && name.trim() !== category.name) {
       const existing = await prisma.category.findFirst({ where: { name: name.trim() } });
       if (existing && existing.id !== id) throw new Error("Category name already exists");
@@ -49,6 +51,7 @@ export const categoryService = {
       include: { books: true },
     });
     if (!category) throw new Error("Category not found");
+    // Deletion REMAINS in folder - REMOVED AS PER USER REQUEST
     if (category.books.length > 0) {
       throw new Error(
         `Cannot delete: this category is used by ${category.books.length} book(s). Reassign them first.`

@@ -79,6 +79,18 @@ export default function UsersPage() {
   };
 
   const columns: Column<User>[] = [
+    {
+      key: "avatar",
+      header: "Avatar",
+      render: (u) => (
+        <img 
+          src={u.avatar || "/default-avatar.png"} 
+          alt={u.name} 
+          className="h-10 w-10 rounded-full object-cover border border-gray-100" 
+          onError={(e) => (e.currentTarget.src = "/default-avatar.png")}
+        />
+      ),
+    },
     { key: "name", header: "Name" },
     { key: "email", header: "Email" },
     {

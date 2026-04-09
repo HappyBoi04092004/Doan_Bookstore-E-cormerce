@@ -19,7 +19,9 @@ export default function ProfilePage() {
     name: "",
     email: "",
     password: "",
+    image: null as File | null,
   });
+  const [previewUrl, setPreviewUrl] = useState("");
 
   const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null);
 
@@ -29,7 +31,9 @@ export default function ProfilePage() {
         name: user.name || "",
         email: user.email || "",
         password: "",
+        image: null,
       });
+      setPreviewUrl(user.avatar || "");
     }
   }, [user]);
 
@@ -38,7 +42,7 @@ export default function ProfilePage() {
     onSuccess: () => {
       setMessage({ type: "success", text: "Cập nhật thông tin thành công!" });
       queryClient.invalidateQueries({ queryKey: ["me"] });
-      setForm((prev) => ({ ...prev, password: "" }));
+      setForm((prev) => ({ ...prev, password: "", image: null }));
     },
     onError: (err: any) => {
       setMessage({ type: "error", text: err?.response?.data?.message || "Lỗi khi cập nhật!" });
@@ -46,10 +50,18 @@ export default function ProfilePage() {
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    if (e.target.type === "file") {
+      const file = e.target.files?.[0] || null;
+      setForm({ ...form, [e.target.name]: file });
+      if (file) {
+        setPreviewUrl(URL.createObjectURL(file));
+      }
+    } else {
+      setForm({
+        ...form,
+        [e.target.name]: e.target.value,
+      });
+    }
   };
 
   const handleSave = () => {
@@ -105,12 +117,22 @@ export default function ProfilePage() {
         )}
 
         {/* Avatar */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-6 mb-6">
           <img
-            src={user.avatar || "/default-avatar.png"}
+            src={previewUrl || "/default-avatar.png"}
             alt="avatar"
-            className="w-20 h-20 rounded-full object-cover border"
+            className="w-24 h-24 rounded-full object-cover border-2 border-indigo-100 shadow-sm"
           />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Ảnh đại diện</label>
+            <input 
+              type="file" 
+              name="image" 
+              onChange={handleChange} 
+              accept="image/*"
+              className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+            />
+          </div>
         </div>
 
         {/* Table */}

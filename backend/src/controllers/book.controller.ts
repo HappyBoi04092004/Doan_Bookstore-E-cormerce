@@ -48,7 +48,8 @@ export const getAdminBooks = async (req: Request, res: Response): Promise<void> 
 
 export const createBook = async (req: Request, res: Response): Promise<void> => {
    try {
-      const data = await bookService.createBook(req.body);
+      const imagePath = req.file ? `/uploads/books/${req.file.filename}` : null;
+      const data = await bookService.createBook({ ...req.body, image: imagePath });
       res.status(201).json({ success: true, data, message: "Book created" });
    } catch (error: any) {
       console.error("[createBook]", error.message);
@@ -59,7 +60,8 @@ export const createBook = async (req: Request, res: Response): Promise<void> => 
 export const updateBook = async (req: Request, res: Response): Promise<void> => {
    try {
       const id = parseInt(req.params.id as string);
-      const data = await bookService.updateBook(id, req.body);
+      const imagePath = req.file ? `/uploads/books/${req.file.filename}` : undefined;
+      const data = await bookService.updateBook(id, { ...req.body, image: imagePath });
       res.json({ success: true, data, message: "Book updated" });
    } catch (error: any) {
       console.error("[updateBook]", error.message);

@@ -7,6 +7,7 @@ import Button from "../../components/ui/Button";
 import BookFormModal from "../../components/admin/BookFormModal";
 import { formatPrice } from "../../utils";
 import { bookService } from "../../services/bookService";
+import { categoryService } from "../../services/categoryService";
 import type { Book } from "../../types";
 
 export default function ProductsPage() {
@@ -20,6 +21,11 @@ export default function ProductsPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["adminBooks", search, page, category],
     queryFn: () => bookService.getAdminBooks(search, page, 10, category),
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoryService.getAll,
   });
 
   const createMutation = useMutation({
@@ -82,6 +88,18 @@ export default function ProductsPage() {
   };
 
   const columns: Column<any>[] = [
+    {
+      key: "image",
+      header: "Image",
+      render: (p) => (
+        <img 
+          src={p.image || "/default-book.png"} 
+          alt={p.title} 
+          className="h-12 w-10 object-cover rounded border border-gray-100" 
+          onError={(e) => (e.currentTarget.src = "/default-book.png")}
+        />
+      ),
+    },
     {
       key: "title",
       header: "Book",
@@ -156,10 +174,9 @@ export default function ProductsPage() {
           className="w-full sm:max-w-[180px] rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
         >
           <option value="">All Categories</option>
-          <option value="Programming">Programming</option>
-          <option value="Science">Science</option>
-          <option value="History">History</option>
-          <option value="Business">Business</option>
+          {categories.map((c: any) => (
+            <option key={c.id} value={c.name}>{c.name}</option>
+          ))}
         </select>
       </div>
 

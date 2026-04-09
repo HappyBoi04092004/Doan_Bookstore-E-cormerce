@@ -31,7 +31,8 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const data = await userService.createUser(req.body);
+    const avatar = req.file ? `/uploads/avatar/${req.file.filename}` : undefined;
+    const data = await userService.createUser({ ...req.body, avatar });
     res.status(201).json({ success: true, data, message: "User created" });
   } catch (error: any) {
     if (error.message === "Email already exists" || error.message === "Role not found") {
@@ -45,7 +46,8 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const id = parseInt(req.params.id as string);
-    const data = await userService.updateUser(id, req.body);
+    const avatar = req.file ? `/uploads/avatar/${req.file.filename}` : undefined;
+    const data = await userService.updateUser(id, { ...req.body, avatar });
     res.json({ success: true, data, message: "User updated" });
   } catch (error: any) {
     if (error.message === "User not found") {
@@ -77,9 +79,10 @@ export const updateMe = async (req: Request, res: Response): Promise<void> => {
        res.status(401).json({ success: false, message: "Not authenticated" });
        return;
     }
-    // User can only update email, password, and name
+    // User can only update email, password, and name, and avatar
     const { email, password, name } = req.body;
-    const data = await userService.updateProfile(req.user.id, { email, password, name });
+    const avatar = req.file ? `/uploads/avatar/${req.file.filename}` : undefined;
+    const data = await userService.updateProfile(req.user.id, { email, password, name, avatar });
     res.json({ success: true, data, message: "Profile updated successfully" });
   } catch (error: any) {
     if (error.message === "User not found") {

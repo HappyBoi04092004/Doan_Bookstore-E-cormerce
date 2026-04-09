@@ -158,9 +158,14 @@ const BookListPage: React.FC = () => {
               {filteredBooks.map((book) => (
                 <Link to={`/books/${book.id}`} key={book.id} className="group">
                   <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col overflow-hidden h-full">
-                    <div className="h-48 bg-gradient-to-br from-indigo-50 to-blue-50 flex items-center justify-center relative overflow-hidden">
-                      <BookIcon className="w-16 h-16 text-indigo-200 group-hover:scale-110 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/2 duration-300" />
+                    <div className="h-64 bg-gray-50 relative overflow-hidden">
+                      <img 
+                        src={book.image || "/default-book.png"} 
+                        alt={book.title} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                        onError={(e) => (e.currentTarget.src = "/default-book.png")}
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 duration-300" />
                       <div className="absolute top-3 right-3">
                         <Badge variant={book.stock > 0 ? "success" : "danger"} className="shadow-sm">
                           {book.stock > 0 ? `${book.stock} còn hàng` : "Hết hàng"}

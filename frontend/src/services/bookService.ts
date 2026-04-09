@@ -15,12 +15,28 @@ export const bookService = {
   },
 
   async createBook(data: any): Promise<Book> {
-    const response = await apiClient.post("/api/books", data);
+    const formData = new FormData();
+    Object.keys(data).forEach(key => {
+      if (data[key] !== undefined && data[key] !== null) {
+        formData.append(key, data[key]);
+      }
+    });
+    const response = await apiClient.post("/api/books", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
     return response.data.data;
   },
 
   async updateBook({ id, data }: { id: string | number; data: any }): Promise<Book> {
-    const response = await apiClient.put(`/api/books/${id}`, data);
+    const formData = new FormData();
+    Object.keys(data).forEach(key => {
+      if (data[key] !== undefined && data[key] !== null) {
+        formData.append(key, data[key]);
+      }
+    });
+    const response = await apiClient.put(`/api/books/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
     return response.data.data;
   },
 

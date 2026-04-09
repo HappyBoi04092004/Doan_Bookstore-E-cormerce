@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/authenticate";
 import { authorize } from "../middleware/authorize";
+import { uploadCategory } from "../middleware/upload";
 import { getAllCategories, getCategoryById, createCategory, updateCategory, deleteCategory } from "../controllers/category.controller";
 
 const router = Router();
@@ -9,8 +10,8 @@ router.get("/", getAllCategories);
 router.get("/:id", getCategoryById);
 
 // Admin routes for category management
-router.post("/", authenticate, authorize(["admin"]), createCategory);
-router.put("/:id", authenticate, authorize(["admin"]), updateCategory);
+router.post("/", authenticate, authorize(["admin"]), uploadCategory.single("image"), createCategory);
+router.put("/:id", authenticate, authorize(["admin"]), uploadCategory.single("image"), updateCategory);
 router.delete("/:id", authenticate, authorize(["admin"]), deleteCategory);
 
 
