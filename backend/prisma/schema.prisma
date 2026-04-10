@@ -130,14 +130,52 @@ model Payment {
   order Order @relation(fields: [orderId], references: [id])
 }
 
-model Address {
-  id      Int    @id @default(autoincrement())
-  userId  Int
-  city    String
-  street  String
-  zipCode String
+model Province {
+  code      Int        @id
+  name      String
+  districts District[]
+  addresses Address[]
 
-  user User @relation(fields: [userId], references: [id])
+  @@index([name])
+}
+
+model District {
+  code         Int       @id
+  name         String
+  provinceCode Int
+  province     Province  @relation(fields: [provinceCode], references: [code])
+  wards        Ward[]
+  addresses    Address[]
+
+  @@index([name])
+  @@index([provinceCode])
+}
+
+model Ward {
+  code         Int       @id
+  name         String
+  districtCode Int
+  district     District  @relation(fields: [districtCode], references: [code])
+  addresses    Address[]
+
+  @@index([name])
+  @@index([districtCode])
+}
+
+model Address {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  name         String
+  phone        String
+  provinceCode Int
+  districtCode Int
+  wardCode     Int
+  detail       String
+
+  user     User     @relation(fields: [userId], references: [id])
+  province Province @relation(fields: [provinceCode], references: [code])
+  district District @relation(fields: [districtCode], references: [code])
+  ward     Ward     @relation(fields: [wardCode], references: [code])
 }
 
 model Coupon {

@@ -9,13 +9,21 @@ export interface CreateOrderPayload {
   idempotencyKey: string;
   items: OrderItemInput[];
   paymentMethod?: "cod" | "banking";
+  address?: {
+    name: string;
+    phone: string;
+    street: string;
+    provinceCode: number;
+    districtCode: number;
+    wardCode: number;
+  };
 }
 
 export const orderService = {
   // ── USER ──────────────────────────────────────────────────────────────────
 
   async createOrder(userId: number, payload: CreateOrderPayload) {
-    const { items, idempotencyKey, paymentMethod } = payload;
+    const { items, idempotencyKey, paymentMethod, address } = payload;
     
     // Check constraints and concurrency inside interactive transaction
     return prisma.$transaction(async (tx) => {
@@ -68,6 +76,21 @@ export const orderService = {
           items: { include: { book: { include: { author: true, category: true } } } },
         },
       });
+
+      // 4. Save the address if provided
+      if (address) {
+        await tx.address.create({
+          data: {
+            userId,
+            name: address.name,
+            phone: address.phone,
+            detail: address.street,
+            provinceCode: address.provinceCode,
+            districtCode: address.districtCode,
+            wardCode: address.wardCode,
+          }
+        });
+      }
 
       return order;
     });

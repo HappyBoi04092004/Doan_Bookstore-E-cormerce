@@ -230,12 +230,17 @@ console.log("More books added");
 
 
   // ===== ADDRESS =====
+  // NOTE: Requires seedAddress.ts to have run first so Province/District/Ward rows exist.
+  // Using: Phường Tràng Tiền (55), Quận Hoàn Kiếm (2), Hà Nội (1)
   await prisma.address.create({
     data: {
-      userId: user.id,
-      city: "Ha Noi",
-      street: "Cau Giay",
-      zipCode: "100000"
+      userId:       user.id,
+      name:         "Nguyen Van A",
+      phone:        "0912345678",
+      provinceCode: 1,   // Thành phố Hà Nội
+      districtCode: 2,   // Quận Hoàn Kiếm
+      wardCode:     55,  // Phường Tràng Tiền
+      detail:       "Số 1 Tràng Tiền",
     }
   });
 

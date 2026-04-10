@@ -10,6 +10,14 @@ const createOrderSchema = z.object({
     quantity: z.number().int().positive("quantity must be a positive integer").max(100, "quantity cannot exceed 100")
   })).min(1, "items must be a non-empty array"),
   paymentMethod: z.enum(["cod", "banking"]).optional(),
+  address: z.object({
+    name: z.string(),
+    phone: z.string(),
+    street: z.string(),
+    provinceCode: z.number().int(),
+    districtCode: z.number().int(),
+    wardCode: z.number().int(),
+  }).optional(),
 });
 
 export const createOrder = async (req: Request, res: Response): Promise<void> => {

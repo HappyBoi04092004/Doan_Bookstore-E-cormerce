@@ -7,6 +7,7 @@ import orderRoutes from "./routes/order.routes";
 import adminRoutes from "./routes/admin.order.routes";
 import userRoutes from "./routes/user.routes";
 import categoryRoutes from "./routes/category.routers";
+import addressRoutes from "./routes/address.routes";
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use("/orders", orderRoutes);
 app.use("/admin", adminRoutes);
 app.use("/users", userRoutes);
 app.use("/categories", categoryRoutes);
+app.use("/api/address", addressRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

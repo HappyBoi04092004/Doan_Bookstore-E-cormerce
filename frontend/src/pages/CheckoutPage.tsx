@@ -6,15 +6,17 @@ import { useCart } from "../hooks/useCart";
 import { formatPrice } from "../utils";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
+import AddressAutocomplete from "../components/common/AddressAutocomplete";
 import { orderService } from "../services/orderService";
 
 type CheckoutForm = {
   fullName: string;
   phone: string;
   street: string;
-  city: string;
-  province: string;
-  postalCode?: string;
+  addressSearch: string; // The selected suggestion
+  provinceCode: number;
+  districtCode: number;
+  wardCode: number;
   paymentMethod: "cod" | "banking";
 };
 
@@ -25,6 +27,7 @@ export default function CheckoutPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutForm>({ defaultValues: { paymentMethod: "cod" } });
 
@@ -44,6 +47,14 @@ export default function CheckoutPage() {
           quantity: item.quantity,
         })),
         paymentMethod: formData.paymentMethod,
+        address: {
+          name: formData.fullName,
+          phone: formData.phone,
+          street: formData.street,
+          provinceCode: formData.provinceCode,
+          districtCode: formData.districtCode,
+          wardCode: formData.wardCode,
+        }
       };
 
       await orderService.createOrder(payload);
@@ -110,28 +121,27 @@ export default function CheckoutPage() {
                 {...register("phone", { required: "Bắt buộc" })}
                 error={errors.phone?.message}
               />
+              <div className="sm:col-span-2 space-y-1">
+                <label className="block text-sm font-medium text-gray-700">Tỉnh/Thành phố, Quận/Huyện, Phường/Xã</label>
+                <AddressAutocomplete 
+                  onSelect={(item) => {
+                    setValue("addressSearch", item.fullAddress, { shouldValidate: true });
+                    setValue("provinceCode", item.provinceCode);
+                    setValue("districtCode", item.districtCode);
+                    setValue("wardCode", item.wardCode);
+                  }}
+                  error={errors.addressSearch?.message}
+                />
+                <input type="hidden" {...register("addressSearch", { required: "Vui lòng chọn phường/xã" })} />
+              </div>
+
               <div className="sm:col-span-2">
                 <Input
-                  label="Địa chỉ"
+                  label="Địa chỉ chi tiết (Số nhà, đường...)"
                   {...register("street", { required: "Bắt buộc" })}
                   error={errors.street?.message}
                 />
               </div>
-              <Input
-                label="Tỉnh/Thành phố"
-                {...register("city", { required: "Bắt buộc" })}
-                error={errors.city?.message}
-              />
-              <Input
-                label="Quận/Huyện"
-                {...register("province", { required: "Bắt buộc" })}
-                error={errors.province?.message}
-              />
-              <Input
-                label="Mã bưu điện"
-                {...register("postalCode")}
-                error={errors.postalCode?.message}
-              />
             </div>
           </div>
 
@@ -140,8 +150,8 @@ export default function CheckoutPage() {
             <h2 className="font-semibold text-gray-900 mb-4">Phương thức thanh toán</h2>
             <div className="space-y-2">
               {[
-                { value: "cod", label: "💵 Thanh toán khi nhận hàng" },
-                { value: "banking", label: "🏦 Chuyển khoản ngân hàng" },
+                { value: "cod", label: " Thanh toán khi nhận hàng" },
+                { value: "banking", label: " Chuyển khoản ngân hàng" },
               ].map(({ value, label }) => (
                 <label
                   key={value}
@@ -179,7 +189,6 @@ export default function CheckoutPage() {
               <span className="text-indigo-600">{formatPrice(totalPrice)}</span>
             </div>
             <Button type="submit" isLoading={isSubmitting} className="w-full" size="lg">
-              <CheckCircle className="h-4 w-4 mr-2" />
               Đặt hàng
             </Button>
           </div>
