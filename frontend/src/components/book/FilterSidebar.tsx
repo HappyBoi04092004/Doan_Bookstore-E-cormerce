@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { X, Filter, ChevronRight } from "lucide-react";
+import { X, ChevronRight } from "lucide-react";
 import type { Book } from "../../types";
 
 interface FilterSidebarProps {

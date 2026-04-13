@@ -23,10 +23,10 @@ export default function BookDetailPage() {
   if (error || !book) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-4">
-        <p className="text-red-600 font-medium">Book not found.</p>
+        <p className="text-red-600 font-medium">Không tìm thấy sách.</p>
         <Link to="/books">
           <Button variant="ghost">
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back to Books
+            <ArrowLeft className="h-4 w-4 mr-1" /> Quay lại danh sách
           </Button>
         </Link>
       </div>
@@ -86,7 +86,7 @@ export default function BookDetailPage() {
               }`}
             >
               {book.stock > 0
-                ? ` còn ${book.stock} sản phẩm`
+                ? `Còn ${book.stock} sản phẩm`
                 : "Hết hàng"}
             </p>
           </div>
@@ -99,14 +99,14 @@ export default function BookDetailPage() {
             className="mt-2 w-full sm:w-auto"
           >
             <ShoppingCart className="h-5 w-5 mr-1" />
-            {book.stock === 0 ? "Out of Stock" : "Add to Cart"}
+            {book.stock === 0 ? "Hết hàng" : "Thêm vào giỏ hàng"}
           </Button>
 
           {/* Description */}
           {book.description && (
             <div className="mt-4 border-t pt-4">
               <h2 className="font-semibold text-gray-900 mb-2">
-                About this book
+                Giới thiệu về sách
               </h2>
               <p className="text-gray-600 text-sm leading-relaxed">
                 {book.description}

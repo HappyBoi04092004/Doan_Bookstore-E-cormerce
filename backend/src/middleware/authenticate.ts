@@ -14,7 +14,7 @@ export const authenticate = (
 ): void => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({ message: "Unauthorized: Missing Token" });
+    res.status(401).json({ message: "Không có quyền truy cập: Thiếu token" });
     return;
   }
 
@@ -29,6 +29,6 @@ export const authenticate = (
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ message: "Unauthorized: Invalid token" });
+    res.status(401).json({ message: "Không có quyền truy cập: Token không hợp lệ" });
   }
 };

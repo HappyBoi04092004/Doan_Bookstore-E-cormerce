@@ -62,13 +62,13 @@ export default function UserFormModal({
     setErrorMsg("");
 
     if (!formData.name || !formData.email) {
-      setErrorMsg("Name and Email are required");
+      setErrorMsg("Họ tên và Email là bắt buộc");
       return;
     }
     
     // Require password for create but optional for edit
     if (!initialData && !formData.password) {
-      setErrorMsg("Password is required for new users");
+      setErrorMsg("Mật khẩu là bắt buộc cho người dùng mới");
       return;
     }
 
@@ -81,15 +81,15 @@ export default function UserFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-        <h2 className="text-xl font-bold mb-4">{initialData ? "Edit User" : "Create User"}</h2>
+        <h2 className="text-xl font-bold mb-4">{initialData ? "Sửa người dùng" : "Thêm người dùng"}</h2>
         
         {errorMsg && <div className="mb-4 text-red-600 text-sm">{errorMsg}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <label className="block text-sm font-medium text-gray-700">Họ tên</label>
             <input
               type="text"
               name="name"
@@ -112,7 +112,7 @@ export default function UserFormModal({
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Password {initialData && "(Leave blank to keep unchanged)"}
+              Mật khẩu {initialData && "(Để trống nếu không muốn đổi)"}
             </label>
             <input
               type="password"
@@ -124,20 +124,20 @@ export default function UserFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Role</label>
+            <label className="block text-sm font-medium text-gray-700">Vai trò</label>
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
             >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
+              <option value="user">Người dùng</option>
+              <option value="admin">Quản trị viên</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Avatar</label>
+            <label className="block text-sm font-medium text-gray-700">Ảnh đại diện</label>
             <input
               type="file"
               name="image"
@@ -146,16 +146,16 @@ export default function UserFormModal({
               className="mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
             />
             {initialData?.avatar && !formData.image && (
-                <p className="mt-1 text-xs text-gray-400 italic">Current: {initialData.avatar}</p>
+                <p className="mt-1 text-xs text-gray-400 italic">Hiện tại: {initialData.avatar}</p>
             )}
           </div>
 
           <div className="flex justify-end gap-3 mt-6">
             <Button variant="ghost" onClick={onClose} type="button" disabled={isLoading}>
-              Cancel
+              Hủy
             </Button>
             <Button variant="primary" type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save"}
+              {isLoading ? "Đang lưu..." : "Lưu"}
             </Button>
           </div>
         </form>

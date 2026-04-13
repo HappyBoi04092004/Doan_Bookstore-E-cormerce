@@ -1,31 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, BookOpen, Star, Truck, Search } from "lucide-react";
 
-const features = [
-  {
-    icon: BookOpen,
-    title: "Huge Collection",
-    desc: "Thousands of titles spanning fiction, science, history, and more.",
-  },
-  {
-    icon: Star,
-    title: "Curated Picks",
-    desc: "Handpicked recommendations by our editorial team every week.",
-  },
-  {
-    icon: Truck,
-    title: "Fast Delivery",
-    desc: "Same-day shipping available in major cities across Vietnam.",
-  },
-];
-
-// const stats = [
-//   { value: "50,000+", label: "Books" },
-//   { value: "120,000+", label: "Happy Readers" },
-//   { value: "4.9 ★", label: "Average Rating" },
-//   { value: "Free", label: "Shipping on ₫500k+" },
-// ];
-
 export default function HomePage() {
   return (
     <div className="bg-slate-50">
@@ -95,20 +70,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ── Stats strip ───────────────────────────────────────── */}
-      {/* <section className="border-b border-slate-200 bg-white">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-100">
-            {stats.map(({ value, label }) => (
-              <div key={label} className="flex flex-col items-center py-7 px-4 text-center">
-                <span className="text-2xl font-bold text-indigo-600">{value}</span>
-                <span className="mt-0.5 text-sm text-slate-500">{label === "Books" ? "Sách" : label === "Happy Readers" ? "Độc giả hài lòng" : label === "Average Rating" ? "Đánh giá trung bình" : label === "Shipping on ₫500k+" ? "Miễn phí vận chuyển cho đơn từ 500k" : label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section> */}
 
       {/* ── Features ──────────────────────────────────────────── */}
       <section className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">

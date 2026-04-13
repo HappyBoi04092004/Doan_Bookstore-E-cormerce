@@ -21,7 +21,7 @@ export default function AdminTable<T>({
   data,
   isLoading = false,
   keyExtractor,
-  emptyMessage = "No data found.",
+  emptyMessage = "Không có dữ liệu.",
   onRowClick,
 }: AdminTableProps<T>) {
   if (isLoading) {

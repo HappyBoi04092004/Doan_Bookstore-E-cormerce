@@ -55,7 +55,7 @@ export default function UsersPage() {
   });
 
   const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa người dùng này không?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -81,7 +81,7 @@ export default function UsersPage() {
   const columns: Column<User>[] = [
     {
       key: "avatar",
-      header: "Avatar",
+      header: "Ảnh đại diện",
       render: (u) => (
         <img 
           src={u.avatar || "/default-avatar.png"} 
@@ -91,11 +91,11 @@ export default function UsersPage() {
         />
       ),
     },
-    { key: "name", header: "Name" },
+    { key: "name", header: "Họ tên" },
     { key: "email", header: "Email" },
     {
       key: "role",
-      header: "Role",
+      header: "Vai trò",
       render: (u) => (
         <Badge variant={u.role === "admin" ? "info" : "default"}>
           {u.role}
@@ -104,16 +104,16 @@ export default function UsersPage() {
     },
     {
       key: "createdAt",
-      header: "Joined",
+      header: "Ngày tham gia",
       render: (u) => new Date(u.createdAt).toLocaleDateString("vi-VN"),
     },
     {
       key: "actions",
-      header: "Actions",
+      header: "Thao tác",
       render: (u) => (
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => handleEdit(u)}>Edit</Button>
-          <Button variant="danger" size="sm" onClick={() => handleDelete(u.id)} disabled={deleteMutation.isPending}>Delete</Button>
+          <Button variant="ghost" size="sm" onClick={() => handleEdit(u)}>Sửa</Button>
+          <Button variant="danger" size="sm" onClick={() => handleDelete(u.id)} disabled={deleteMutation.isPending}>Xóa</Button>
         </div>
       ),
     },
@@ -123,13 +123,13 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Users</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Người dùng</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {data?.data?.total || 0} registered users
+            {data?.data?.total || 0} người dùng đã đăng ký
           </p>
         </div>
         <Button variant="primary" onClick={handleCreate}>
-          + Create User
+          + Thêm Người dùng
         </Button>
       </div>
 
@@ -141,22 +141,22 @@ export default function UsersPage() {
             setSearch(e.target.value);
             setPage(1);
           }}
-          placeholder="Search by name or email…"
+          placeholder="Tìm kiếm theo tên hoặc email…"
           className="w-full max-w-sm rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
         />
       </div>
 
       {isLoading ? (
-        <div className="text-center py-10">Loading users...</div>
+        <div className="text-center py-10">Đang tải người dùng...</div>
       ) : isError ? (
-        <div className="text-center py-10 text-red-500">Failed to load users.</div>
+        <div className="text-center py-10 text-red-500">Không thể tải danh sách người dùng.</div>
       ) : (
         <>
           <AdminTable
             columns={columns}
             data={data?.data?.users || []}
             keyExtractor={(u) => u.id}
-            emptyMessage="No users found."
+            emptyMessage="Không tìm thấy người dùng nào."
           />
           
           {/* Pagination Controls */}
@@ -166,15 +166,15 @@ export default function UsersPage() {
                disabled={page === 1}
                onClick={() => setPage(page - 1)}
             >
-               Previous
+               Trang trước
             </Button>
-            <span className="text-sm">Page {page}</span>
+            <span className="text-sm">Trang {page}</span>
             <Button 
                variant="ghost" 
                disabled={!data?.data?.users?.length || data.data.users.length < 10}
                onClick={() => setPage(page + 1)}
             >
-               Next
+               Trang sau
             </Button>
           </div>
         </>

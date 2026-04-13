@@ -57,8 +57,8 @@ export default function LoginPage() {
               type="email"
               placeholder="you@example.com"
               {...register("email", {
-                required: "Email is required",
-                pattern: { value: /\S+@\S+\.\S+/, message: "Invalid email" },
+                required: "Vui lòng nhập email",
+                pattern: { value: /\S+@\S+\.\S+/, message: "Email không hợp lệ" },
               })}
               error={errors.email?.message}
             />

@@ -2,15 +2,15 @@ import { Link } from "react-router-dom";
 import { BookOpen, Github, Mail, Phone } from "lucide-react";
 
 const footerLinks = {
-  Shop: [
-    { to: "/books", label: "Browse Books" },
-    { to: "/books?sort=newest", label: "New Arrivals" },
-    { to: "/books?sort=rating", label: "Best Sellers" },
+  "Cửa hàng": [
+    { to: "/books", label: "Xem tất cả sách" },
+    { to: "/books?sort=newest", label: "Sách mới" },
+    { to: "/books?sort=rating", label: "Bán chạy nhất" },
   ],
-  Account: [
-    { to: "/login", label: "Sign In" },
-    { to: "/register", label: "Register" },
-    { to: "/cart", label: "My Cart" },
+  "Tài khoản": [
+    { to: "/login", label: "Đăng nhập" },
+    { to: "/register", label: "Đăng ký" },
+    { to: "/cart", label: "Giỏ hàng" },
   ],
 };
 
@@ -86,22 +86,22 @@ export default function Footer() {
           {/* Newsletter */}
           <div>
             <h4 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-4">
-              Stay Updated
+              Theo dõi chúng tôi
             </h4>
             <p className="text-[13px] text-slate-400 mb-3 leading-relaxed">
-              Get weekly picks and exclusive deals.
+              Nhận những gợi ý sách hay và ưu đãi độc quyền.
             </p>
             <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
               <input
                 type="email"
-                placeholder="Your email"
+                placeholder="Email của bạn"
                 className="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-[12.5px] text-slate-300 placeholder-slate-600 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
               />
               <button
                 type="submit"
                 className="rounded-lg bg-indigo-600 px-3 py-2 text-[12px] font-semibold text-white hover:bg-indigo-700 transition-colors shrink-0"
               >
-                Join
+                Đăng ký nhận tin
               </button>
             </form>
           </div>
@@ -109,8 +109,7 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-10 border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-slate-600">
-          <span>© {new Date().getFullYear()} BookStore. All rights reserved.</span>
-          <span>Built with React + TypeScript + TailwindCSS</span>
+          <span>© {new Date().getFullYear()} BookStore. Đã đăng ký bản quyền bởi Happyboi.</span>
         </div>
       </div>
     </footer>

@@ -26,14 +26,14 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
     const validatedBody = createOrderSchema.parse(req.body);
 
     const order = await orderService.createOrder(userId, validatedBody);
-    res.status(201).json({ message: "Order created", data: order });
+    res.status(201).json({ message: "Tạo đơn hàng thành công", data: order });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-       res.status(400).json({ message: "Validation error", errors: error.issues });
+       res.status(400).json({ message: "Lỗi xác thực dữ liệu", errors: error.issues });
        return;
     }
     console.error("[createOrder]", error);
-    res.status(400).json({ message: error.message || "Failed to create order" });
+    res.status(400).json({ message: error.message || "Tạo đơn hàng thất bại" });
   }
 };
 
@@ -44,7 +44,7 @@ export const getMyOrders = async (req: Request, res: Response): Promise<void> =>
     res.json({ message: "OK", data: orders });
   } catch (error) {
     console.error("[getMyOrders]", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 };
 
@@ -55,18 +55,18 @@ export const getOrderById = async (req: Request, res: Response): Promise<void> =
 
     const order = await orderService.getOrderById(orderId, userId);
     if (!order) {
-      res.status(404).json({ message: "Order not found" });
+      res.status(404).json({ message: "Không tìm thấy đơn hàng" });
       return;
     }
 
     res.json({ message: "OK", data: order });
   } catch (error: any) {
-    if (error.message === "Forbidden") {
-      res.status(403).json({ message: "Forbidden" });
+    if (error.message === "Bị từ chối: Không đủ quyền hạn") {
+      res.status(403).json({ message: "Bị từ chối: Không đủ quyền hạn" });
       return;
     }
     console.error("[getOrderById]", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 };
 
@@ -78,7 +78,7 @@ export const adminGetAllOrders = async (req: Request, res: Response): Promise<vo
     res.json({ message: "OK", data: orders });
   } catch (error) {
     console.error("[adminGetAllOrders]", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 };
 
@@ -88,19 +88,19 @@ export const adminUpdateOrderStatus = async (req: Request, res: Response): Promi
     const { status } = req.body as { status: string };
 
     if (!status) {
-      res.status(400).json({ message: "status is required" });
+      res.status(400).json({ message: "Thiếu trạng thái" });
       return;
     }
 
     const order = await orderService.updateOrderStatus(orderId, status);
-    res.json({ message: "Status updated", data: order });
+    res.json({ message: "Cập nhật trạng thái thành công", data: order });
   } catch (error: any) {
-    if (error.message === "Invalid status") {
-      res.status(400).json({ message: "Invalid status. Must be PENDING, PAID, or FAILED" });
+    if (error.message === "Trạng thái không hợp lệ") {
+      res.status(400).json({ message: "Trạng thái không hợp lệ. Chỉ chấp nhận PENDING, PAID, hoặc FAILED" });
       return;
     }
     console.error("[adminUpdateOrderStatus]", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 };
 

@@ -12,7 +12,7 @@ export const searchAddress = async (req: Request, res: Response): Promise<void> 
     const q = (req.query.q as string | undefined)?.trim();
 
     if (!q) {
-      res.status(400).json({ message: "Query parameter 'q' is required" });
+      res.status(400).json({ message: "Thiếu từ khoá tìm kiếm" });
       return;
     }
 
@@ -22,6 +22,6 @@ export const searchAddress = async (req: Request, res: Response): Promise<void> 
     res.json(results);
   } catch (error) {
     console.error("[searchAddress]", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 };

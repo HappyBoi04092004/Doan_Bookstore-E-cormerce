@@ -24,7 +24,7 @@ export default function AdminLayout() {
       <aside className="w-64 shrink-0 bg-gray-900 text-white">
         <div className="flex items-center gap-2 px-6 py-5 border-b border-gray-700">
           <BookOpen className="h-6 w-6 text-indigo-400" />
-          <span className="font-bold text-lg">Quản trị BookStore</span>
+          <span className="font-bold text-lg">Quản trị HPStore</span>
         </div>
         <nav className="mt-4 px-3">
           {adminNav.map(({ to, label, icon: Icon, end }) => (

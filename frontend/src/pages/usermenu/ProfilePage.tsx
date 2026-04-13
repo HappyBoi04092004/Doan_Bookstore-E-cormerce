@@ -77,7 +77,7 @@ export default function ProfilePage() {
     updateMutation.mutate(payload);
   };
 
-  if (isLoading) return <div className="text-center mt-10">Loading...</div>;
+  if (isLoading) return <div className="text-center mt-10">Đang tải...</div>;
 
   if (isError || !user) {
     return (

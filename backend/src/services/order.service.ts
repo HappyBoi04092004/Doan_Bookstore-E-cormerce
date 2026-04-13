@@ -42,10 +42,10 @@ export const orderService = {
       for (const item of items) {
         const book = await tx.book.findUnique({ where: { id: item.bookId } });
         if (!book) {
-          throw new Error(`Book with id ${item.bookId} not found`);
+          throw new Error(`Không tìm thấy sách với id ${item.bookId}`);
         }
         if (book.stock < item.quantity) {
-          throw new Error(`Not enough stock for book '${book.title}'. Available: ${book.stock}, requested: ${item.quantity}`);
+          throw new Error(`Không đủ số lượng cho sách '${book.title}'. Có sẵn: ${book.stock}, Yêu cầu: ${item.quantity}`);
         }
         
         // Decrement stock
@@ -116,7 +116,7 @@ export const orderService = {
     });
 
     if (!order) return null;
-    if (order.userId !== userId) throw new Error("Forbidden");
+    if (order.userId !== userId) throw new Error("Bị từ chối: Không đủ quyền hạn");
     return order;
   },
 
@@ -134,7 +134,7 @@ export const orderService = {
 
   async updateOrderStatus(orderId: number, status: string) {
     const allowed = ["PENDING", "PAID", "CANCELLED", "FAILED"];
-    if (!allowed.includes(status)) throw new Error("Invalid status");
+    if (!allowed.includes(status)) throw new Error("Trạng thái không hợp lệ");
 
     return prisma.order.update({
       where: { id: orderId },

@@ -64,7 +64,7 @@ export default function ProductsPage() {
   });
 
   const handleDelete = (id: string | number) => {
-    if (window.confirm("Are you sure you want to delete this book?")) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa cuốn sách này không?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -90,7 +90,7 @@ export default function ProductsPage() {
   const columns: Column<any>[] = [
     {
       key: "image",
-      header: "Image",
+      header: "Hình ảnh",
       render: (p) => (
         <img 
           src={p.image || "/default-book.png"} 
@@ -102,7 +102,7 @@ export default function ProductsPage() {
     },
     {
       key: "title",
-      header: "Book",
+      header: "Sản phẩm",
       render: (p) => (
         <div>
           <p className="font-medium text-gray-900 line-clamp-1">{p.title}</p>
@@ -112,30 +112,30 @@ export default function ProductsPage() {
     },
     { 
       key: "category", 
-      header: "Category", 
+      header: "Danh mục", 
       render: (p) => <Badge variant="info">{p.category}</Badge> 
     },
     { 
       key: "price", 
-      header: "Price", 
+      header: "Giá", 
       render: (p) => formatPrice(p.price) 
     },
     {
       key: "stock",
-      header: "Stock",
+      header: "Tồn kho",
       render: (p) => (
         <Badge variant={p.stock === 0 ? "danger" : p.stock < 10 ? "warning" : "success"}>
-          {p.stock === 0 ? "Out of stock" : `${p.stock} left`}
+          {p.stock === 0 ? "Hết hàng" : `${p.stock} sản phẩm`}
         </Badge>
       ),
     },
     {
       key: "actions",
-      header: "Actions",
+      header: "Thao tác",
       render: (p) => (
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => handleEdit(p)}>Edit</Button>
-          <Button variant="danger" size="sm" onClick={() => handleDelete(p.id)} disabled={deleteMutation.isPending}>Delete</Button>
+          <Button variant="ghost" size="sm" onClick={() => handleEdit(p)}>Sửa</Button>
+          <Button variant="danger" size="sm" onClick={() => handleDelete(p.id)} disabled={deleteMutation.isPending}>Xóa</Button>
         </div>
       ),
     },
@@ -145,11 +145,11 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Products (Books)</h1>
-          <p className="text-sm text-gray-500 mt-1">{data?.data?.total || 0} books total</p>
+          <h1 className="text-2xl font-bold text-gray-900">Sách</h1>
+          <p className="text-sm text-gray-500 mt-1">{data?.data?.total || 0} sản phẩm</p>
         </div>
         <Button variant="primary" onClick={handleCreate}>
-          <Plus className="h-4 w-4 mr-1" /> Add Book
+          <Plus className="h-4 w-4 mr-1" /> Thêm sách
         </Button>
       </div>
 
@@ -161,7 +161,7 @@ export default function ProductsPage() {
             setSearch(e.target.value);
             setPage(1);
           }}
-          placeholder="Search books by title…"
+          placeholder="Tìm kiếm sách theo tên…"
           className="w-full sm:max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
         />
         
@@ -173,7 +173,7 @@ export default function ProductsPage() {
           }}
           className="w-full sm:max-w-[180px] rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
         >
-          <option value="">All Categories</option>
+          <option value="">Tất cả danh mục</option>
           {categories.map((c: any) => (
             <option key={c.id} value={c.name}>{c.name}</option>
           ))}
@@ -181,24 +181,24 @@ export default function ProductsPage() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-10">Loading books...</div>
+        <div className="text-center py-10">Đang tải danh sách sách...</div>
       ) : isError ? (
-         <div className="text-center py-10 text-red-500">Failed to load books.</div>
+         <div className="text-center py-10 text-red-500">Không thể tải danh sách sách.</div>
       ) : (
         <>
           <AdminTable
             columns={columns}
             data={data?.data?.books || []}
             keyExtractor={(p) => p.id}
-            emptyMessage="No products found."
+            emptyMessage="Không tìm thấy sách nào."
           />
           <div className="flex justify-between items-center mt-4">
              <Button variant="ghost" disabled={page === 1} onClick={() => setPage(page - 1)}>
-                Previous
+                Trang trước
              </Button>
-             <span className="text-sm">Page {page}</span>
+             <span className="text-sm">Trang {page}</span>
              <Button variant="ghost" disabled={!data?.data?.books?.length || data.data.books.length < 10} onClick={() => setPage(page + 1)}>
-                Next
+                Trang sau
              </Button>
           </div>
         </>

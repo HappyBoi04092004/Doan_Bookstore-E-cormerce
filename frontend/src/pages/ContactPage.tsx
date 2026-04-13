@@ -89,7 +89,7 @@ export default function ContactPage() {
         {/* Contact info */}
         <div className="space-y-6">
           {[
-            { icon: Mail, label: "Email", value: "support@bookstore.vn" },
+            { icon: Mail, label: "Email", value: "support@hpstore.vn" },
             { icon: Phone, label: "Điện thoại", value: "+84941579339" },
             { icon: MapPin, label: "Địa chỉ", value: "Số nhà 31/134 Nguyên Xá, Minh Khai, Bắc Từ Liêm, Hà Nội" },
           ].map(({ icon: Icon, label, value }) => (

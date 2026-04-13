@@ -48,7 +48,7 @@ export const userService = {
     // data.email, password, name, role (id or name)
     const { email, password, name, role, avatar } = data;
     const exist = await prisma.user.findUnique({ where: { email } });
-    if (exist) throw new Error("Email already exists");
+    if (exist) throw new Error("Email đã tồn tại");
 
     let roleRecord;
     if (role) {
@@ -57,7 +57,7 @@ export const userService = {
       roleRecord = await prisma.role.findFirst({ where: { name: "USER" } });
     }
 
-    if (!roleRecord) throw new Error("Role not found");
+    if (!roleRecord) throw new Error("Không tìm thấy vai trò");
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
@@ -79,13 +79,13 @@ export const userService = {
     const { email, password, name, role, avatar } = data;
     
     const userToUpdate = await prisma.user.findUnique({ where: { id } });
-    if (!userToUpdate) throw new Error("User not found");
+    if (!userToUpdate) throw new Error("Không tìm thấy người dùng");
 
     // Cleanup old avatar if update includes a new one - REMOVED
 
     if (email && email !== userToUpdate.email) {
       const exist = await prisma.user.findUnique({ where: { email } });
-      if (exist) throw new Error("Email already exists");
+      if (exist) throw new Error("Email đã tồn tại");
     }
 
     const updateData: any = { };
@@ -121,13 +121,13 @@ export const userService = {
     const { email, password, name, avatar } = data;
     
     const userToUpdate = await prisma.user.findUnique({ where: { id } });
-    if (!userToUpdate) throw new Error("User not found");
+    if (!userToUpdate) throw new Error("Không tìm thấy người dùng");
 
     // Cleanup old avatar if update includes a new one - REMOVED
 
     if (email && email !== userToUpdate.email) {
       const exist = await prisma.user.findUnique({ where: { email } });
-      if (exist) throw new Error("Email already exists");
+      if (exist) throw new Error("Email đã tồn tại");
     }
 
     const updateData: any = { };

@@ -27,7 +27,7 @@ const fileFilter = (_req: any, file: any, cb: any) => {
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Only .png, .jpg and .jpeg format allowed!"), false);
+    cb(new Error("Chỉ cho phép định dạng .png, .jpg, .jpeg và .webp!"), false);
   }
 };
 

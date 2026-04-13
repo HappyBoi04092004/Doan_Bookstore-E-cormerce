@@ -71,6 +71,16 @@ export interface Order {
   status: OrderStatus;
   total: number;
   createdAt: string;
+  paymentMethod?: string;
+  address?: {
+    name: string;
+    phone: string;
+    street: string;
+    detail: string;
+    wardCode: number;
+    districtCode: number;
+    provinceCode: number;
+  };
   items: OrderItem[];
   user?: Pick<User, "id" | "name" | "email">;
 }

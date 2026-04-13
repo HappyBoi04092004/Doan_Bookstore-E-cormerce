@@ -25,55 +25,88 @@ function formatPrice(n: number) {
 function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Đơn hàng #{order.id}</h2>
-            <p className="text-sm text-gray-400 mt-0.5">
-              {new Date(order.createdAt).toLocaleString("vi-VN")}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 transition-colors text-2xl leading-none"
-          >
-            ×
-          </button>
-        </div>
-
-        <div className="p-6 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Trạng thái:</span>
-            <span
-              className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${statusColor[order.status]}`}
-            >
-              {statusLabel[order.status] ?? order.status}
-            </span>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Danh sách sách</h3>
-            <div className="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden">
-              {order.items.map((item: OrderItem) => (
-                <div key={item.id} className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <div className="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold shrink-0">
-                    {item.qty}×
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{item.book.title}</p>
-                    <p className="text-xs text-gray-400">{item.book.author?.name}</p>
-                  </div>
-                  <p className="text-sm font-semibold text-indigo-600 shrink-0">
-                    {formatPrice(item.price * item.qty)}
-                  </p>
-                </div>
-              ))}
+            <h2 className="text-xl font-bold text-gray-900">Chi tiết đơn hàng #{order.id}</h2>
+            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+              <span className={`text-xs font-semibold rounded-full border px-2.5 py-0.5 ${statusColor[order.status]}`}>
+                {statusLabel[order.status] || order.status}
+              </span>
+              <span className="text-xs text-gray-500">•</span>
+              <span className="text-xs text-gray-500">
+                Ngày đặt: {new Date(order.createdAt).toLocaleString("vi-VN")}
+              </span>
             </div>
           </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-2xl mb-auto">×</button>
+        </div>
+        
+        <div className="p-6 space-y-6">
+          {order.address && (
+            <div className="bg-gray-50 p-4 rounded-xl text-sm">
+              <p className="text-gray-500 mb-1">Địa chỉ giao hàng</p>
+              <p className="font-medium text-gray-900">{order.address.name} - {order.address.phone}</p>
+              <p className="text-gray-600">
+                {order.address.detail}, {order.address.wardCode}, {order.address.districtCode}, {order.address.provinceCode}
+              </p>
+            </div>
+          )}
 
-          <div className="flex justify-between items-center pt-2 border-t">
-            <span className="font-semibold text-gray-700">Tổng cộng</span>
-            <span className="text-lg font-bold text-indigo-600">{formatPrice(order.total)}</span>
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-3">Sản phẩm ({order.items.length})</h3>
+            <div className="overflow-x-auto border border-gray-100 rounded-xl">
+              <table className="min-w-full divide-y divide-gray-100">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Sản phẩm</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Đơn giá</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">SL</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-50">
+                  {order.items.map((item: OrderItem) => (
+                    <tr key={item.id}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={item.book.image || "/default-book.png"} 
+                            alt={item.book.title} 
+                            className="w-10 h-14 object-cover rounded bg-gray-100" 
+                            onError={(e) => (e.currentTarget.src = "/default-book.png")}
+                          />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{item.book.title}</p>
+                            <p className="text-xs text-gray-500">{typeof item.book.author === 'object' ? item.book.author?.name : item.book.author}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right text-sm text-gray-600">{formatPrice(item.price)}</td>
+                      <td className="px-4 py-3 text-center text-sm font-medium text-gray-700">{item.qty}</td>
+                      <td className="px-4 py-3 text-right text-sm font-semibold text-indigo-600">{formatPrice(item.price * item.qty)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div className="flex justify-end pt-2">
+            <div className="w-1/2 min-w-[200px] space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Tạm tính</span>
+                <span className="font-medium text-gray-900">{formatPrice(order.total)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Phí giao hàng</span>
+                <span className="font-medium text-gray-900">{formatPrice(0)}</span>
+              </div>
+              <div className="border-t pt-2 flex justify-between">
+                <span className="font-bold text-gray-900">Tổng cộng</span>
+                <span className="font-bold text-lg text-indigo-600">{formatPrice(order.total)}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -146,18 +179,18 @@ export default function MyOrdersPage() {
           {orders?.map((order) => (
             <div
               key={order.id}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5 flex items-center gap-4"
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 p-6 flex flex-col sm:flex-row gap-4 justify-between"
             >
-              <div className="flex-1 min-w-0">
+              <div className="flex flex-col gap-1.5 flex-1">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-sm font-bold text-gray-800">#{order.id}</span>
+                  <span className="text-lg font-bold text-gray-900">#{order.id}</span>
                   <span
                     className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusColor[order.status]}`}
                   >
                     {statusLabel[order.status] ?? order.status}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">
+                <div className="text-sm text-gray-500 font-medium">
                   {new Date(order.createdAt).toLocaleDateString("vi-VN", {
                     day: "2-digit",
                     month: "2-digit",
@@ -165,17 +198,19 @@ export default function MyOrdersPage() {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {order.items.length} sản phẩm
-                </p>
+                </div>
+                <div className="text-sm text-gray-600 flex items-center gap-2 mt-2 bg-gray-50 w-fit px-3 py-1.5 rounded-lg border border-gray-100">
+                  <span className="font-semibold text-indigo-600">{order.items.length}</span> sản phẩm
+                </div>
               </div>
 
-              <div className="text-right shrink-0">
-                <p className="text-lg font-bold text-indigo-600">{formatPrice(order.total)}</p>
+              <div className="flex flex-col items-start sm:items-end justify-between border-t sm:border-t-0 pt-4 sm:pt-0 sm:border-l border-gray-100 sm:pl-6">
+                <div className="text-sm text-gray-500 mb-1">Thành tiền</div>
+                <p className="text-xl font-extrabold text-indigo-600">{formatPrice(order.total)}</p>
+                
                 <button
                   onClick={() => setSelectedOrder(order)}
-                  className="mt-1 text-xs text-indigo-500 hover:text-indigo-700 underline underline-offset-2 transition-colors"
+                  className="mt-4 w-full sm:w-auto px-5 py-2 text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 hover:bg-indigo-600 hover:text-white rounded-lg transition-colors focus:ring-4 focus:ring-indigo-100"
                 >
                   Xem chi tiết
                 </button>

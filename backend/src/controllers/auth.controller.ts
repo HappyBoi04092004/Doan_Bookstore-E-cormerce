@@ -8,21 +8,21 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const { email, password, name } = req.body;
 
     if (!email || !password || !name) {
-      res.status(400).json({ message: "Missing fields" });
+      res.status(400).json({ message: "Thiếu thông tin" });
       return;
     }
 
     const exist = await prisma.user.findUnique({ where: { email } });
 
     if (exist) {
-      res.status(409).json({ message: "Email already exists" });
+      res.status(409).json({ message: "Email đã tồn tại" });
       return;
     }
 
     // Default role "USER" depends on how it is seeded
     const roleRecord = await prisma.role.findFirst({ where: { name: "USER" } });
     if (!roleRecord) {
-      res.status(500).json({ message: "Roles missing in DB. Did you run the seed?" });
+      res.status(500).json({ message: "Lỗi vai trò trong hệ thống. Vui lòng chạy seed data." });
       return;
     }
 
@@ -45,12 +45,12 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         ...safeUser,
         role: safeUser.role.name.toLowerCase()
       },
-      message: "Register success",
+      message: "Đăng ký thành công",
     });
   } catch (error) {
     console.error("[register]", error);
     res.status(500).json({
-      message: "Internal server error",
+      message: "Lỗi máy chủ nội bộ",
     });
   }
 };
@@ -60,7 +60,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      res.status(400).json({ message: "Missing fields" });
+      res.status(400).json({ message: "Thiếu thông tin" });
       return;
     }
 
@@ -71,7 +71,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     if (!user || !user.password) {
       res.status(401).json({
-        message: "Invalid email or password",
+        message: "Email hoặc mật khẩu không chính xác",
       });
       return;
     }
@@ -80,7 +80,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     if (!match) {
       res.status(401).json({
-        message: "Invalid email or password",
+        message: "Email hoặc mật khẩu không chính xác",
       });
       return;
     }
@@ -108,14 +108,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error("[login]", error);
     res.status(500).json({
-      message: "Internal server error",
+      message: "Lỗi máy chủ nội bộ",
     });
   }
 };
 
 export const getMe = async (req: Request, res: Response): Promise<void> => {
   if (!req.user) {
-    res.status(401).json({ message: "Not authenticated" });
+    res.status(401).json({ message: "Chưa đăng nhập" });
     return;
   }
 
@@ -126,7 +126,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
     });
 
     if (!user) {
-      res.status(404).json({ message: "User not found" });
+      res.status(404).json({ message: "Không tìm thấy người dùng" });
       return;
     }
 
@@ -138,11 +138,11 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 };
 
 export const logout = (req: Request, res: Response): void => {
   // Stateless JWT: nothing to do on the server side except send success.
-  res.json({ message: "Logged out successfully" });
+  res.json({ message: "Đăng xuất thành công" });
 };

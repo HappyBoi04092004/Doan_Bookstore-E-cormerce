@@ -73,15 +73,15 @@ export default function BookFormModal({
     setErrorMsg("");
 
     if (!formData.title || !formData.author || !formData.category) {
-      setErrorMsg("Title, Author, and Category are required");
+      setErrorMsg("Tiêu đề, Tác giả và Danh mục là bắt buộc");
       return;
     }
     if (Number(formData.price) <= 0) {
-      setErrorMsg("Price must be > 0");
+      setErrorMsg("Giá phải lớn hơn 0");
       return;
     }
     if (Number(formData.stock) < 0) {
-      setErrorMsg("Stock cannot be negative");
+      setErrorMsg("Tồn kho không được âm");
       return;
     }
 
@@ -93,20 +93,20 @@ export default function BookFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">{initialData ? "Edit Book" : "Add Book"}</h2>
+        <h2 className="text-xl font-bold mb-4">{initialData ? "Sửa sách" : "Thêm sách"}</h2>
 
         {errorMsg && <div className="mb-4 text-red-600 text-sm bg-red-50 border border-red-200 rounded-md px-3 py-2">{errorMsg}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Title <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700">Tiêu đề <span className="text-red-500">*</span></label>
               <input type="text" name="title" value={formData.title} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Author <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700">Tác giả <span className="text-red-500">*</span></label>
               <input type="text" name="author" value={formData.author} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
             </div>
           </div>
@@ -114,14 +114,14 @@ export default function BookFormModal({
           <div className="grid grid-cols-2 gap-4">
             {/* Category dropdown */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Category <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700">Danh mục <span className="text-red-500">*</span></label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none bg-white"
               >
-                <option value="">-- Select category --</option>
+                <option value="">-- Chọn danh mục --</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.name}>
                     {c.name}
@@ -130,18 +130,18 @@ export default function BookFormModal({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Price <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700">Giá <span className="text-red-500">*</span></label>
               <input type="number" name="price" value={formData.price} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" min="1" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Stock <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700">Tồn kho <span className="text-red-500">*</span></label>
               <input type="number" name="stock" value={formData.stock} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" min="0" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Book Image</label>
+              <label className="block text-sm font-medium text-gray-700">Ảnh bìa sách</label>
               <input 
                 type="file" 
                 name="image" 
@@ -150,19 +150,19 @@ export default function BookFormModal({
                 className="mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" 
               />
               {initialData?.image && !formData.image && (
-                <p className="mt-1 text-xs text-gray-400 italic">Current: {initialData.image}</p>
+                <p className="mt-1 text-xs text-gray-400 italic">Gốc: {initialData.image}</p>
               )}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label className="block text-sm font-medium text-gray-700">Mô tả</label>
             <textarea name="description" value={formData.description} onChange={handleChange} rows={3} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
           </div>
 
           <div className="flex justify-end gap-3 mt-6">
-            <Button variant="ghost" onClick={onClose} type="button" disabled={isLoading}>Cancel</Button>
-            <Button variant="primary" type="submit" disabled={isLoading}>{isLoading ? "Saving..." : "Save"}</Button>
+            <Button variant="ghost" onClick={onClose} type="button" disabled={isLoading}>Hủy</Button>
+            <Button variant="primary" type="submit" disabled={isLoading}>{isLoading ? "Đang lưu..." : "Lưu"}</Button>
           </div>
         </form>
       </div>

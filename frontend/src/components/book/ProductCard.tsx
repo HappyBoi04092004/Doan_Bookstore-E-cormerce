@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import type { Book } from "../../types";
-import { formatPrice, discountPercent } from "../../utils";
+import { formatPrice } from "../../utils";
 import { useCart } from "../../hooks/useCart";
 import Badge from "../ui/Badge";
 
@@ -11,7 +11,6 @@ interface ProductCardProps {
 
 export default function ProductCard({ book }: ProductCardProps) {
   const { addToCart } = useCart();
-  const discount = discountPercent(book.originalPrice ?? 0, book.price);
   const outOfStock = book.stock === 0;
 
   return (
@@ -22,16 +21,10 @@ export default function ProductCard({ book }: ProductCardProps) {
         className="relative block overflow-hidden bg-slate-100 aspect-[3/4]"
       >
         <img
-          src={book.coverImage}
+          src={book.image}
           alt={book.title}
           className="h-full w-full object-cover group-hover:scale-[1.04] transition-transform duration-300"
         />
-        {/* Discount badge */}
-        {discount > 0 && (
-          <span className="absolute top-2.5 left-2.5">
-            <Badge variant="danger">−{discount}%</Badge>
-          </span>
-        )}
         {/* Out-of-stock overlay */}
         {outOfStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
@@ -59,23 +52,7 @@ export default function ProductCard({ book }: ProductCardProps) {
         {/* Author */}
         <p className="text-[12px] text-slate-400 font-medium">{typeof book.author === 'object' ? book.author?.name : book.author}</p>
 
-        {/* Rating — pushed to bottom */}
-        <div className="flex items-center gap-1 mt-auto pt-2">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`h-3 w-3 ${
-                i < Math.round(book.rating)
-                  ? "fill-amber-400 text-amber-400"
-                  : "fill-slate-200 text-slate-200"
-              }`}
-            />
-          ))}
-          <span className="ml-1 text-[11px] font-medium text-slate-600">
-            {book.rating.toFixed(1)}
-          </span>
-          <span className="text-[11px] text-slate-400">({book.reviewCount})</span>
-        </div>
+        {/* Rating — removed due to type mismatch, can be added back if backend supports it */}
 
         {/* Divider */}
         <div className="border-t border-slate-100 my-0.5" />
@@ -86,11 +63,6 @@ export default function ProductCard({ book }: ProductCardProps) {
             <span className="text-[15px] font-bold text-indigo-600 leading-tight">
               {formatPrice(book.price)}
             </span>
-            {book.originalPrice && book.originalPrice > book.price && (
-              <span className="text-[11px] text-slate-400 line-through leading-tight">
-                {formatPrice(book.originalPrice)}
-              </span>
-            )}
           </div>
           <button
             onClick={() => addToCart(book)}

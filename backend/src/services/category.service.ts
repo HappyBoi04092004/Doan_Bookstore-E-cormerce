@@ -12,14 +12,14 @@ export const categoryService = {
       where: { id },
       include: { books: true },
     });
-    if (!category) throw new Error("Category not found");
+    if (!category) throw new Error("Không tìm thấy danh mục");
     return category;
   },
 
   async createCategory(name: string, image?: string) {
-    if (!name || !name.trim()) throw new Error("Name is required");
+    if (!name || !name.trim()) throw new Error("Tên là bắt buộc");
     const existing = await prisma.category.findFirst({ where: { name: name.trim() } });
-    if (existing) throw new Error("Category already exists");
+    if (existing) throw new Error("Danh mục đã tồn tại");
     return await prisma.category.create({
       data: { name: name.trim(), image: image || null },
     });
@@ -27,13 +27,13 @@ export const categoryService = {
 
   async updateCategory(id: number, name?: string, image?: string) {
     const category = await prisma.category.findUnique({ where: { id } });
-    if (!category) throw new Error("Category not found");
+    if (!category) throw new Error("Không tìm thấy danh mục");
 
     // Deletion REMAINS in folder - REMOVED AS PER USER REQUEST
 
     if (name && name.trim() !== category.name) {
       const existing = await prisma.category.findFirst({ where: { name: name.trim() } });
-      if (existing && existing.id !== id) throw new Error("Category name already exists");
+      if (existing && existing.id !== id) throw new Error("Tên danh mục đã tồn tại");
     }
 
     return await prisma.category.update({
@@ -50,11 +50,11 @@ export const categoryService = {
       where: { id },
       include: { books: true },
     });
-    if (!category) throw new Error("Category not found");
+    if (!category) throw new Error("Không tìm thấy danh mục");
     // Deletion REMAINS in folder - REMOVED AS PER USER REQUEST
     if (category.books.length > 0) {
       throw new Error(
-        `Cannot delete: this category is used by ${category.books.length} book(s). Reassign them first.`
+        `Không thể xóa: danh mục này chưá ${category.books.length} cuốn sách. Vui lòng chuyển sách sang danh mục khác trước.`
       );
     }
     await prisma.category.delete({ where: { id } });

@@ -45,17 +45,17 @@ export default function CategoryFormModal({
     e.preventDefault();
     setError("");
     if (!name.trim()) {
-      setError("Category name is required");
+      setError("Tên danh mục là bắt buộc");
       return;
     }
     onSubmit({ name: name.trim(), image: imageFile || undefined });
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-5">
-          {initialData ? "Edit Category" : "Add Category"}
+          {initialData ? "Sửa danh mục" : "Thêm danh mục"}
         </h2>
 
         {error && (
@@ -68,13 +68,13 @@ export default function CategoryFormModal({
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name <span className="text-red-500">*</span>
+              Tên danh mục <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Fiction"
+              placeholder="VD: Tiểu thuyết"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
@@ -82,7 +82,7 @@ export default function CategoryFormModal({
           {/* Category Image */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category Image
+              Ảnh danh mục
             </label>
             <input
               type="file"
@@ -95,7 +95,7 @@ export default function CategoryFormModal({
           {/* Image Preview */}
           {previewUrl && (
             <div className="mt-2">
-              <p className="text-xs text-gray-500 mb-1">Preview:</p>
+              <p className="text-xs text-gray-500 mb-1">Xem trước:</p>
               <img
                 src={previewUrl}
                 alt="Category preview"
@@ -109,10 +109,10 @@ export default function CategoryFormModal({
 
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="ghost" type="button" onClick={onClose} disabled={isLoading}>
-              Cancel
+              Hủy
             </Button>
             <Button variant="primary" type="submit" disabled={isLoading}>
-              {isLoading ? "Saving…" : "Save"}
+              {isLoading ? "Đang lưu…" : "Lưu"}
             </Button>
           </div>
         </form>

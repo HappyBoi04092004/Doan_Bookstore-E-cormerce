@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Search, Image } from "lucide-react";
+import { Plus, Search, Image } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Button from "../../components/ui/Button";
 import CategoryFormModal from "../../components/admin/CategoryFormModal";
@@ -60,7 +60,7 @@ export default function CategoriesPage() {
   };
 
   const handleDelete = (cat: Category) => {
-    if (window.confirm(`Delete category "${cat.name}"? This cannot be undone.`)) {
+    if (window.confirm(`Xóa danh mục "${cat.name}"? Hành động này không thể hoàn tác.`)) {
       deleteMutation.mutate(cat.id);
     }
   };
@@ -84,12 +84,12 @@ export default function CategoriesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
-          <p className="text-sm text-gray-500 mt-1">{categories.length} categories total</p>
+          <h1 className="text-2xl font-bold text-gray-900">Danh mục</h1>
+          <p className="text-sm text-gray-500 mt-1">{categories.length} danh mục</p>
         </div>
         <Button variant="primary" onClick={handleAdd}>
           <Plus className="h-4 w-4 mr-1" />
-          Add Category
+          Thêm Danh mục
         </Button>
       </div>
 
@@ -100,34 +100,34 @@ export default function CategoriesPage() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search categories…"
+          placeholder="Tìm kiếm danh mục…"
           className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
       {/* Table */}
       {isLoading ? (
-        <div className="text-center py-16 text-gray-500">Loading categories…</div>
+        <div className="text-center py-16 text-gray-500">Đang tải danh mục…</div>
       ) : isError ? (
-        <div className="text-center py-16 text-red-500">Failed to load categories.</div>
+        <div className="text-center py-16 text-red-500">Không thể tải danh mục.</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">No categories found.</div>
+        <div className="text-center py-16 text-gray-400">Không tìm thấy danh mục nào.</div>
       ) : (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">
-                  #
+                  STT
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">
-                  Image
+                  Hình ảnh
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Name
+                  Tên danh mục
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Actions
+                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-40">
+                  Thao tác
                 </th>
               </tr>
             </thead>
@@ -155,22 +155,9 @@ export default function CategoriesPage() {
                     <span className="font-medium text-gray-800">{cat.name}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => handleEdit(cat)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(cat)}
-                        disabled={deleteMutation.isPending}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors disabled:opacity-50"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Delete
-                      </button>
+                    <div className="flex justify-center gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(cat)}>Sửa</Button>
+                      <Button variant="danger" size="sm" onClick={() => handleDelete(cat)} disabled={deleteMutation.isPending}>Xóa</Button>
                     </div>
                   </td>
                 </tr>

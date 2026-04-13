@@ -38,10 +38,10 @@ export const bookService = {
   async createBook(data: any) {
     const { title, author, price, stock, category, description, image } = data;
     
-    if (!title || !author) throw new Error("Title and Author are required");
-    if (price <= 0) throw new Error("Price must be > 0");
-    if (stock < 0) throw new Error("Stock cannot be negative");
-    if (!category) throw new Error("Category is required");
+    if (!title || !author) throw new Error("Tiêu đề và tác giả là bắt buộc");
+    if (price <= 0) throw new Error("Giá phải lớn hơn 0");
+    if (stock < 0) throw new Error("Số lượng không được âm");
+    if (!category) throw new Error("Danh mục là bắt buộc");
 
     let catRecord = await prisma.category.findFirst({ where: { name: category } });
     if (!catRecord) {
@@ -72,11 +72,11 @@ export const bookService = {
   async updateBook(id: number, data: any) {
     const { title, author, price, stock, category, description, image } = data;
     
-    if (price && price <= 0) throw new Error("Price must be > 0");
-    if (stock && stock < 0) throw new Error("Stock cannot be negative");
+    if (price && price <= 0) throw new Error("Giá phải lớn hơn 0");
+    if (stock && stock < 0) throw new Error("Số lượng không được âm");
 
     const bookToUpdate = await prisma.book.findUnique({ where: { id } });
-    if (!bookToUpdate) throw new Error("Book not found");
+    if (!bookToUpdate) throw new Error("Không tìm thấy sách");
 
     // Handle old file deletion if new image is uploaded - REMOVED AS PER USER REQUEST
 

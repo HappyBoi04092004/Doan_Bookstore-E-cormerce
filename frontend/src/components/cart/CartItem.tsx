@@ -14,7 +14,7 @@ export default function CartItem({ item }: CartItemProps) {
   return (
     <div className="flex gap-3">
       <img
-        src={book.coverImage}
+        src={book.image}
         alt={book.title}
         className="h-20 w-14 shrink-0 rounded-md object-cover bg-gray-100"
       />

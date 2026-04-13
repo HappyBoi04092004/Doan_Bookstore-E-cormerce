@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { CreditCard, CheckCircle, ArrowLeft } from "lucide-react";
+import { CreditCard, ArrowLeft } from "lucide-react";
 import { useCart } from "../hooks/useCart";
 import { formatPrice } from "../utils";
 import Input from "../components/ui/Input";
