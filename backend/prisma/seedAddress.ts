@@ -1,17 +1,5 @@
-/**
- * seedAddress.ts
- *
- * Seeds Province, District, Ward tables from the Vietnam open API.
- * Safe to re-run — skips if Province table already has data.
- *
- * Usage:
- *   npx ts-node prisma/seedAddress.ts
- */
-
 import { PrismaClient } from "@prisma/client";
-
 const prisma = new PrismaClient();
-
 const API_URL = "https://provinces.open-api.vn/api/?depth=3";
 
 // ─── API Types ────────────────────────────────────────────────────────────────

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "../../services/authService";
 import { userService } from "../../services/userService";
+import { useAuthStore } from "../../stores/authStore";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Button from "../../components/ui/Button";
@@ -13,7 +14,8 @@ export default function ProfilePage() {
     queryFn: authService.getProfile,
   });
 
-  const user = userResponse;
+  const user = userResponse?.data || userResponse; // Handle possible extra .data wrapper
+  const updateUser = useAuthStore((state) => state.updateUser);
 
   const [form, setForm] = useState({
     name: "",
@@ -33,9 +35,24 @@ export default function ProfilePage() {
         password: "",
         image: null,
       });
-      setPreviewUrl(user.avatar || "");
+
+      // Để phá cache (cache-busting) ảnh trên trình duyệt,
+      // ta thêm 1 timestamp vào url avatar mỗi khi load lại thành công.
+      const timestamp = new Date().getTime();
+      const newAvatarUrl = user.avatar
+         ? (user.avatar.includes("?t=") ? user.avatar : `${user.avatar}?t=${timestamp}`)
+         : "";
+
+      setPreviewUrl(newAvatarUrl);
+
+      // Cập nhật lại global auth store để components khác (như UserMenu trên Header) thay đổi theo
+      updateUser({
+        name: user.name,
+        email: user.email,
+        avatar: newAvatarUrl
+      });
     }
-  }, [user]);
+  }, [user, updateUser]);
 
   const updateMutation = useMutation({
     mutationFn: userService.updateProfile,

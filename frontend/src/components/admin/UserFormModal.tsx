@@ -25,6 +25,7 @@ export default function UserFormModal({
   });
 
   const [errorMsg, setErrorMsg] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -44,16 +45,23 @@ export default function UserFormModal({
         image: null,
       });
     }
+    // Reset preview khi mở/đóng modal
+    setPreviewUrl(null);
   }, [initialData, isOpen]);
 
   if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (e.target.type === "file") {
-       const fileInput = e.target as HTMLInputElement;
-       setFormData({ ...formData, [e.target.name]: fileInput.files?.[0] || null });
+      const fileInput = e.target as HTMLInputElement;
+      const file = fileInput.files?.[0] || null;
+      setFormData({ ...formData, [e.target.name]: file });
+
+      // Tạo preview URL cho ảnh mới được chọn
+      if (previewUrl) URL.revokeObjectURL(previewUrl); // cleanup URL cũ
+      setPreviewUrl(file ? URL.createObjectURL(file) : null);
     } else {
-       setFormData({ ...formData, [e.target.name]: e.target.value });
+      setFormData({ ...formData, [e.target.name]: e.target.value });
     }
   };
 
@@ -138,16 +146,32 @@ export default function UserFormModal({
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Ảnh đại diện</label>
+
+            {/* Preview ảnh: ưu tiên hiển thị ảnh MỚI, nếu không có thì hiển thị ảnh cũ */}
+            {(previewUrl || initialData?.avatar) && (
+              <div className="mt-2 flex items-center gap-3">
+                <img
+                  src={previewUrl ?? initialData.avatar}
+                  alt="Avatar preview"
+                  className="h-16 w-16 rounded-full object-cover border-2 border-indigo-200"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                <span className="text-xs text-gray-500">
+                  {previewUrl
+                    ? <span className="text-green-600 font-medium">✓ Ảnh mới đã chọn</span>
+                    : <span className="text-gray-400 italic">Ảnh hiện tại</span>
+                  }
+                </span>
+              </div>
+            )}
+
             <input
               type="file"
               name="image"
               onChange={handleChange}
               accept="image/*"
-              className="mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+              className="mt-2 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
             />
-            {initialData?.avatar && !formData.image && (
-                <p className="mt-1 text-xs text-gray-400 italic">Hiện tại: {initialData.avatar}</p>
-            )}
           </div>
 
           <div className="flex justify-end gap-3 mt-6">

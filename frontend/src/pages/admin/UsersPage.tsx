@@ -24,37 +24,41 @@ export default function UsersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       setIsModalOpen(false);
-      alert("User created successfully!");
+      setEditingUser(null);
+      alert("Tạo người dùng thành công!");
     },
     onError: (err: any) => {
-      alert(err?.response?.data?.message || "Failed to create user");
+      alert(err?.response?.data?.message || "Tạo người dùng thất bại");
     }
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => userService.updateUser(parseInt(id), data),
+    mutationFn: ({ id, data }: { id: number | string; data: any }) =>
+      userService.updateUser(typeof id === "string" ? parseInt(id) : id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       setIsModalOpen(false);
-      alert("User updated successfully!");
+      setEditingUser(null);
+      alert("Cập nhật người dùng thành công!");
     },
     onError: (err: any) => {
-      alert(err?.response?.data?.message || "Failed to update user");
+      alert(err?.response?.data?.message || "Cập nhật người dùng thất bại");
     }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => userService.deleteUser(parseInt(id)),
+    mutationFn: (id: number | string) =>
+      userService.deleteUser(typeof id === "string" ? parseInt(id) : id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      alert("User deleted successfully!");
+      alert("Xóa người dùng thành công!");
     },
     onError: (err: any) => {
-      alert(err?.response?.data?.message || "Failed to delete user");
+      alert(err?.response?.data?.message || "Xóa người dùng thất bại");
     }
   });
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: number | string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa người dùng này không?")) {
       deleteMutation.mutate(id);
     }
@@ -76,6 +80,11 @@ export default function UsersPage() {
     } else {
       createMutation.mutate(formData);
     }
+  };
+
+  const handleClose = () => {
+    setIsModalOpen(false);
+    setEditingUser(null);
   };
 
   const columns: Column<User>[] = [
@@ -113,7 +122,14 @@ export default function UsersPage() {
       render: (u) => (
         <div className="flex gap-2">
           <Button variant="ghost" size="sm" onClick={() => handleEdit(u)}>Sửa</Button>
-          <Button variant="danger" size="sm" onClick={() => handleDelete(u.id)} disabled={deleteMutation.isPending}>Xóa</Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => handleDelete(u.id)}
+            disabled={deleteMutation.isPending}
+          >
+            {deleteMutation.isPending ? "Đang xóa..." : "Xóa"}
+          </Button>
         </div>
       ),
     },
@@ -182,7 +198,7 @@ export default function UsersPage() {
 
       <UserFormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleClose}
         initialData={editingUser}
         onSubmit={handleModalSubmit}
         isLoading={createMutation.isPending || updateMutation.isPending}
