@@ -119,7 +119,7 @@ async function main() {
       stock: 60,
       authorId: ries.id,
       categoryId: business.id,
-      image: "/uploads/books/OIP.jfif"
+      image: "/uploads/books/a-2243-183313.jpg"
     }
   });
 
@@ -134,7 +134,7 @@ const deepWork = await prisma.book.create({
     stock: 70,
     authorId: ries.id, 
     categoryId: business.id,
-    image: "/uploads/books/default-book.jpg"
+    image: "/uploads/books/a-2243-183313.jpg"
   }
 });
 
@@ -146,7 +146,7 @@ const refactoring = await prisma.book.create({
     stock: 50,
     authorId: martin.id,
     categoryId: programming.id,
-    image: "/uploads/books/default-book.jpg"
+    image: "/uploads/books/a-2243-183313.jpg"
   }
 });
 
@@ -158,7 +158,7 @@ const atomicHabits = await prisma.book.create({
     stock: 90,
     authorId: hunt.id, 
     categoryId: business.id,
-    image: "/uploads/books/default-book.jpg"
+    image: "/uploads/books/a-2243-183313.jpg"
   }
 });
 
@@ -233,7 +233,7 @@ console.log("More books added");
   // NOTE: Requires seedAddress.ts to have run first so Province/District/Ward rows exist.
   // Using: Phường Tràng Tiền (55), Quận Hoàn Kiếm (2), Hà Nội (1)
   await prisma.address.create({
-    data: {
+    data: { 
       userId:       user.id,
       name:         "Nguyen Van A",
       phone:        "0912345678",

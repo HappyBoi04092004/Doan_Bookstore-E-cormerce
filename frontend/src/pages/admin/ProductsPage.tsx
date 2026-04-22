@@ -93,10 +93,13 @@ export default function ProductsPage() {
       header: "Hình ảnh",
       render: (p) => (
         <img 
-          src={p.image || "/default-book.png"} 
+          src={p.image || "https://placehold.co/100x120?text=Sách"} 
           alt={p.title} 
-          className="h-12 w-10 object-cover rounded border border-gray-100" 
-          onError={(e) => (e.currentTarget.src = "/default-book.png")}
+          className="h-12 w-10 object-cover rounded border border-gray-100 placeholder-img" 
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "https://placehold.co/100x120?text=Sách";
+          }}
         />
       ),
     },

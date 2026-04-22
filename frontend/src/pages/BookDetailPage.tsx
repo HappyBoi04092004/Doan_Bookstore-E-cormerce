@@ -50,10 +50,13 @@ export default function BookDetailPage() {
         {/* Cover */}
         <div className="relative">
           <img
-            src={book.image || "/default-book.png"}
+            src={book.image || "https://placehold.co/300x400?text=Sách"}
             alt={book.title}
-            className="w-full rounded-xl object-cover shadow-md"
-            onError={(e) => (e.currentTarget.src = "/default-book.png")}
+            className="w-full object-cover transform hover:scale-105 transition-transform duration-500"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = "https://placehold.co/300x400?text=Sách";
+            }}
           />
         </div>
 

@@ -71,10 +71,13 @@ function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => voi
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <img 
-                            src={item.book.image || "/default-book.png"} 
+                            src={item.book.image || "https://placehold.co/100x120?text=Sách"} 
                             alt={item.book.title} 
-                            className="w-10 h-14 object-cover rounded bg-gray-100" 
-                            onError={(e) => (e.currentTarget.src = "/default-book.png")}
+                            className="w-12 h-16 object-cover rounded-md flex-shrink-0 border border-gray-200"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = "https://placehold.co/100x120?text=Sách";
+                            }}
                           />
                           <div>
                             <p className="text-sm font-medium text-gray-900">{item.book.title}</p>

@@ -160,10 +160,13 @@ const BookListPage: React.FC = () => {
                   <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col overflow-hidden h-full">
                     <div className="h-64 bg-gray-50 relative overflow-hidden">
                       <img 
-                        src={book.image || "/default-book.png"} 
+                        src={book.image || "https://placehold.co/200x240?text=Sách"} 
                         alt={book.title} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                        onError={(e) => (e.currentTarget.src = "/default-book.png")}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "https://placehold.co/200x240?text=Sách";
+                        }}
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 duration-300" />
                       <div className="absolute top-3 right-3">

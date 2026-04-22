@@ -136,9 +136,13 @@ export default function ProfilePage() {
         {/* Avatar */}
         <div className="flex items-center gap-6 mb-6">
           <img
-            src={previewUrl || "/default-avatar.png"}
-            alt="avatar"
-            className="w-24 h-24 rounded-full object-cover border-2 border-indigo-100 shadow-sm"
+            src={previewUrl || "https://ui-avatars.com/api/?name=User&background=random"}
+            alt="Avatar"
+            className="h-20 w-20 rounded-full object-cover border border-gray-200 shadow-sm"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = "https://ui-avatars.com/api/?name=User&background=random";
+            }}
           />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Ảnh đại diện</label>

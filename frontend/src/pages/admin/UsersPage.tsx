@@ -93,10 +93,13 @@ export default function UsersPage() {
       header: "Ảnh đại diện",
       render: (u) => (
         <img 
-          src={u.avatar || "/default-avatar.png"} 
+          src={u.avatar || "https://ui-avatars.com/api/?name=User"} 
           alt={u.name} 
           className="h-10 w-10 rounded-full object-cover border border-gray-100" 
-          onError={(e) => (e.currentTarget.src = "/default-avatar.png")}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "https://ui-avatars.com/api/?name=User";
+          }}
         />
       ),
     },

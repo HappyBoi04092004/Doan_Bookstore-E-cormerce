@@ -48,37 +48,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Recent Orders */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Đơn hàng gần đây</h2>
-        </div>
-        <table className="min-w-full divide-y divide-gray-100">
-          <thead className="bg-gray-50">
-            <tr>
-              {["Order ID", "Customer", "Amount", "Status"].map((h) => (
-                <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {recentOrders.map((order) => (
-              <tr key={order.id} className="hover:bg-gray-50">
-                <td className="px-5 py-3 text-sm font-medium text-indigo-600">{order.id}</td>
-                <td className="px-5 py-3 text-sm text-gray-700">{order.customer}</td>
-                <td className="px-5 py-3 text-sm text-gray-700">{order.amount}</td>
-                <td className="px-5 py-3">
-                  <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor[order.status]}`}>
-                    {order.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      
     </div>
   );
 }
