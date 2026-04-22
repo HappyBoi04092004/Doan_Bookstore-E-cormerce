@@ -1,7 +1,8 @@
 import { useParams, Link } from "react-router-dom";
-import { ShoppingCart, ArrowLeft } from "lucide-react";
+import { ShoppingCart, ArrowLeft, Heart } from "lucide-react";
 import { useBook } from "../hooks/useBooks";
 import { useCart } from "../hooks/useCart";
+import { useWishlist } from "../hooks/useWishlist";
 import { formatPrice } from "../utils";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
@@ -11,6 +12,7 @@ export default function BookDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: book, isLoading, error } = useBook(id ?? "");
   const { addToCart } = useCart();
+  const { isWishlisted, toggleWishlist } = useWishlist();
 
   if (isLoading) {
     return (
@@ -94,16 +96,32 @@ export default function BookDetailPage() {
             </p>
           </div>
 
-          {/* Add to Cart */}
-          <Button
-            size="lg"
-            disabled={book.stock === 0}
-            onClick={() => addToCart(book)}
-            className="mt-2 w-full sm:w-auto"
-          >
-            <ShoppingCart className="h-5 w-5 mr-1" />
-            {book.stock === 0 ? "Hết hàng" : "Thêm vào giỏ hàng"}
-          </Button>
+          {/* Actions */}
+          <div className="flex gap-3 mt-2">
+            <Button
+              size="lg"
+              disabled={book.stock === 0}
+              onClick={() => addToCart(book)}
+              className="flex-1 sm:flex-none"
+            >
+              <ShoppingCart className="h-5 w-5 mr-1" />
+              {book.stock === 0 ? "Hết hàng" : "Thêm vào giỏ hàng"}
+            </Button>
+            
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => toggleWishlist(book)}
+              className={`px-4 flex-none transition-colors ${
+                isWishlisted(book.id) 
+                  ? "text-rose-500 border-rose-200 bg-rose-50 hover:bg-rose-100 hover:border-rose-300" 
+                  : "text-gray-500 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50"
+              }`}
+              title={isWishlisted(book.id) ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
+            >
+              <Heart className={`h-6 w-6 ${isWishlisted(book.id) ? "fill-current" : ""}`} />
+            </Button>
+          </div>
 
           {/* Description */}
           {book.description && (

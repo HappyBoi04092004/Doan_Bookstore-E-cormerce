@@ -12,7 +12,7 @@ const navLinks = [
 
 export default function Header() {
   const { user, isAuthenticated } = useAuth();
-  const { totalItems, toggleCart } = useCart();
+  const { totalItems } = useCart();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/98 backdrop-blur-md">
@@ -67,8 +67,8 @@ export default function Header() {
         {/* Right actions */}
         <div className="flex items-center gap-1.5">
           {/* Giỏ hàng */}
-          <button
-            onClick={toggleCart}
+          <Link
+            to="/cart"
             className="relative flex items-center justify-center h-9 w-9 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
             aria-label="Mở giỏ hàng"
           >
@@ -78,7 +78,7 @@ export default function Header() {
                 {totalItems > 99 ? "99+" : totalItems}
               </span>
             )}
-          </button>
+          </Link>
 
           {/* Divider */}
           <div className="mx-1.5 h-5 w-px bg-slate-200" />

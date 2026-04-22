@@ -29,6 +29,7 @@ import ProductsPage from "./pages/admin/ProductsPage";
 import OrdersPage from "./pages/admin/OrdersPage";
 import CategoriesPage from "./pages/admin/CategoriesPage";
 import ProfilePage from "./pages/usermenu/ProfilePage";
+import WishlistPage from "./pages/usermenu/WishlistPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,6 +72,7 @@ export default function App() {
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/myorders" element={<MyOrdersPage />} />
+              <Route path="/wishlist" element={<WishlistPage />} />
               <Route path="/tests" element={<div className="p-10 max-w-4xl mx-auto rounded-xl mt-10 shadow-sm bg-white border border-gray-100"><h2 className="text-2xl font-bold mb-4">My Tests</h2><p>Xem lịch sử test </p></div>} />
             </Route>
           </Route>

@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
-import CartSidebar from "../cart/CartSidebar";
 
 export default function MainLayout() {
   return (
@@ -11,7 +10,6 @@ export default function MainLayout() {
         <Outlet />
       </main>
       <Footer />
-      <CartSidebar />
     </div>
   );
 }
