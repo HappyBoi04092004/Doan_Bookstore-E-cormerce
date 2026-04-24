@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../services/authService";
@@ -37,12 +38,26 @@ export function useAuth() {
     }
   };
 
+  const loginWithToken = useCallback(async (token: string) => {
+    try {
+      // Set token temporarily in store so apiClient can use it
+      useAuthStore.setState({ accessToken: token });
+      const userProfile = await authService.getProfile();
+      setUser(userProfile, token);
+      navigate(userProfile.role === "admin" ? "/admin" : "/");
+    } catch (error) {
+      console.error("Failed to login with token", error);
+      logout();
+    }
+  }, [navigate, setUser, logout]);
+
   return {
     user,
     isAuthenticated,
     accessToken,
     login: loginMutation.mutate,
     register: registerMutation.mutate,
+    loginWithToken,
     logout: handleLogout,
     isLoggingIn: loginMutation.isPending,
     isRegistering: registerMutation.isPending,

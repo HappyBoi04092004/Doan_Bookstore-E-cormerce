@@ -146,3 +146,29 @@ export const logout = (req: Request, res: Response): void => {
   // Stateless JWT: nothing to do on the server side except send success.
   res.json({ message: "Đăng xuất thành công" });
 };
+
+export const googleCallback = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user: any = req.user;
+    if (!user) {
+      res.redirect(`${process.env.FRONTEND_URL}/login?error=GoogleLoginFailed`);
+      return;
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role?.name?.toLowerCase() || "user",
+      },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "7d" }
+    );
+
+    // Redirect to frontend with token
+    res.redirect(`${process.env.FRONTEND_URL}/login?token=${token}`);
+  } catch (error) {
+    console.error("[googleCallback]", error);
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=InternalServerError`);
+  }
+};

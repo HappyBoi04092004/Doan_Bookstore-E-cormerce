@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { BookOpen, ArrowLeft } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
@@ -8,14 +8,30 @@ import Button from "../components/ui/Button";
 import type { LoginCredentials } from "../types";
 
 export default function LoginPage() {
-  const { login, isLoggingIn, loginError, isAuthenticated } = useAuth();
+  const { login, isLoggingIn, loginError, isAuthenticated, loginWithToken } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");
     }
   }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const error = searchParams.get("error");
+    
+    if (token) {
+      loginWithToken(token);
+    }
+    
+    if (error) {
+      setAuthError("Đăng nhập bằng Google thất bại. Vui lòng thử lại.");
+    }
+  }, [searchParams, loginWithToken]);
+
   const {
     register,
     handleSubmit,
@@ -23,6 +39,10 @@ export default function LoginPage() {
   } = useForm<LoginCredentials>();
 
   const onSubmit = (data: LoginCredentials) => login(data);
+
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:5000/auth/google";
+  };
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-gray-50 px-4 py-12">
@@ -41,13 +61,13 @@ export default function LoginPage() {
               <BookOpen className="h-6 w-6 text-indigo-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Đăng nhập</h1>
-            <p className="text-sm text-gray-500">Chào mừng quay lại BookStore</p>
+            <p className="text-sm text-gray-500">Chào mừng đến với HPStore</p>
           </div>
 
           {/* Error */}
-          {loginError && (
+          {(loginError || authError) && (
             <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-              Email hoặc mật khẩu không đúng. Vui lòng thử lại.
+              {authError || "Email hoặc mật khẩu không đúng. Vui lòng thử lại."}
             </div>
           )}
 
@@ -77,6 +97,32 @@ export default function LoginPage() {
               Đăng nhập
             </Button>
           </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white px-2 text-gray-500">Hoặc tiếp tục với</span>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              >
+                <img
+                  src="/uploads/icon/icongoogle.png"
+                  alt="Google"
+                  className="w-5 h-5"
+                />
+                Google
+              </button>
+            </div>
+          </div>
 
           <p className="mt-6 text-center text-sm text-gray-500">
             Hiện tại bạn chưa có tài khoản?{" "}

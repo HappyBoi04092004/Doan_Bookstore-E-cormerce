@@ -1,6 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import bookRoutes from "./routes/book.routes";
 import authRoutes from "./routes/auth.routes";
 import orderRoutes from "./routes/order.routes";
@@ -9,14 +11,14 @@ import userRoutes from "./routes/user.routes";
 import categoryRoutes from "./routes/category.routers";
 import addressRoutes from "./routes/address.routes";
 import wishlistRoutes from "./routes/wishlist.routes";
-
-dotenv.config();
+import passport from "./lib/passport";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
