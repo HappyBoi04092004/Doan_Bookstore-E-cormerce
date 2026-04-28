@@ -93,7 +93,7 @@ export default function ProductsPage() {
       header: "Hình ảnh",
       render: (p) => (
         <img 
-          src={p.image || "https://placehold.co/100x120?text=Sách"} 
+          src={p.primaryImage || p.variants?.[0]?.primaryImage || "https://placehold.co/100x120?text=Sách"} 
           alt={p.title} 
           className="h-12 w-10 object-cover rounded border border-gray-100 placeholder-img" 
           onError={(e) => {
@@ -109,14 +109,14 @@ export default function ProductsPage() {
       render: (p) => (
         <div>
           <p className="font-medium text-gray-900 line-clamp-1">{p.title}</p>
-          <p className="text-xs text-gray-500">{p.author}</p>
+          <p className="text-xs text-gray-500">{typeof p.author === "object" ? p.author?.name : p.author}</p>
         </div>
       ),
     },
     { 
       key: "category", 
       header: "Danh mục", 
-      render: (p) => <Badge variant="info">{p.category}</Badge> 
+      render: (p) => <Badge variant="info">{typeof p.category === "object" ? p.category?.name : p.category}</Badge> 
     },
     { 
       key: "price", 
@@ -127,9 +127,12 @@ export default function ProductsPage() {
       key: "stock",
       header: "Tồn kho",
       render: (p) => (
-        <Badge variant={p.stock === 0 ? "danger" : p.stock < 10 ? "warning" : "success"}>
-          {p.stock === 0 ? "Hết hàng" : `${p.stock} sản phẩm`}
-        </Badge>
+        <div className="space-y-1">
+          <Badge variant={p.stock === 0 ? "danger" : p.stock < 10 ? "warning" : "success"}>
+            {p.stock === 0 ? "Hết hàng" : `${p.stock} sản phẩm`}
+          </Badge>
+          <p className="text-xs text-gray-400">{p.variants?.length ?? 0} biến thể</p>
+        </div>
       ),
     },
     {
@@ -192,7 +195,7 @@ export default function ProductsPage() {
           <AdminTable
             columns={columns}
             data={data?.data?.books || []}
-            keyExtractor={(p) => p.id}
+            keyExtractor={(p) => String(p.id)}
             emptyMessage="Không tìm thấy sách nào."
           />
           <div className="flex justify-between items-center mt-4">

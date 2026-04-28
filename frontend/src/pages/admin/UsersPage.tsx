@@ -174,7 +174,7 @@ export default function UsersPage() {
           <AdminTable
             columns={columns}
             data={data?.data?.users || []}
-            keyExtractor={(u) => u.id}
+            keyExtractor={(u) => String(u.id)}
             emptyMessage="Không tìm thấy người dùng nào."
           />
           

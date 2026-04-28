@@ -12,10 +12,20 @@ export const getWishlist = async (req: Request, res: Response): Promise<void> =>
     const items = await prisma.wishlist.findMany({
       where: { userId: req.user.id },
       include: {
-        book: {
+        variant: {
           include: {
-            author: true,
-            category: true,
+            book: {
+              include: {
+                author: true,
+                category: true,
+                images: {
+                  orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
+                },
+              },
+            },
+            images: {
+              orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
+            },
           },
         },
       },
@@ -29,7 +39,7 @@ export const getWishlist = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-// POST /wishlist/:bookId — toggle wishlist (thêm nếu chưa có, xóa nếu đã có)
+// POST /wishlist/:variantId — toggle wishlist (thêm nếu chưa có, xóa nếu đã có)
 export const toggleWishlist = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user) {
@@ -37,21 +47,23 @@ export const toggleWishlist = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const bookId = parseInt(req.params.bookId as string);
-    if (isNaN(bookId)) {
-      res.status(400).json({ success: false, message: "ID sách không hợp lệ" });
+    const variantId = parseInt(req.params.variantId as string);
+    if (isNaN(variantId)) {
+      res.status(400).json({ success: false, message: "ID biến thể không hợp lệ" });
       return;
     }
 
-    // Kiểm tra sách tồn tại
-    const book = await prisma.book.findUnique({ where: { id: bookId } });
-    if (!book) {
-      res.status(404).json({ success: false, message: "Không tìm thấy sách" });
+    const variant = await prisma.bookVariant.findUnique({
+      where: { id: variantId },
+      include: { book: true },
+    });
+    if (!variant) {
+      res.status(404).json({ success: false, message: "Không tìm thấy biến thể sách" });
       return;
     }
 
     const existing = await prisma.wishlist.findFirst({
-      where: { userId: req.user.id, bookId },
+      where: { userId: req.user.id, variantId },
     });
 
     if (existing) {
@@ -61,7 +73,7 @@ export const toggleWishlist = async (req: Request, res: Response): Promise<void>
     } else {
       // Chưa có → thêm
       await prisma.wishlist.create({
-        data: { userId: req.user.id, bookId },
+        data: { userId: req.user.id, variantId },
       });
       res.json({ success: true, wishlisted: true, message: "Đã thêm vào danh sách yêu thích" });
     }

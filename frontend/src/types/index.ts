@@ -1,7 +1,7 @@
 // ─── Auth & User ────────────────────────────────────────────────────────────
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   role: "user" | "admin";
@@ -28,28 +28,66 @@ export interface RegisterPayload {
 // ─── Book / Product ──────────────────────────────────────────────────────────
 
 export interface Category {
-  id: string;
+  id: number;
   name: string;
-  slug: string;
   image?: string;
+}
+
+export interface BookImage {
+  id: number;
+  bookId: number;
+  variantId?: number | null;
+  url: string;
+  altText?: string | null;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+export interface BookAttribute {
+  id: number;
+  attributeId: number;
+  name: string;
+  unit?: string | null;
+  value: string;
+}
+
+export interface Attribute {
+  id: number;
+  name: string;
+  unit?: string | null;
+}
+
+export interface BookVariant {
+  id: number;
+  bookId: number;
+  name: string;
+  sku?: string | null;
+  price: number;
+  stock: number;
+  discountPercent?: number | null;
+  primaryImage?: string | null;
+  images?: BookImage[];
 }
 
 export interface Book {
   id: number;
   title: string;
-  author: { name: string };
-  category: { name: string };
+  author: { id?: number; name: string } | string;
+  category: { id?: number; name: string } | string;
   price: number;
   stock: number;
   description?: string;
-  image?: string;
+  primaryImage?: string | null;
+  images: BookImage[];
+  attributes: BookAttribute[];
+  variants: BookVariant[];
   createdAt?: string;
 }
 
 // ─── Cart ────────────────────────────────────────────────────────────────────
 
 export interface CartItem {
-  book: Book;
+  variant: BookVariant & { book: Book };
   quantity: number;
 }
 
@@ -59,10 +97,10 @@ export type OrderStatus = "PENDING" | "PAID" | "CANCELLED" | "FAILED";
 
 export interface OrderItem {
   id: number;
-  bookId: number;
+  variantId: number;
   qty: number;
   price: number;
-  book: Book;
+  variant: BookVariant & { book: Book };
 }
 
 export interface Order {

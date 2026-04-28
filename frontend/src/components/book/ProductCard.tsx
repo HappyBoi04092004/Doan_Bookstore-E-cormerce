@@ -1,8 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 import type { Book } from "../../types";
 import { formatPrice } from "../../utils";
-import { useCart } from "../../hooks/useCart";
 import Badge from "../ui/Badge";
 
 interface ProductCardProps {
@@ -10,8 +9,9 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ book }: ProductCardProps) {
-  const { addToCart } = useCart();
-  const outOfStock = book.stock === 0;
+  const navigate = useNavigate();
+  const firstVariant = book.variants?.[0];
+  const outOfStock = !firstVariant || firstVariant.stock === 0;
 
   return (
     <div className="group flex flex-col h-full rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
@@ -21,9 +21,13 @@ export default function ProductCard({ book }: ProductCardProps) {
         className="relative block overflow-hidden bg-slate-100 aspect-[3/4]"
       >
         <img
-          src={book.image}
+          src={book.primaryImage || firstVariant?.primaryImage || "https://placehold.co/200x240?text=Sách"}
           alt={book.title}
           className="h-full w-full object-cover group-hover:scale-[1.04] transition-transform duration-300"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "https://placehold.co/200x240?text=Sách";
+          }}
         />
         {/* Out-of-stock overlay */}
         {outOfStock && (
@@ -39,7 +43,7 @@ export default function ProductCard({ book }: ProductCardProps) {
       <div className="flex flex-col flex-1 p-4 gap-2.5">
         {/* Category */}
         <Badge variant="info" className="self-start text-[11px]">
-          {book.category.name}
+          {typeof book.category === "object" ? book.category.name : book.category}
         </Badge>
 
         {/* Title */}
@@ -57,20 +61,19 @@ export default function ProductCard({ book }: ProductCardProps) {
         {/* Divider */}
         <div className="border-t border-slate-100 my-0.5" />
 
-        {/* Price + Add to Cart */}
+        {/* Price + Go Detail */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-col">
             <span className="text-[15px] font-bold text-indigo-600 leading-tight">
-              {formatPrice(book.price)}
+              {formatPrice(firstVariant?.price ?? book.price)}
             </span>
           </div>
           <button
-            onClick={() => addToCart(book)}
-            disabled={outOfStock}
+            onClick={() => navigate(`/books/${book.id}`)}
             className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-indigo-700 active:bg-indigo-800 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
           >
             <ShoppingCart className="h-3.5 w-3.5" />
-            Add
+            Chọn bản
           </button>
         </div>
       </div>

@@ -11,14 +11,28 @@ export default function CartPage() {
   const { items, totalItems, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
   const [isChecking, setIsChecking] = useState(false);
+  const safeItems = items.filter(
+    (item) =>
+      item?.variant &&
+      typeof item.variant.id === "number" &&
+      item.variant.book &&
+      typeof item.variant.book.id === "number" &&
+      typeof item.quantity === "number"
+  );
 
   const handleCheckoutClick = async () => {
     setIsChecking(true);
     try {
-      for (const item of items) {
-        const liveBook = await bookService.getBookById(item.book.id.toString());
-        if (liveBook.stock < item.quantity) {
-          alert(`Sách "${liveBook.title}" không đủ số lượng (còn ${liveBook.stock}). Vui lòng giảm số lượng để tiếp tục.`);
+      for (const item of safeItems) {
+        const liveBook = await bookService.getBookById(item.variant.book.id.toString());
+        const liveVariant = liveBook.variants?.find((variant) => variant.id === item.variant.id);
+        if (!liveVariant) {
+          alert(`Phiên bản "${item.variant.name}" của sách "${item.variant.book.title}" không còn tồn tại.`);
+          setIsChecking(false);
+          return;
+        }
+        if (liveVariant.stock < item.quantity) {
+          alert(`Phiên bản "${liveBook.title} - ${liveVariant.name}" không đủ số lượng (còn ${liveVariant.stock}). Vui lòng giảm số lượng để tiếp tục.`);
           setIsChecking(false);
           return;
         }
@@ -31,7 +45,7 @@ export default function CartPage() {
     }
   };
 
-  if (items.length === 0) {
+  if (safeItems.length === 0) {
     return (
       <div className="container mx-auto max-w-3xl px-4 sm:px-6 py-24 flex flex-col items-center gap-6 text-center">
         <ShoppingBag className="h-20 w-20 text-gray-200" />
@@ -69,9 +83,9 @@ export default function CartPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
         {/* Items */}
         <div className="space-y-4">
-          {items.map((item) => (
+          {safeItems.map((item) => (
             <div
-              key={item.book.id}
+              key={item.variant.id}
               className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
             >
               <CartItem item={item} />

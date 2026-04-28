@@ -1,11 +1,11 @@
 import { useCartStore } from "../stores/cartStore";
-import type { Book } from "../types";
+import type { Book, BookVariant } from "../types";
 
 export function useCart() {
   const store = useCartStore();
 
-  const addToCart = (book: Book, quantity = 1) => {
-    store.addItem(book, quantity);
+  const addToCart = (variant: BookVariant & { book: Book }, quantity = 1) => {
+    store.addItem(variant, quantity);
   };
 
   return {

@@ -43,7 +43,7 @@ export default function CheckoutPage() {
       const payload = {
         idempotencyKey: crypto.randomUUID(),
         items: items.map((item) => ({
-          bookId: item.book.id,
+          variantId: item.variant.id,
           quantity: item.quantity,
         })),
         paymentMethod: formData.paymentMethod,
@@ -176,11 +176,11 @@ export default function CheckoutPage() {
             <h2 className="font-semibold text-gray-900 text-lg">Tóm tắt đơn hàng</h2>
             <ul className="space-y-2 text-sm text-gray-600">
               {items.map((item) => (
-                <li key={item.book.id} className="flex justify-between">
+                <li key={item.variant.id} className="flex justify-between gap-3">
                   <span className="truncate max-w-[flex]">
-                    {item.book.title} × {item.quantity}
+                    {item.variant.book.title} ({item.variant.name}) × {item.quantity}
                   </span>
-                  <span>{formatPrice(item.book.price * item.quantity)}</span>
+                  <span>{formatPrice(item.variant.price * item.quantity)}</span>
                 </li>
               ))}
             </ul>

@@ -27,7 +27,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   const categories = useMemo(() => {
     const counts: Record<string, number> = {};
     books.forEach((book) => {
-      const catName = book.category.name;
+      const catName = typeof book.category === "object" ? book.category?.name : book.category;
+      if (!catName) return;
       counts[catName] = (counts[catName] || 0) + 1;
     });
     return Object.entries(counts).sort(([a], [b]) => a.localeCompare(b));
@@ -37,7 +38,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   const authors = useMemo(() => {
     const counts: Record<string, number> = {};
     books.forEach((book) => {
-      const authorName = book.author.name;
+      const authorName = typeof book.author === "object" ? book.author?.name : book.author;
+      if (!authorName) return;
       counts[authorName] = (counts[authorName] || 0) + 1;
     });
     return Object.entries(counts).sort(([a], [b]) => a.localeCompare(b));

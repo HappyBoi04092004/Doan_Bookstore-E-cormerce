@@ -7,7 +7,7 @@ const router = Router();
 // Lấy danh sách yêu thích
 router.get("/", authenticate, getWishlist);
 
-// Toggle (thêm/xóa) một sách khỏi danh sách yêu thích
-router.post("/:bookId", authenticate, toggleWishlist);
+// Toggle (thêm/xóa) một biến thể khỏi danh sách yêu thích
+router.post("/:variantId", authenticate, toggleWishlist);
 
 export default router;

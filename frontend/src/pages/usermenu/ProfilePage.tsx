@@ -14,7 +14,7 @@ export default function ProfilePage() {
     queryFn: authService.getProfile,
   });
 
-  const user = userResponse?.data || userResponse; // Handle possible extra .data wrapper
+  const user = userResponse as any;
   const updateUser = useAuthStore((state) => state.updateUser);
 
   const [form, setForm] = useState({

@@ -50,17 +50,36 @@ model Book {
   price       Int
   stock       Int
   description String?
-  image       String?
   categoryId  Int
   createdAt   DateTime @default(now())
 
+  images     BookImage[]
+  attributes BookAttribute[]
+  variants   BookVariant[]
+
   author     Author      @relation(fields: [authorId], references: [id])
   category   Category    @relation("CategoryBooks", fields: [categoryId], references: [id])
-  orderItems OrderItem[]
   reviews    Review[]
-  wishlists  Wishlist[]
-  cartItems  CartItem[]
 }
+
+model BookVariant {
+  id              Int      @id @default(autoincrement())
+  bookId    Int
+  name      String   // e.g., "Bản đặc biệt", "Bản thường"
+  sku       String?  @unique
+  price     Int
+  stock     Int
+  discountPercent Int?
+  
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  cartItems CartItem[]
+  orderItems OrderItem[]
+  wishlists Wishlist[]
+  images    BookImage[]
+
+  @@index([bookId])
+}
+
 
 model Cart {
   id     Int        @id @default(autoincrement())
@@ -70,14 +89,17 @@ model Cart {
 }
 
 model CartItem {
-  id     Int @id @default(autoincrement())
-  cartId Int
-  bookId Int
-  qty    Int
+  id        Int @id @default(autoincrement())
+  cartId    Int
+  variantId Int
+  qty       Int
 
-  cart Cart @relation(fields: [cartId], references: [id])
-  book Book @relation(fields: [bookId], references: [id])
+  cart    Cart        @relation(fields: [cartId], references: [id])
+  variant BookVariant @relation(fields: [variantId], references: [id])
+
+  @@unique([cartId, variantId])
 }
+
 
 model Order {
   id             Int     @id @default(autoincrement())
@@ -97,15 +119,16 @@ model Order {
 }
 
 model OrderItem {
-  id      Int @id @default(autoincrement())
-  orderId Int
-  bookId  Int
-  qty     Int
-  price   Int
+  id        Int @id @default(autoincrement())
+  orderId   Int
+  variantId Int
+  qty       Int
+  price     Int
 
-  order Order @relation(fields: [orderId], references: [id])
-  book  Book  @relation(fields: [bookId], references: [id])
+  order   Order       @relation(fields: [orderId], references: [id])
+  variant BookVariant @relation(fields: [variantId], references: [id])
 }
+
 
 model Review {
   id      Int    @id @default(autoincrement())
@@ -164,7 +187,7 @@ model Ward {
 }
 
 model Address {
-  id           Int      @id @default(autoincrement())
+  id           Int    @id @default(autoincrement())
   userId       Int
   name         String
   phone        String
@@ -186,10 +209,58 @@ model Coupon {
 }
 
 model Wishlist {
-  id     Int @id @default(autoincrement())
-  userId Int
-  bookId Int
+  id        Int @id @default(autoincrement())
+  userId    Int
+  variantId Int
 
-  user User @relation(fields: [userId], references: [id])
-  book Book @relation(fields: [bookId], references: [id])
+  user    User        @relation(fields: [userId], references: [id])
+  variant BookVariant @relation(fields: [variantId], references: [id])
+
+  @@unique([userId, variantId])
+}
+
+
+// ─── Product Images ────────────────────────────────────────────────────────────
+
+model BookImage {
+  id        Int     @id @default(autoincrement())
+  bookId    Int
+  variantId Int?
+  url       String
+  altText   String?
+  isPrimary Boolean @default(false)
+  sortOrder Int     @default(0)
+
+  book    Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  variant BookVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([bookId])
+  @@index([variantId])
+}
+
+
+// ─── Product Attributes (3-table reusable EAV) ─────────────────────────────────
+// Attribute: defines the attribute type (e.g., "Format", "Language", "Pages")
+// BookAttribute: joins a Book with an Attribute and stores its value
+
+model Attribute {
+  id   Int     @id @default(autoincrement())
+  name String  @unique // e.g., "Language", "Format", "Publisher"
+  unit String? // optional unit, e.g., "pages", "mm"
+
+  bookAttributes BookAttribute[]
+}
+
+model BookAttribute {
+  id          Int    @id @default(autoincrement())
+  bookId      Int
+  attributeId Int
+  value       String // e.g., "English", "Paperback", "320"
+
+  book      Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  attribute Attribute @relation(fields: [attributeId], references: [id])
+
+  @@unique([bookId, attributeId])
+  @@index([bookId])
+  @@index([attributeId])
 }

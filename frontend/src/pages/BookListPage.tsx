@@ -18,12 +18,14 @@ const BookListPage: React.FC = () => {
   const filteredBooks = useMemo(() => {
     if (!books) return [];
     return books.filter((book) => {
+      const categoryName = typeof book.category === "object" ? book.category?.name : book.category;
+      const authorName = typeof book.author === "object" ? book.author?.name : book.author;
       const categoryMatch =
         selectedCategories.length === 0 ||
-        selectedCategories.includes(book.category.name);
+        selectedCategories.includes(categoryName || "");
       const authorMatch =
         selectedAuthors.length === 0 ||
-        selectedAuthors.includes(book.author.name);
+        selectedAuthors.includes(authorName || "");
       return categoryMatch && authorMatch;
     });
   }, [books, selectedCategories, selectedAuthors]);
@@ -160,7 +162,7 @@ const BookListPage: React.FC = () => {
                   <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col overflow-hidden h-full">
                     <div className="h-64 bg-gray-50 relative overflow-hidden">
                       <img 
-                        src={book.image || "https://placehold.co/200x240?text=Sách"} 
+                        src={book.primaryImage || book.variants?.[0]?.primaryImage || "https://placehold.co/200x240?text=Sách"} 
                         alt={book.title} 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         onError={(e) => {
@@ -180,7 +182,7 @@ const BookListPage: React.FC = () => {
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 uppercase tracking-wider">
                           <Tag className="w-3 h-3" />
-                          {book.category.name}
+                          {typeof book.category === "object" ? book.category.name : book.category}
                         </div>
                       </div>
 
@@ -192,7 +194,7 @@ const BookListPage: React.FC = () => {
                         <div className="bg-gray-100 p-1.5 rounded-full">
                           <User className="w-3.5 h-3.5" />
                         </div>
-                        <span>{book.author.name}</span>
+                        <span>{typeof book.author === "object" ? book.author.name : book.author}</span>
                       </div>
 
                       <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
@@ -206,7 +208,10 @@ const BookListPage: React.FC = () => {
                           disabled={book.stock === 0}
                           onClick={(e) => {
                             e.preventDefault();
-                            addToCart(book);
+                            const firstVariant = book.variants?.[0];
+                            if (firstVariant) {
+                              addToCart({ ...firstVariant, book });
+                            }
                           }}
                           className="p-3 bg-gray-900 text-white rounded-xl hover:bg-indigo-600 disabled:opacity-30 disabled:hover:bg-gray-900 transition-all shadow-lg shadow-gray-200 hover:shadow-indigo-200"
                         >

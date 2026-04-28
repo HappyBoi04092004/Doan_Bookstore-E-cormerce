@@ -9,12 +9,12 @@ interface WishlistState {
   // Actions
   setWishlist: (items: WishlistItem[]) => void;
   addWishlistItem: (item: WishlistItem) => void;
-  removeWishlistItem: (bookId: number) => void;
+  removeWishlistItem: (variantId: number) => void;
   setLoading: (loading: boolean) => void;
   clearWishlist: () => void;
   
   // Computed (getters)
-  isWishlisted: (bookId: number) => boolean;
+  isWishlisted: (variantId: number) => boolean;
 }
 
 export const useWishlistStore = create<WishlistState>()(
@@ -26,21 +26,21 @@ export const useWishlistStore = create<WishlistState>()(
       setWishlist: (items) => set({ items }),
       
       addWishlistItem: (item) => set((state) => {
-        if (state.items.find((i) => i.bookId === item.bookId)) {
+        if (state.items.find((i) => i.variantId === item.variantId)) {
           return state;
         }
         return { items: [item, ...state.items] };
       }),
 
-      removeWishlistItem: (bookId) => set((state) => ({
-        items: state.items.filter((i) => i.bookId !== bookId)
+      removeWishlistItem: (variantId) => set((state) => ({
+        items: state.items.filter((i) => i.variantId !== variantId)
       })),
 
       setLoading: (isLoading) => set({ isLoading }),
 
       clearWishlist: () => set({ items: [] }),
 
-      isWishlisted: (bookId) => get().items.some(i => i.bookId === bookId),
+      isWishlisted: (variantId) => get().items.some(i => i.variantId === variantId),
     }),
     {
       name: "bookstore-wishlist",

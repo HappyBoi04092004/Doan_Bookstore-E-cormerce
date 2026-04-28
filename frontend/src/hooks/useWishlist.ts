@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useWishlistStore } from "../stores/wishlistStore";
 import { wishlistService } from "../services/wishlistService";
 import { useAuthStore } from "../stores/authStore";
-import type { Book } from "../types";
 
 export function useWishlist() {
   const store = useWishlistStore();
@@ -29,7 +28,7 @@ export function useWishlist() {
     }
   };
 
-  const toggleWishlist = async (book: Book) => {
+  const toggleWishlist = async (variantId: number) => {
     if (!isAuthenticated) {
       alert("Vui lòng đăng nhập để sử dụng tính năng này");
       return;
@@ -37,29 +36,16 @@ export function useWishlist() {
 
     try {
       // Optimistic update
-      const isCurrentlyWishlisted = store.isWishlisted(book.id);
+      const isCurrentlyWishlisted = store.isWishlisted(variantId);
       
       if (isCurrentlyWishlisted) {
-        store.removeWishlistItem(book.id);
-      } else {
-        // We use a temporary ID for optimistic update
-        const tempUserId = useAuthStore.getState().user?.id ? Number(useAuthStore.getState().user?.id) : 0;
-        store.addWishlistItem({
-          id: Date.now(), // Thêm ID tạm thời
-          bookId: book.id,
-          userId: tempUserId,
-          book
-        });
+        store.removeWishlistItem(variantId);
       }
 
       // API call
-      const res = await wishlistService.toggleWishlist(book.id);
+      await wishlistService.toggleWishlist(variantId);
       
-      // If the backend response contradicts our optimistic update, we should refetch
-      // But usually it's fine. We can just alert success if needed or silently success.
-      if (res.wishlisted !== !isCurrentlyWishlisted) {
-         fetchWishlist();
-      }
+      fetchWishlist();
       
     } catch (error) {
       console.error("Failed to toggle wishlist:", error);

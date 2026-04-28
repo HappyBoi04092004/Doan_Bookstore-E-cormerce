@@ -62,13 +62,13 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/books" element={<BookListPage />} />
             <Route path="/books/:id" element={<BookDetailPage />} />
+            <Route path="/cart" element={<CartPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
 
             {/* Protected — must be logged in */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/myorders" element={<MyOrdersPage />} />

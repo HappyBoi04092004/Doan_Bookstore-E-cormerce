@@ -1,7 +1,7 @@
 import prisma from "../lib/prisma";
 
 export interface OrderItemInput {
-  bookId: number;
+  variantId: number;
   quantity: number;
 }
 
@@ -30,7 +30,20 @@ export const orderService = {
       // 1. Check idempotency
       const existingOrder = await tx.order.findUnique({
         where: { idempotencyKey },
-        include: { items: { include: { book: { include: { author: true, category: true } } } } }
+        include: {
+          items: {
+            include: {
+              variant: {
+                include: {
+                  book: {
+                    include: { author: true, category: true, images: true },
+                  },
+                  images: true,
+                },
+              },
+            },
+          },
+        },
       });
       if (existingOrder) {
         return existingOrder;
@@ -40,25 +53,36 @@ export const orderService = {
       const enrichedItems = [];
       
       for (const item of items) {
-        const book = await tx.book.findUnique({ where: { id: item.bookId } });
-        if (!book) {
-          throw new Error(`Không tìm thấy sách với id ${item.bookId}`);
+        const variant = await tx.bookVariant.findUnique({
+          where: { id: item.variantId },
+          include: {
+            book: true,
+            images: {
+              orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
+            },
+          },
+        });
+
+        if (!variant) {
+          throw new Error(`Không tìm thấy biến thể với id ${item.variantId}`);
         }
-        if (book.stock < item.quantity) {
-          throw new Error(`Không đủ số lượng cho sách '${book.title}'. Có sẵn: ${book.stock}, Yêu cầu: ${item.quantity}`);
+        if (variant.stock < item.quantity) {
+          throw new Error(
+            `Không đủ số lượng cho phiên bản '${variant.book.title} - ${variant.name}'. Có sẵn: ${variant.stock}, Yêu cầu: ${item.quantity}`
+          );
         }
         
         // Decrement stock
-        await tx.book.update({
-          where: { id: book.id },
+        await tx.bookVariant.update({
+          where: { id: variant.id },
           data: { stock: { decrement: item.quantity } }
         });
         
-        total += book.price * item.quantity;
+        total += variant.price * item.quantity;
         enrichedItems.push({
-          bookId: book.id,
+          variantId: variant.id,
           qty: item.quantity,
-          price: book.price
+          price: variant.price
         });
       }
 
@@ -73,7 +97,16 @@ export const orderService = {
           items: { create: enrichedItems },
         },
         include: {
-          items: { include: { book: { include: { author: true, category: true } } } },
+          items: {
+            include: {
+              variant: {
+                include: {
+                  book: { include: { author: true, category: true, images: true } },
+                  images: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -101,7 +134,16 @@ export const orderService = {
       where: { userId },
       orderBy: { createdAt: "desc" },
       include: {
-        items: { include: { book: { include: { author: true } } } },
+        items: {
+          include: {
+            variant: {
+              include: {
+                book: { include: { author: true, category: true, images: true } },
+                images: true,
+              },
+            },
+          },
+        },
       },
     });
   },
@@ -110,7 +152,16 @@ export const orderService = {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        items: { include: { book: { include: { author: true, category: true } } } },
+        items: {
+          include: {
+            variant: {
+              include: {
+                book: { include: { author: true, category: true, images: true } },
+                images: true,
+              },
+            },
+          },
+        },
         user: { select: { id: true, name: true, email: true } },
       },
     });
@@ -127,7 +178,16 @@ export const orderService = {
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { id: true, name: true, email: true } },
-        items: { include: { book: true } },
+        items: {
+          include: {
+            variant: {
+              include: {
+                book: { include: { author: true, category: true, images: true } },
+                images: true,
+              },
+            },
+          },
+        },
       },
     });
   },

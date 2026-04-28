@@ -6,7 +6,7 @@ import { z } from "zod";
 const createOrderSchema = z.object({
   idempotencyKey: z.string().min(1, "idempotencyKey is required"),
   items: z.array(z.object({
-    bookId: z.number().int().positive("bookId must be a positive integer"),
+    variantId: z.number().int().positive("variantId must be a positive integer"),
     quantity: z.number().int().positive("quantity must be a positive integer").max(100, "quantity cannot exceed 100")
   })).min(1, "items must be a non-empty array"),
   paymentMethod: z.enum(["cod", "banking"]).optional(),

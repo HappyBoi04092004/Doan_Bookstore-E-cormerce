@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Heart, ShoppingCart, Trash2, BookOpen } from "lucide-react";
+import { Heart, ShoppingCart, Trash2 } from "lucide-react";
 import { useWishlist } from "../../hooks/useWishlist";
 import { useCart } from "../../hooks/useCart";
 import { formatPrice } from "../../utils";
@@ -45,16 +45,21 @@ export default function WishlistPage() {
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-100">
           {items.map((item) => (
+            (() => {
+              const book = item.variant.book;
+              const image = item.variant.primaryImage || book.primaryImage || "https://placehold.co/100x150?text=Sách";
+              const authorName = typeof book.author === "object" ? book.author?.name : book.author;
+              return (
             <div
               key={item.id}
               className="flex flex-col sm:flex-row gap-4 p-5 hover:bg-gray-50 transition-colors"
             >
               {/* Image */}
-              <Link to={`/books/${item.bookId}`} className="shrink-0 mx-auto sm:mx-0">
+              <Link to={`/books/${book.id}`} className="shrink-0 mx-auto sm:mx-0">
                 <div className="h-32 w-24 rounded-lg bg-gray-100 overflow-hidden shadow-sm relative group">
                   <img
-                    src={item.book.image || "https://placehold.co/100x150?text=Sách"}
-                    alt={item.book.title}
+                    src={image}
+                    alt={book.title}
                     className="h-full w-full object-cover transition-transform group-hover:scale-105"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
@@ -68,19 +73,20 @@ export default function WishlistPage() {
               <div className="flex-1 flex flex-col justify-between items-center sm:items-start text-center sm:text-left">
                 <div>
                   <Link
-                    to={`/books/${item.bookId}`}
+                    to={`/books/${book.id}`}
                     className="text-lg font-bold text-gray-900 hover:text-indigo-600 transition-colors line-clamp-2"
                   >
-                    {item.book.title}
+                    {book.title}
                   </Link>
                   <p className="text-sm text-gray-500 mt-1">
-                    bởi <span className="font-medium text-gray-700">{item.book.author.name}</span>
+                    bởi <span className="font-medium text-gray-700">{authorName}</span>
                   </p>
+                  <p className="text-xs text-indigo-600 mt-1">{item.variant.name}</p>
                   <p className="mt-2 font-bold text-indigo-600">
-                    {formatPrice(item.book.price)}
+                    {formatPrice(item.variant.price)}
                   </p>
-                  <p className={`text-xs mt-1 ${item.book.stock > 0 ? "text-green-600" : "text-red-500"}`}>
-                    {item.book.stock > 0 ? `Còn ${item.book.stock} sản phẩm` : "Hết hàng"}
+                  <p className={`text-xs mt-1 ${item.variant.stock > 0 ? "text-green-600" : "text-red-500"}`}>
+                    {item.variant.stock > 0 ? `Còn ${item.variant.stock} sản phẩm` : "Hết hàng"}
                   </p>
                 </div>
 
@@ -89,14 +95,14 @@ export default function WishlistPage() {
                   <Button
                     variant="outline"
                     className="flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                    onClick={() => toggleWishlist(item.book)}
+                    onClick={() => toggleWishlist(item.variantId)}
                   >
                     <Trash2 className="h-4 w-4 mr-1.5" /> Bỏ lưu
                   </Button>
                   <Button
                     className="flex-1"
-                    disabled={item.book.stock === 0}
-                    onClick={() => addToCart(item.book)}
+                    disabled={item.variant.stock === 0}
+                    onClick={() => addToCart(item.variant)}
                   >
                     <ShoppingCart className="h-4 w-4 mr-1.5" /> Mua ngay
                   </Button>
@@ -107,20 +113,22 @@ export default function WishlistPage() {
               <div className="hidden sm:flex flex-col justify-center items-end gap-2 min-w-[140px]">
                 <Button
                   className="w-full"
-                  disabled={item.book.stock === 0}
-                  onClick={() => addToCart(item.book)}
+                  disabled={item.variant.stock === 0}
+                  onClick={() => addToCart(item.variant)}
                 >
                   <ShoppingCart className="h-4 w-4 mr-1.5" /> Mua ngay
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                  onClick={() => toggleWishlist(item.book)}
+                  onClick={() => toggleWishlist(item.variantId)}
                 >
                   <Trash2 className="h-4 w-4 mr-1.5" /> Bỏ lưu
                 </Button>
               </div>
             </div>
+              );
+            })()
           ))}
         </div>
       )}

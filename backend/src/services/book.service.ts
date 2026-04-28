@@ -1,124 +1,386 @@
 import prisma from "../lib/prisma";
+import { Prisma } from "@prisma/client";
+
+export const bookInclude: Prisma.BookInclude = {
+  category: true,
+  author: true,
+  images: {
+    orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
+  },
+  attributes: {
+    include: { attribute: true },
+  },
+  variants: {
+    include: {
+      images: {
+        orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
+      },
+    },
+    orderBy: [{ price: "asc" }, { id: "asc" }],
+  },
+};
+
+type AttributeInput = { attributeId: number; value: string };
+type VariantInput = {
+  name: string;
+  sku?: string;
+  price: number | string;
+  stock: number | string;
+  discountPercent?: number | string | null;
+};
+
+async function resolveCategory(name: string) {
+  let record = await prisma.category.findFirst({ where: { name } });
+  if (!record) record = await prisma.category.create({ data: { name } });
+  return record;
+}
+
+async function resolveAuthor(name: string) {
+  let record = await prisma.author.findFirst({ where: { name } });
+  if (!record) record = await prisma.author.create({ data: { name } });
+  return record;
+}
+
+function normalizeVariants(raw: unknown): VariantInput[] {
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .filter((variant) => variant && typeof variant === "object")
+    .map((variant: any) => ({
+      name: String(variant.name ?? "").trim(),
+      sku: variant.sku ? String(variant.sku).trim() : undefined,
+      price: Number(variant.price ?? 0),
+      stock: Number(variant.stock ?? 0),
+      discountPercent:
+        variant.discountPercent === undefined ||
+        variant.discountPercent === null ||
+        variant.discountPercent === ""
+          ? null
+          : Number(variant.discountPercent),
+    }))
+    .filter((variant) => variant.name.length > 0);
+}
+
+function buildDefaultVariants(price: number, stock: number): VariantInput[] {
+  const safePrice = Math.max(Number(price || 0), 1);
+  const safeStock = Math.max(Number(stock || 0), 0);
+
+  return [
+    {
+      name: "E-book",
+      sku: undefined,
+      price: Math.max(Math.round(safePrice * 0.6), 1),
+      stock: 999,
+      discountPercent: null,
+    },
+    {
+      name: "Bản tiêu chuẩn",
+      sku: undefined,
+      price: safePrice,
+      stock: safeStock,
+      discountPercent: null,
+    },
+    {
+      name: "Bản đặc biệt",
+      sku: undefined,
+      price: Math.max(Math.round(safePrice * 1.35), 1),
+      stock: Math.max(Math.round(safeStock * 0.4), 0),
+      discountPercent: null,
+    },
+  ];
+}
+
+function summarizePrice(book: any) {
+  if (Array.isArray(book.variants) && book.variants.length > 0) {
+    return Number(book.variants[0]?.price ?? 0);
+  }
+  return Number(book.price ?? 0);
+}
+
+function summarizeStock(book: any) {
+  if (Array.isArray(book.variants) && book.variants.length > 0) {
+    return book.variants.reduce((sum: number, variant: any) => sum + (Number(variant.stock) || 0), 0);
+  }
+  return Number(book.stock ?? 0);
+}
+
+export function formatBook(book: any) {
+  const variants =
+    book.variants?.map((variant: any) => ({
+      ...variant,
+      primaryImage:
+        variant.images?.find((image: any) => image.isPrimary)?.url ??
+        variant.images?.[0]?.url ??
+        null,
+    })) ?? [];
+
+  return {
+    ...book,
+    primaryImage:
+      book.images?.find((image: any) => image.isPrimary)?.url ??
+      book.images?.[0]?.url ??
+      variants[0]?.primaryImage ??
+      null,
+    attributes:
+      book.attributes?.map((attributeRow: any) => ({
+        id: attributeRow.id,
+        attributeId: attributeRow.attributeId,
+        name: attributeRow.attribute?.name ?? "",
+        unit: attributeRow.attribute?.unit ?? null,
+        value: attributeRow.value,
+      })) ?? [],
+    variants,
+    price: summarizePrice({ ...book, variants }),
+    stock: summarizeStock({ ...book, variants }),
+  };
+}
+
+function normalizeAttributes(raw: unknown): AttributeInput[] {
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .filter((attribute) => attribute && typeof attribute === "object")
+    .map((attribute: any) => ({
+      attributeId: Number(attribute.attributeId),
+      value: String(attribute.value ?? "").trim(),
+    }))
+    .filter((attribute) => Number.isInteger(attribute.attributeId) && attribute.attributeId > 0 && attribute.value);
+}
 
 export const bookService = {
-  // admin
   async getAdminBooks(search: string = "", page: number = 1, limit: number = 10, category?: string) {
     const skip = (page - 1) * limit;
-    
-    // search in title, optionally filter by category
-    const whereClause: any = {
-      title: { contains: search }
+    const whereClause: Prisma.BookWhereInput = {
+      title: { contains: search },
+      ...(category ? { category: { name: { contains: category } } } : {}),
     };
-    
-    if (category) {
-       whereClause.category = { name: { contains: category } };
-    }
 
     const [books, total] = await Promise.all([
       prisma.book.findMany({
         where: whereClause,
         skip,
         take: limit,
-        include: { category: true, author: true },
-        orderBy: { createdAt: "desc" }
+        include: bookInclude,
+        orderBy: { createdAt: "desc" },
       }),
-      prisma.book.count({ where: whereClause })
+      prisma.book.count({ where: whereClause }),
     ]);
 
-    // Format books
-    const safeBooks = books.map(book => ({
-       ...book,
-       category: book.category.name,
-       author: book.author.name,
-    }));
-
-    return { books: safeBooks, total, page, limit };
+    return { books: books.map(formatBook), total, page, limit };
   },
 
-  async createBook(data: any) {
-    const { title, author, price, stock, category, description, image } = data;
-    
+  async getBooks() {
+    const books = await prisma.book.findMany({
+      include: bookInclude,
+      orderBy: { createdAt: "desc" },
+    });
+
+    return books.map(formatBook);
+  },
+
+  async getBookById(id: number) {
+    const book = await prisma.book.findUnique({
+      where: { id },
+      include: bookInclude,
+    });
+
+    if (!book) throw new Error("Không tìm thấy sách");
+    return formatBook(book);
+  },
+
+  async createBook(data: {
+    title: string;
+    author: string;
+    category: string;
+    price: number | string;
+    stock: number | string;
+    description?: string;
+    imagePaths?: string[];
+    attributes?: AttributeInput[];
+    variants?: VariantInput[];
+  }) {
+    const { title, author, category, price, stock, description, imagePaths = [], attributes = [], variants = [] } = data;
+
     if (!title || !author) throw new Error("Tiêu đề và tác giả là bắt buộc");
-    if (price <= 0) throw new Error("Giá phải lớn hơn 0");
-    if (stock < 0) throw new Error("Số lượng không được âm");
     if (!category) throw new Error("Danh mục là bắt buộc");
 
-    let catRecord = await prisma.category.findFirst({ where: { name: category } });
-    if (!catRecord) {
-       catRecord = await prisma.category.create({ data: { name: category } });
+    const normalizedVariants = normalizeVariants(variants);
+    const variantsToCreate =
+      normalizedVariants.length > 0
+        ? normalizedVariants
+        : buildDefaultVariants(Number(price ?? 0), Number(stock ?? 0));
+
+    if (variantsToCreate.some((variant) => Number(variant.price) <= 0)) {
+      throw new Error("Giá biến thể phải lớn hơn 0");
+    }
+    if (variantsToCreate.some((variant) => Number(variant.stock) < 0)) {
+      throw new Error("Tồn kho biến thể không được âm");
     }
 
-    let authorRecord = await prisma.author.findFirst({ where: { name: author } });
-    if (!authorRecord) {
-       authorRecord = await prisma.author.create({ data: { name: author } });
-    }
+    const normalizedAttributes = normalizeAttributes(attributes);
+    const [catRecord, authorRecord] = await Promise.all([
+      resolveCategory(category),
+      resolveAuthor(author),
+    ]);
 
     const book = await prisma.book.create({
       data: {
         title,
         authorId: authorRecord.id,
-        price: parseInt(price),
-        stock: parseInt(stock),
         categoryId: catRecord.id,
         description,
-        image,
+        price: Number(variantsToCreate[0].price),
+        stock: variantsToCreate.reduce((sum, variant) => sum + Number(variant.stock || 0), 0),
+        images: {
+          create: imagePaths.map((url, idx) => ({
+            url,
+            isPrimary: idx === 0,
+            sortOrder: idx,
+          })),
+        },
+        attributes: {
+          create: normalizedAttributes.map((attribute) => ({
+            attributeId: attribute.attributeId,
+            value: attribute.value,
+          })),
+        },
+        variants: {
+          create: variantsToCreate.map((variant) => ({
+            name: variant.name,
+            sku: variant.sku || null,
+            price: Number(variant.price),
+            stock: Number(variant.stock),
+            discountPercent:
+              variant.discountPercent === null || variant.discountPercent === undefined
+                ? null
+                : Number(variant.discountPercent),
+          })),
+        },
       },
-      include: { category: true, author: true }
+      include: bookInclude,
     });
 
-    return { ...book, category: book.category.name, author: book.author.name };
+    return formatBook(book);
   },
 
-  async updateBook(id: number, data: any) {
-    const { title, author, price, stock, category, description, image } = data;
-    
-    if (price && price <= 0) throw new Error("Giá phải lớn hơn 0");
-    if (stock && stock < 0) throw new Error("Số lượng không được âm");
+  async updateBook(
+    id: number,
+    data: {
+      title?: string;
+      author?: string;
+      category?: string;
+      price?: number | string;
+      stock?: number | string;
+      description?: string;
+      imagePaths?: string[];
+      attributes?: AttributeInput[];
+      variants?: VariantInput[];
+    }
+  ) {
+    const existingBook = await prisma.book.findUnique({ where: { id } });
+    if (!existingBook) throw new Error("Không tìm thấy sách");
 
-    const bookToUpdate = await prisma.book.findUnique({ where: { id } });
-    if (!bookToUpdate) throw new Error("Không tìm thấy sách");
-
-    // Handle old file deletion if new image is uploaded - REMOVED AS PER USER REQUEST
-
-    let categoryId = bookToUpdate.categoryId;
-    if (category) {
-      let catRecord = await prisma.category.findFirst({ where: { name: category } });
-      if (!catRecord) {
-         catRecord = await prisma.category.create({ data: { name: category } });
-      }
-      categoryId = catRecord.id;
+    let categoryId = existingBook.categoryId;
+    if (data.category) {
+      const categoryRecord = await resolveCategory(data.category);
+      categoryId = categoryRecord.id;
     }
 
-    let authorId = bookToUpdate.authorId;
-    if (author !== undefined) {
-      let authorRecord = await prisma.author.findFirst({ where: { name: author } });
-      if (!authorRecord) {
-         authorRecord = await prisma.author.create({ data: { name: author } });
-      }
+    let authorId = existingBook.authorId;
+    if (data.author !== undefined) {
+      const authorRecord = await resolveAuthor(data.author);
       authorId = authorRecord.id;
     }
 
-    const updateData: any = { categoryId, authorId };
-    if (title) updateData.title = title;
-    if (price !== undefined) updateData.price = parseInt(price);
-    if (stock !== undefined) updateData.stock = parseInt(stock);
-    if (description !== undefined) updateData.description = description;
-    if (image !== undefined) updateData.image = image;
+    const updateData: Prisma.BookUpdateInput = {
+      category: { connect: { id: categoryId } },
+      author: { connect: { id: authorId } },
+    };
+
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.description !== undefined) updateData.description = data.description;
+
+    const normalizedVariants = normalizeVariants(data.variants);
+    if (normalizedVariants.length > 0) {
+      if (normalizedVariants.some((variant) => Number(variant.price) <= 0)) {
+        throw new Error("Giá biến thể phải lớn hơn 0");
+      }
+      if (normalizedVariants.some((variant) => Number(variant.stock) < 0)) {
+        throw new Error("Tồn kho biến thể không được âm");
+      }
+
+      await prisma.bookVariant.deleteMany({ where: { bookId: id } });
+      updateData.variants = {
+        create: normalizedVariants.map((variant) => ({
+          name: variant.name,
+          sku: variant.sku || null,
+          price: Number(variant.price),
+          stock: Number(variant.stock),
+          discountPercent:
+            variant.discountPercent === null || variant.discountPercent === undefined
+              ? null
+              : Number(variant.discountPercent),
+        })),
+      };
+      updateData.price = Number(normalizedVariants[0].price);
+      updateData.stock = normalizedVariants.reduce((sum, variant) => sum + Number(variant.stock || 0), 0);
+    } else {
+      if (data.price !== undefined) {
+        if (Number(data.price) <= 0) throw new Error("Giá phải lớn hơn 0");
+        updateData.price = Number(data.price);
+      }
+      if (data.stock !== undefined) {
+        if (Number(data.stock) < 0) throw new Error("Số lượng không được âm");
+        updateData.stock = Number(data.stock);
+      }
+    }
+
+    if (data.imagePaths && data.imagePaths.length > 0) {
+      await prisma.bookImage.deleteMany({ where: { bookId: id, variantId: null } });
+      updateData.images = {
+        create: data.imagePaths.map((url, idx) => ({
+          url,
+          isPrimary: idx === 0,
+          sortOrder: idx,
+        })),
+      };
+    }
+
+    if (data.attributes) {
+      const normalizedAttributes = normalizeAttributes(data.attributes);
+      await prisma.bookAttribute.deleteMany({ where: { bookId: id } });
+      updateData.attributes = {
+        create: normalizedAttributes.map((attribute) => ({
+          attributeId: attribute.attributeId,
+          value: attribute.value,
+        })),
+      };
+    }
 
     const book = await prisma.book.update({
       where: { id },
       data: updateData,
-      include: { category: true, author: true }
+      include: bookInclude,
     });
-    
-    return { ...book, category: book.category.name, author: book.author.name };
+
+    return formatBook(book);
   },
 
   async deleteBook(id: number) {
-     const book = await prisma.book.findUnique({ where: { id } });
-     // Deletion REMAINS in folder - REMOVED AS PER USER REQUEST
-     await prisma.book.delete({ where: { id } });
-     return true;
+    await prisma.book.findUniqueOrThrow({ where: { id } });
+    await prisma.book.delete({ where: { id } });
+    return true;
   },
 
+  async getAttributes() {
+    return prisma.attribute.findMany({ orderBy: { name: "asc" } });
+  },
+
+  async createAttribute(name: string, unit?: string) {
+    return prisma.attribute.upsert({
+      where: { name },
+      update: { unit: unit ?? null },
+      create: { name, unit: unit ?? null },
+    });
+  },
 };

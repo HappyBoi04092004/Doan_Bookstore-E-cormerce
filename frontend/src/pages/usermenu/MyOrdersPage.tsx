@@ -70,18 +70,28 @@ function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => voi
                     <tr key={item.id}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
+                          {(() => {
+                            const book = item.variant.book;
+                            const image =
+                              item.variant.primaryImage ||
+                              book.primaryImage ||
+                              "https://placehold.co/100x120?text=Sách";
+                            return (
                           <img 
-                            src={item.book.image || "https://placehold.co/100x120?text=Sách"} 
-                            alt={item.book.title} 
+                            src={image} 
+                            alt={book.title} 
                             className="w-12 h-16 object-cover rounded-md flex-shrink-0 border border-gray-200"
                             onError={(e) => {
                               e.currentTarget.onerror = null;
                               e.currentTarget.src = "https://placehold.co/100x120?text=Sách";
                             }}
                           />
+                            );
+                          })()}
                           <div>
-                            <p className="text-sm font-medium text-gray-900">{item.book.title}</p>
-                            <p className="text-xs text-gray-500">{typeof item.book.author === 'object' ? item.book.author?.name : item.book.author}</p>
+                            <p className="text-sm font-medium text-gray-900">{item.variant.book.title}</p>
+                            <p className="text-xs text-indigo-600">{item.variant.name}</p>
+                            <p className="text-xs text-gray-500">{typeof item.variant.book.author === 'object' ? item.variant.book.author?.name : item.variant.book.author}</p>
                           </div>
                         </div>
                       </td>

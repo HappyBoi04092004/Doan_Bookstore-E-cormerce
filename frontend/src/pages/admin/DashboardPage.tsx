@@ -7,21 +7,6 @@ const stats = [
   { label: "Users", value: "1,024", icon: Users, color: "text-rose-600 bg-rose-100" },
 ];
 
-const recentOrders = [
-  { id: "ORD-001", customer: "Nguyen Van A", amount: "₫ 320,000", status: "delivered" },
-  { id: "ORD-002", customer: "Tran Thi B", amount: "₫ 150,000", status: "shipping" },
-  { id: "ORD-003", customer: "Le Van C", amount: "₫ 560,000", status: "pending" },
-  { id: "ORD-004", customer: "Pham Thi D", amount: "₫ 210,000", status: "confirmed" },
-];
-
-const statusColor: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  confirmed: "bg-blue-100 text-blue-700",
-  shipping: "bg-purple-100 text-purple-700",
-  delivered: "bg-green-100 text-green-700",
-  cancelled: "bg-red-100 text-red-700",
-};
-
 export default function DashboardPage() {
   return (
     <div className="space-y-8">

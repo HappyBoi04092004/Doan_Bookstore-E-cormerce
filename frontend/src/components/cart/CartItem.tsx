@@ -9,14 +9,20 @@ interface CartItemProps {
 
 export default function CartItem({ item }: CartItemProps) {
   const { updateQuantity, removeItem } = useCart();
-  const { book, quantity } = item;
+  const { variant, quantity } = item;
+  const book = variant.book;
+  const image = variant.primaryImage || book.primaryImage || "https://placehold.co/100x150?text=Sách";
 
   return (
     <div className="flex gap-3">
       <img
-        src={book.image}
+        src={image}
         alt={book.title}
         className="h-20 w-14 shrink-0 rounded-md object-cover bg-gray-100"
+        onError={(e) => {
+          e.currentTarget.onerror = null;
+          e.currentTarget.src = "https://placehold.co/100x150?text=Sách";
+        }}
       />
       <div className="flex flex-1 flex-col justify-between">
         <div>
@@ -24,12 +30,13 @@ export default function CartItem({ item }: CartItemProps) {
             {book.title}
           </p>
           <p className="text-xs text-gray-500 mt-0.5">{typeof book.author === 'object' ? book.author?.name : book.author}</p>
+          <p className="text-xs text-indigo-600 mt-1">{variant.name}</p>
         </div>
         <div className="flex items-center justify-between mt-2">
           {/* Quantity stepper */}
           <div className="flex items-center rounded-lg border border-gray-200">
             <button
-              onClick={() => updateQuantity(book.id, quantity - 1)}
+              onClick={() => updateQuantity(variant.id, quantity - 1)}
               className="p-1.5 text-gray-500 hover:text-gray-800 transition-colors"
               aria-label="Decrease quantity"
             >
@@ -39,7 +46,7 @@ export default function CartItem({ item }: CartItemProps) {
               {quantity}
             </span>
             <button
-              onClick={() => updateQuantity(book.id, quantity + 1)}
+              onClick={() => updateQuantity(variant.id, quantity + 1)}
               className="p-1.5 text-gray-500 hover:text-gray-800 transition-colors"
               aria-label="Increase quantity"
             >
@@ -49,10 +56,10 @@ export default function CartItem({ item }: CartItemProps) {
 
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-indigo-600">
-              {formatPrice(book.price * quantity)}
+              {formatPrice(variant.price * quantity)}
             </span>
             <button
-              onClick={() => removeItem(book.id)}
+              onClick={() => removeItem(variant.id)}
               className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
               aria-label="Remove item"
             >

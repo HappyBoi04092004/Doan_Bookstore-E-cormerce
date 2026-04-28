@@ -1,11 +1,11 @@
 import apiClient from "./api";
-import type { Book } from "../types";
+import type { Book, BookVariant } from "../types";
 
 export interface WishlistItem {
   id: number;
   userId: number;
-  bookId: number;
-  book: Book;
+  variantId: number;
+  variant: BookVariant & { book: Book };
 }
 
 export const wishlistService = {
@@ -14,8 +14,8 @@ export const wishlistService = {
     return data.data;
   },
 
-  async toggleWishlist(bookId: number): Promise<{ wishlisted: boolean; message: string }> {
-    const { data } = await apiClient.post(`/api/wishlist/${bookId}`);
+  async toggleWishlist(variantId: number): Promise<{ wishlisted: boolean; message: string }> {
+    const { data } = await apiClient.post(`/api/wishlist/${variantId}`);
     return data;
   },
 };

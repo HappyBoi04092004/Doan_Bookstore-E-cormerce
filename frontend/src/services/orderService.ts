@@ -3,8 +3,16 @@ import type { Order, OrderStatus, ApiResponse } from "../types";
 
 interface CreateOrderPayload {
   idempotencyKey: string;
-  items: { bookId: number; quantity: number }[];
+  items: { variantId: number; quantity: number }[];
   paymentMethod?: string;
+  address?: {
+    name: string;
+    phone: string;
+    street: string;
+    provinceCode: number;
+    districtCode: number;
+    wardCode: number;
+  };
 }
 
 export const orderService = {
