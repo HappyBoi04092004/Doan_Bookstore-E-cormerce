@@ -143,8 +143,10 @@ export default function BookDetailPage() {
             )}
           </div>
 
-          {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-3">
+          {images.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-gray-600">Hình ảnh sản phẩm</p>
+              <div className="grid grid-cols-4 gap-3">
               {images.map((img, idx) => (
                 <button
                   key={img.id}
@@ -165,6 +167,7 @@ export default function BookDetailPage() {
                   />
                 </button>
               ))}
+            </div>
             </div>
           )}
         </div>

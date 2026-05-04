@@ -22,6 +22,7 @@ export const bookInclude: Prisma.BookInclude = {
 
 type AttributeInput = { attributeId: number; value: string };
 type VariantInput = {
+  id?: number;
   name: string;
   sku?: string;
   price: number | string;
@@ -47,6 +48,10 @@ function normalizeVariants(raw: unknown): VariantInput[] {
   return raw
     .filter((variant) => variant && typeof variant === "object")
     .map((variant: any) => ({
+      id:
+        Number.isInteger(Number(variant.id)) && Number(variant.id) > 0
+          ? Number(variant.id)
+          : undefined,
       name: String(variant.name ?? "").trim(),
       sku: variant.sku ? String(variant.sku).trim() : undefined,
       price: Number(variant.price ?? 0),
@@ -59,6 +64,21 @@ function normalizeVariants(raw: unknown): VariantInput[] {
           : Number(variant.discountPercent),
     }))
     .filter((variant) => variant.name.length > 0);
+}
+
+function ensureUniqueVariants(variants: VariantInput[]) {
+  const normalizedNames = variants.map((variant) => variant.name.trim().toLowerCase());
+  if (new Set(normalizedNames).size !== normalizedNames.length) {
+    throw new Error("Tên biến thể bị trùng. Mỗi biến thể cần có tên khác nhau");
+  }
+
+  const skus = variants
+    .map((variant) => variant.sku?.trim())
+    .filter((sku): sku is string => Boolean(sku));
+  const normalizedSkus = skus.map((sku) => sku.toLowerCase());
+  if (new Set(normalizedSkus).size !== normalizedSkus.length) {
+    throw new Error("SKU biến thể bị trùng. Vui lòng nhập SKU khác nhau hoặc để trống");
+  }
 }
 
 function buildDefaultVariants(price: number, stock: number): VariantInput[] {
@@ -138,13 +158,20 @@ export function formatBook(book: any) {
 function normalizeAttributes(raw: unknown): AttributeInput[] {
   if (!Array.isArray(raw)) return [];
 
-  return raw
+  const normalized = raw
     .filter((attribute) => attribute && typeof attribute === "object")
     .map((attribute: any) => ({
       attributeId: Number(attribute.attributeId),
       value: String(attribute.value ?? "").trim(),
     }))
     .filter((attribute) => Number.isInteger(attribute.attributeId) && attribute.attributeId > 0 && attribute.value);
+
+  const deduped = new Map<number, AttributeInput>();
+  for (const attribute of normalized) {
+    deduped.set(attribute.attributeId, attribute);
+  }
+
+  return Array.from(deduped.values());
 }
 
 export const bookService = {
@@ -216,6 +243,7 @@ export const bookService = {
     if (variantsToCreate.some((variant) => Number(variant.stock) < 0)) {
       throw new Error("Tồn kho biến thể không được âm");
     }
+    ensureUniqueVariants(variantsToCreate);
 
     const normalizedAttributes = normalizeAttributes(attributes);
     const [catRecord, authorRecord] = await Promise.all([
@@ -308,10 +336,19 @@ export const bookService = {
       if (normalizedVariants.some((variant) => Number(variant.stock) < 0)) {
         throw new Error("Tồn kho biến thể không được âm");
       }
+      ensureUniqueVariants(normalizedVariants);
 
-      await prisma.bookVariant.deleteMany({ where: { bookId: id } });
-      updateData.variants = {
-        create: normalizedVariants.map((variant) => ({
+      const existingVariantIds = new Set(
+        (
+          await prisma.bookVariant.findMany({
+            where: { bookId: id },
+            select: { id: true },
+          })
+        ).map((variant) => variant.id)
+      );
+
+      for (const variant of normalizedVariants) {
+        const variantPayload = {
           name: variant.name,
           sku: variant.sku || null,
           price: Number(variant.price),
@@ -320,8 +357,23 @@ export const bookService = {
             variant.discountPercent === null || variant.discountPercent === undefined
               ? null
               : Number(variant.discountPercent),
-        })),
-      };
+        };
+
+        if (variant.id && existingVariantIds.has(variant.id)) {
+          await prisma.bookVariant.update({
+            where: { id: variant.id },
+            data: variantPayload,
+          });
+        } else {
+          await prisma.bookVariant.create({
+            data: {
+              ...variantPayload,
+              bookId: id,
+            },
+          });
+        }
+      }
+
       updateData.price = Number(normalizedVariants[0].price);
       updateData.stock = normalizedVariants.reduce((sum, variant) => sum + Number(variant.stock || 0), 0);
     } else {

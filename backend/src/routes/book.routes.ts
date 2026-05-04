@@ -12,8 +12,8 @@ router.get("/admin/list", authenticate, authorize(["admin"]), getAdminBooks);
 router.get("/:id", getBookById);
 
 // Admin strictly guarded routes
-router.post("/", authenticate, authorize(["admin"]), uploadBook.single("image"), createBook);
-router.put("/:id", authenticate, authorize(["admin"]), uploadBook.single("image"), updateBook);
+router.post("/", authenticate, authorize(["admin"]), uploadBook.array("images", 10), createBook);
+router.put("/:id", authenticate, authorize(["admin"]), uploadBook.array("images", 10), updateBook);
 router.delete("/:id", authenticate, authorize(["admin"]), deleteBook);
 
 export default router;
