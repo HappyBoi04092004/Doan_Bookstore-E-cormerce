@@ -28,6 +28,10 @@ import UsersPage from "./pages/admin/UsersPage";
 import ProductsPage from "./pages/admin/ProductsPage";
 import OrdersPage from "./pages/admin/OrdersPage";
 import CategoriesPage from "./pages/admin/CategoriesPage";
+import AuthorsPage from "./pages/admin/AuthorsPage";
+import PublishersPage from "./pages/admin/PublishersPage";
+import ContactsPage from "./pages/admin/ContactsPage";
+import ReviewsPage from "./pages/admin/ReviewsPage";
 import ProfilePage from "./pages/usermenu/ProfilePage";
 import WishlistPage from "./pages/usermenu/WishlistPage";
 
@@ -84,7 +88,11 @@ export default function App() {
               <Route path="/admin/users" element={<UsersPage />} />
               <Route path="/admin/products" element={<ProductsPage />} />
               <Route path="/admin/categories" element={<CategoriesPage />} />
+              <Route path="/admin/authors" element={<AuthorsPage />} />
+              <Route path="/admin/publishers" element={<PublishersPage />} />
               <Route path="/admin/orders" element={<OrdersPage />} />
+              <Route path="/admin/contacts" element={<ContactsPage />} />
+              <Route path="/admin/reviews" element={<ReviewsPage />} />
             </Route>
           </Route>
 

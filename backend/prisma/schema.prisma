@@ -18,6 +18,7 @@ model User {
   role      Role       @relation(fields: [roleId], references: [id])
   orders    Order[]
   reviews   Review[]
+  contactMessages ContactMessage[]
   cart      Cart?
   addresses Address[]
   wishlist  Wishlist[]
@@ -43,10 +44,17 @@ model Author {
   books Book[]
 }
 
+model Publisher {
+  id    Int    @id @default(autoincrement())
+  name  String
+  books Book[]
+}
+
 model Book {
   id          Int      @id @default(autoincrement())
   title       String
   authorId    Int
+  publisherId Int?
   price       Int
   stock       Int
   description String?
@@ -58,6 +66,7 @@ model Book {
   variants   BookVariant[]
 
   author     Author      @relation(fields: [authorId], references: [id])
+  publisher  Publisher?  @relation(fields: [publisherId], references: [id])
   category   Category    @relation("CategoryBooks", fields: [categoryId], references: [id])
   reviews    Review[]
 }
@@ -136,9 +145,22 @@ model Review {
   comment String
   userId  Int
   bookId  Int
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
   book Book @relation(fields: [bookId], references: [id])
+}
+
+model ContactMessage {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    String   @default("NEW")
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model Payment {
@@ -157,33 +179,21 @@ model Payment {
 model Province {
   code      Int        @id
   name      String
-  districts District[]
+  wards     Ward[]
   addresses Address[]
 
   @@index([name])
 }
 
-model District {
+model Ward {
   code         Int       @id
   name         String
   provinceCode Int
   province     Province  @relation(fields: [provinceCode], references: [code])
-  wards        Ward[]
   addresses    Address[]
 
   @@index([name])
   @@index([provinceCode])
-}
-
-model Ward {
-  code         Int       @id
-  name         String
-  districtCode Int
-  district     District  @relation(fields: [districtCode], references: [code])
-  addresses    Address[]
-
-  @@index([name])
-  @@index([districtCode])
 }
 
 model Address {
@@ -192,13 +202,11 @@ model Address {
   name         String
   phone        String
   provinceCode Int
-  districtCode Int
   wardCode     Int
   detail       String
 
   user     User     @relation(fields: [userId], references: [id])
   province Province @relation(fields: [provinceCode], references: [code])
-  district District @relation(fields: [districtCode], references: [code])
   ward     Ward     @relation(fields: [wardCode], references: [code])
 }
 

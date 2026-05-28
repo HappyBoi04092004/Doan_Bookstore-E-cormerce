@@ -15,7 +15,6 @@ const createOrderSchema = z.object({
     phone: z.string(),
     street: z.string(),
     provinceCode: z.number().int(),
-    districtCode: z.number().int(),
     wardCode: z.number().int(),
   }).optional(),
 });
@@ -103,4 +102,3 @@ export const adminUpdateOrderStatus = async (req: Request, res: Response): Promi
     res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 };
-

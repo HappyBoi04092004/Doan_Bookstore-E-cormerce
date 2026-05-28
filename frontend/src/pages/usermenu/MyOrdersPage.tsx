@@ -48,7 +48,7 @@ function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => voi
               <p className="text-gray-500 mb-1">Địa chỉ giao hàng</p>
               <p className="font-medium text-gray-900">{order.address.name} - {order.address.phone}</p>
               <p className="text-gray-600">
-                {order.address.detail}, {order.address.wardCode}, {order.address.districtCode}, {order.address.provinceCode}
+                {order.address.detail}, {order.address.wardCode}, {order.address.provinceCode}
               </p>
             </div>
           )}

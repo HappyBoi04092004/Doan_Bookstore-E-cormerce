@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 export const bookInclude: Prisma.BookInclude = {
   category: true,
   author: true,
+  publisher: true,
   images: {
     orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
   },
@@ -20,7 +21,7 @@ export const bookInclude: Prisma.BookInclude = {
   },
 };
 
-type AttributeInput = { attributeId: number; value: string };
+type AttributeInput = { attributeId?: number; name?: string; unit?: string; value: string };
 type VariantInput = {
   id?: number;
   name: string;
@@ -39,6 +40,22 @@ async function resolveCategory(name: string) {
 async function resolveAuthor(name: string) {
   let record = await prisma.author.findFirst({ where: { name } });
   if (!record) record = await prisma.author.create({ data: { name } });
+  return record;
+}
+
+async function resolvePublisher(name: string) {
+  let record = await prisma.publisher.findFirst({ where: { name } });
+  if (!record) record = await prisma.publisher.create({ data: { name } });
+  return record;
+}
+
+async function resolveAttribute(name: string, unit?: string) {
+  let record = await prisma.attribute.findFirst({ where: { name } });
+  if (!record) {
+    record = await prisma.attribute.create({ data: { name, unit: unit || null } });
+  } else if (unit !== undefined && unit !== record.unit) {
+    record = await prisma.attribute.update({ where: { id: record.id }, data: { unit: unit || null } });
+  }
   return record;
 }
 
@@ -162,16 +179,34 @@ function normalizeAttributes(raw: unknown): AttributeInput[] {
     .filter((attribute) => attribute && typeof attribute === "object")
     .map((attribute: any) => ({
       attributeId: Number(attribute.attributeId),
+      name: String(attribute.name ?? "").trim(),
+      unit: attribute.unit === undefined ? undefined : String(attribute.unit ?? "").trim(),
       value: String(attribute.value ?? "").trim(),
     }))
-    .filter((attribute) => Number.isInteger(attribute.attributeId) && attribute.attributeId > 0 && attribute.value);
+    .filter(
+      (attribute) =>
+        ((Number.isInteger(attribute.attributeId) && attribute.attributeId > 0) || attribute.name) &&
+        attribute.value
+    );
 
-  const deduped = new Map<number, AttributeInput>();
+  const deduped = new Map<string, AttributeInput>();
   for (const attribute of normalized) {
-    deduped.set(attribute.attributeId, attribute);
+    deduped.set(attribute.attributeId > 0 ? `id:${attribute.attributeId}` : `name:${attribute.name.toLowerCase()}`, attribute);
   }
 
   return Array.from(deduped.values());
+}
+
+async function buildAttributeCreates(attributes: AttributeInput[]) {
+  const rows = [];
+  for (const attribute of normalizeAttributes(attributes)) {
+    const attributeId =
+      attribute.attributeId && attribute.attributeId > 0
+        ? attribute.attributeId
+        : (await resolveAttribute(attribute.name!, attribute.unit)).id;
+    rows.push({ attributeId, value: attribute.value });
+  }
+  return rows;
 }
 
 export const bookService = {
@@ -218,6 +253,7 @@ export const bookService = {
   async createBook(data: {
     title: string;
     author: string;
+    publisher?: string;
     category: string;
     price: number | string;
     stock: number | string;
@@ -226,7 +262,7 @@ export const bookService = {
     attributes?: AttributeInput[];
     variants?: VariantInput[];
   }) {
-    const { title, author, category, price, stock, description, imagePaths = [], attributes = [], variants = [] } = data;
+    const { title, author, publisher, category, price, stock, description, imagePaths = [], attributes = [], variants = [] } = data;
 
     if (!title || !author) throw new Error("Tiêu đề và tác giả là bắt buộc");
     if (!category) throw new Error("Danh mục là bắt buộc");
@@ -245,16 +281,20 @@ export const bookService = {
     }
     ensureUniqueVariants(variantsToCreate);
 
-    const normalizedAttributes = normalizeAttributes(attributes);
     const [catRecord, authorRecord] = await Promise.all([
       resolveCategory(category),
       resolveAuthor(author),
+    ]);
+    const [publisherRecord, attributeCreates] = await Promise.all([
+      publisher?.trim() ? resolvePublisher(publisher.trim()) : Promise.resolve(null),
+      buildAttributeCreates(attributes),
     ]);
 
     const book = await prisma.book.create({
       data: {
         title,
         authorId: authorRecord.id,
+        publisherId: publisherRecord?.id ?? null,
         categoryId: catRecord.id,
         description,
         price: Number(variantsToCreate[0].price),
@@ -267,10 +307,7 @@ export const bookService = {
           })),
         },
         attributes: {
-          create: normalizedAttributes.map((attribute) => ({
-            attributeId: attribute.attributeId,
-            value: attribute.value,
-          })),
+          create: attributeCreates,
         },
         variants: {
           create: variantsToCreate.map((variant) => ({
@@ -296,6 +333,7 @@ export const bookService = {
     data: {
       title?: string;
       author?: string;
+      publisher?: string;
       category?: string;
       price?: number | string;
       stock?: number | string;
@@ -324,6 +362,13 @@ export const bookService = {
       category: { connect: { id: categoryId } },
       author: { connect: { id: authorId } },
     };
+
+    if (data.publisher !== undefined) {
+      const publisherName = data.publisher.trim();
+      updateData.publisher = publisherName
+        ? { connect: { id: (await resolvePublisher(publisherName)).id } }
+        : { disconnect: true };
+    }
 
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
@@ -399,13 +444,10 @@ export const bookService = {
     }
 
     if (data.attributes) {
-      const normalizedAttributes = normalizeAttributes(data.attributes);
+      const attributeCreates = await buildAttributeCreates(data.attributes);
       await prisma.bookAttribute.deleteMany({ where: { bookId: id } });
       updateData.attributes = {
-        create: normalizedAttributes.map((attribute) => ({
-          attributeId: attribute.attributeId,
-          value: attribute.value,
-        })),
+        create: attributeCreates,
       };
     }
 

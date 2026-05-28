@@ -4,6 +4,8 @@ import { ArrowLeft, Images, Package2, ScrollText } from "lucide-react";
 import Button from "../ui/Button";
 import { categoryService } from "../../services/categoryService";
 import { bookService } from "../../services/bookService";
+import { authorService } from "../../services/authorService";
+import { publisherService } from "../../services/publisherService";
 
 interface BookFormModalProps {
   isOpen: boolean;
@@ -23,6 +25,7 @@ export default function BookFormModal({
   const [formData, setFormData] = useState({
     title: "",
     author: "",
+    publisher: "",
     category: "",
     description: "",
     images: [] as File[],
@@ -31,7 +34,7 @@ export default function BookFormModal({
       { id: undefined, name: "Bản tiêu chuẩn", sku: "", price: "", stock: "0", discountPercent: "" },
       { id: undefined, name: "Bản đặc biệt", sku: "", price: "", stock: "0", discountPercent: "" },
     ],
-    attributes: [{ attributeId: "", value: "" }],
+    attributes: [{ attributeId: "", name: "", value: "" }],
   });
   const [errorMsg, setErrorMsg] = useState("");
   const imagePreviewUrls = useMemo(
@@ -53,6 +56,16 @@ export default function BookFormModal({
     queryFn: categoryService.getAll,
     enabled: isOpen,
   });
+  const { data: authors = [] } = useQuery({
+    queryKey: ["authors"],
+    queryFn: authorService.getAll,
+    enabled: isOpen,
+  });
+  const { data: publishers = [] } = useQuery({
+    queryKey: ["publishers"],
+    queryFn: publisherService.getAll,
+    enabled: isOpen,
+  });
   const { data: attributes = [] } = useQuery({
     queryKey: ["book-attributes"],
     queryFn: bookService.getAttributes,
@@ -66,6 +79,7 @@ export default function BookFormModal({
         setFormData({
           title: initialData.title || "",
           author: typeof initialData.author === "object" ? initialData.author?.name || "" : initialData.author || "",
+          publisher: typeof initialData.publisher === "object" ? initialData.publisher?.name || "" : initialData.publisher || "",
           category: typeof initialData.category === "object" ? initialData.category?.name || "" : initialData.category || "",
           description: initialData.description || "",
           images: [],
@@ -86,14 +100,16 @@ export default function BookFormModal({
           attributes: Array.isArray(initialData.attributes) && initialData.attributes.length > 0
             ? initialData.attributes.map((attribute: any) => ({
                 attributeId: String(attribute.attributeId ?? ""),
+                name: attribute.name || "",
                 value: attribute.value || "",
               }))
-            : [{ attributeId: "", value: "" }],
+            : [{ attributeId: "", name: "", value: "" }],
         });
       } else {
         setFormData({
           title: "",
           author: "",
+          publisher: "",
           category: "",
           description: "",
           images: [],
@@ -102,7 +118,7 @@ export default function BookFormModal({
             { id: undefined, name: "Bản tiêu chuẩn", sku: "", price: "", stock: "0", discountPercent: "" },
             { id: undefined, name: "Bản đặc biệt", sku: "", price: "", stock: "0", discountPercent: "" },
           ],
-          attributes: [{ attributeId: "", value: "" }],
+          attributes: [{ attributeId: "", name: "", value: "" }],
         });
       }
     }
@@ -206,6 +222,7 @@ export default function BookFormModal({
     onSubmit({
       title: formData.title,
       author: formData.author,
+      publisher: formData.publisher,
       category: formData.category,
       description: formData.description,
       images: formData.images,
@@ -262,7 +279,21 @@ export default function BookFormModal({
                 </div>
                 <div>
               <label className="block text-sm font-medium text-gray-700">Tác giả <span className="text-red-500">*</span></label>
-              <input type="text" name="author" value={formData.author} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+              <input type="text" name="author" list="author-options" value={formData.author} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+              <datalist id="author-options">
+                {authors.map((author) => (
+                  <option key={author.id} value={author.name} />
+                ))}
+              </datalist>
+                </div>
+                <div>
+              <label className="block text-sm font-medium text-gray-700">Nhà xuất bản</label>
+              <input type="text" name="publisher" list="publisher-options" value={formData.publisher} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+              <datalist id="publisher-options">
+                {publishers.map((publisher) => (
+                  <option key={publisher.id} value={publisher.name} />
+                ))}
+              </datalist>
                 </div>
                 <div>
               <label className="block text-sm font-medium text-gray-700">Danh mục <span className="text-red-500">*</span></label>
@@ -412,7 +443,7 @@ export default function BookFormModal({
                 onClick={() =>
                   setFormData((prev) => ({
                     ...prev,
-                    attributes: [...prev.attributes, { attributeId: "", value: "" }],
+                    attributes: [...prev.attributes, { attributeId: "", name: "", value: "" }],
                   }))
                 }
               >
@@ -421,7 +452,14 @@ export default function BookFormModal({
               </div>
               <div className="mt-4 space-y-3">
               {formData.attributes.map((attribute, index) => (
-                <div key={`${attribute.attributeId}-${index}`} className="grid grid-cols-[1fr_1fr_auto] gap-3 rounded-lg border border-gray-200 p-3">
+                <div key={`${attribute.attributeId}-${index}`} className="grid grid-cols-[1fr_auto] gap-3 rounded-lg border border-gray-200 p-3">
+                  <input
+                    type="text"
+                    value={attribute.name}
+                    onChange={(e) => handleAttributeChange(index, "name", e.target.value)}
+                    placeholder="Ten thuoc tinh"
+                    className="hidden"
+                  />
                   <select
                     value={attribute.attributeId}
                     onChange={(e) => handleAttributeChange(index, "attributeId", e.target.value)}

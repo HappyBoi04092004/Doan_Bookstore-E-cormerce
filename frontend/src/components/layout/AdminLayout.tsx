@@ -6,6 +6,10 @@ import {
   Package,
   BookOpen,
   Tag,
+  PenLine,
+  Building2,
+  MessageSquare,
+  Star,
 } from "lucide-react";
 import UserMenu from "../common/UserMenu";
 
@@ -15,6 +19,10 @@ const adminNav = [
   { to: "/admin/categories", label: "Danh mục", icon: Tag, end: false },
   { to: "/admin/orders", label: "Đơn hàng", icon: ShoppingBag, end: false },
   { to: "/admin/users", label: "Người dùng", icon: Users, end: false },
+  { to: "/admin/authors", label: "Tác giả", icon: PenLine, end: false },
+  { to: "/admin/publishers", label: "Nhà xuất bản", icon: Building2, end: false },
+  { to: "/admin/contacts", label: "Liên hệ", icon: MessageSquare, end: false },
+  { to: "/admin/reviews", label: "Đánh giá", icon: Star, end: false },
 ];
 
 export default function AdminLayout() {

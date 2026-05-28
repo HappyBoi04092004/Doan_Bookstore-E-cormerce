@@ -14,7 +14,6 @@ export interface CreateOrderPayload {
     phone: string;
     street: string;
     provinceCode: number;
-    districtCode: number;
     wardCode: number;
   };
 }
@@ -119,7 +118,6 @@ export const orderService = {
             phone: address.phone,
             detail: address.street,
             provinceCode: address.provinceCode,
-            districtCode: address.districtCode,
             wardCode: address.wardCode,
           }
         });

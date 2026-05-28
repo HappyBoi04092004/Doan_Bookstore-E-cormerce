@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ShoppingCart, ArrowLeft, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShoppingCart, ArrowLeft, Heart, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useBook } from "../hooks/useBooks";
 import { useCart } from "../hooks/useCart";
 import { useWishlist } from "../hooks/useWishlist";
+import { useAuthStore } from "../stores/authStore";
+import { reviewService } from "../services/reviewService";
 import { formatPrice } from "../utils";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
@@ -19,11 +22,34 @@ function resolveImageUrl(url?: string | null) {
 
 export default function BookDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { data: book, isLoading, error } = useBook(id ?? "");
   const { addToCart } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
   const [activeIdx, setActiveIdx] = useState(0);
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const { data: reviewSummary } = useQuery({
+    queryKey: ["bookReviews", id],
+    queryFn: () => reviewService.getBookReviews(id ?? ""),
+    enabled: Boolean(id),
+  });
+  const { data: canReview = false } = useQuery({
+    queryKey: ["canReview", id],
+    queryFn: () => reviewService.canReview(id ?? ""),
+    enabled: Boolean(id && isAuthenticated),
+    retry: false,
+  });
+  const reviewMutation = useMutation({
+    mutationFn: () => reviewService.create(id ?? "", { rating: reviewRating, comment: reviewComment }),
+    onSuccess: () => {
+      setReviewComment("");
+      queryClient.invalidateQueries({ queryKey: ["bookReviews", id] });
+    },
+    onError: (err: any) => alert(err?.response?.data?.message || "Không thể gửi đánh giá"),
+  });
   const imagesSource = book?.images;
   const variantsSource = book?.variants;
   const images = Array.isArray(imagesSource)
@@ -265,6 +291,52 @@ export default function BookDetailPage() {
               </table>
             </div>
           )}
+
+          <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-lg shadow-slate-100">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <h2 className="text-left text-xl font-semibold text-gray-900">Đánh giá sản phẩm</h2>
+              <span className="inline-flex items-center gap-1 text-sm font-medium text-amber-600">
+                <Star className="h-4 w-4 fill-current" />
+                {(reviewSummary?.averageRating ?? 0).toFixed(1)} / 5 ({reviewSummary?.total ?? 0})
+              </span>
+            </div>
+
+            {canReview && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  reviewMutation.mutate();
+                }}
+                className="mb-5 space-y-3 rounded-2xl border border-gray-100 bg-slate-50 p-4"
+              >
+                <select value={reviewRating} onChange={(e) => setReviewRating(Number(e.target.value))} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  {[5, 4, 3, 2, 1].map((value) => <option key={value} value={value}>{value} sao</option>)}
+                </select>
+                <textarea value={reviewComment} onChange={(e) => setReviewComment(e.target.value)} rows={3} placeholder="Nhập đánh giá của bạn sau khi mua hàng" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                <Button type="submit" variant="primary" disabled={reviewMutation.isPending || !reviewComment.trim()}>
+                  Gửi đánh giá
+                </Button>
+              </form>
+            )}
+
+            <div className="space-y-4">
+              {(reviewSummary?.reviews ?? []).length === 0 ? (
+                <p className="text-sm text-gray-500">Chưa có đánh giá nào.</p>
+              ) : (
+                reviewSummary?.reviews.map((review) => (
+                  <div key={review.id} className="border-t border-gray-100 pt-4">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-gray-900">{review.user.name}</p>
+                      <span className="inline-flex items-center gap-1 text-sm text-amber-600">
+                        <Star className="h-4 w-4 fill-current" /> {review.rating}/5
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-gray-600">{review.comment}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
       </div>

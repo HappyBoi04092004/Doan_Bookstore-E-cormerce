@@ -1,27 +1,21 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
-const API_URL = "https://provinces.open-api.vn/api/?depth=3";
 
-// ─── API Types ────────────────────────────────────────────────────────────────
+const prisma = new PrismaClient();
+
+const API_URL =
+  "https://raw.githubusercontent.com/thanglequoc/vietnamese-provinces-database/master/json/vn_only_simplified_json_generated_data_vn_units.json";
 
 interface ApiWard {
-  code: number;
-  name: string;
-}
-
-interface ApiDistrict {
-  code: number;
-  name: string;
-  wards: ApiWard[];
+  Code: string;
+  FullName: string;
+  ProvinceCode: string;
 }
 
 interface ApiProvince {
-  code: number;
-  name: string;
-  districts: ApiDistrict[];
+  Code: string;
+  FullName: string;
+  Wards: ApiWard[];
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const chunks: T[][] = [];
@@ -31,95 +25,70 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return chunks;
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
+function toCode(value: string): number {
+  return Number(value);
+}
 
 async function main() {
-  console.log(" Starting Vietnam address seed...");
+  console.log("Starting Vietnam 34-province address seed...");
+  console.log("Fetching 34-province dataset from GitHub...");
 
-  // Skip if already seeded
-  const existingCount = await prisma.province.count();
-  if (existingCount > 0) {
-    console.log(` Already seeded (${existingCount} provinces found). Skipping.`);
-    return;
-  }
-
-  // 1. Fetch all data at depth=3 (provinces → districts → wards)
-  console.log(" Fetching from provinces.open-api.vn...");
   const response = await fetch(API_URL);
   if (!response.ok) {
-    throw new Error(`API fetch failed: ${response.status} ${response.statusText}`);
+    throw new Error(`Address dataset fetch failed: ${response.status} ${response.statusText}`);
   }
-  const provinces: ApiProvince[] = await response.json();
-  console.log(`   → ${provinces.length} provinces received`);
 
-  // ── 2. Seed Provinces ──────────────────────────────────────────────────────
-  console.log(" Seeding provinces...");
-  const provinceChunks = chunk(provinces, 100);
-  for (const batch of provinceChunks) {
+  const provinces: ApiProvince[] = await response.json();
+  const wards = provinces.flatMap((province) => province.Wards ?? []);
+
+  if (provinces.length !== 34) {
+    throw new Error(`Expected 34 provinces, received ${provinces.length}`);
+  }
+  if (wards.length < 3000) {
+    throw new Error(`Expected the merged ward dataset, received only ${wards.length} wards`);
+  }
+
+  console.log(`Received ${provinces.length} provinces and ${wards.length} wards`);
+  console.log("Clearing old address data...");
+
+  await prisma.address.deleteMany();
+  await prisma.ward.deleteMany();
+  await prisma.province.deleteMany();
+
+  console.log("Seeding provinces...");
+  for (const batch of chunk(provinces, 100)) {
     await prisma.province.createMany({
-      data: batch.map((p) => ({ code: p.code, name: p.name })),
+      data: batch.map((province) => ({
+        code: toCode(province.Code),
+        name: province.FullName,
+      })),
       skipDuplicates: true,
     });
   }
-  console.log(`    ${provinces.length} provinces seeded`);
 
-  // ── 3. Collect and seed Districts ──────────────────────────────────────────
-  console.log(" Seeding districts...");
-  const allDistricts: { code: number; name: string; provinceCode: number }[] = [];
-  for (const province of provinces) {
-    for (const district of province.districts) {
-      allDistricts.push({
-        code: district.code,
-        name: district.name,
-        provinceCode: province.code,
-      });
-    }
-  }
+  console.log("Seeding wards...");
+  const wardRows = provinces.flatMap((province) => {
+    const provinceCode = toCode(province.Code);
+    return province.Wards.map((ward) => ({
+      code: toCode(ward.Code),
+      name: ward.FullName,
+      provinceCode,
+    }));
+  });
 
-  const districtChunks = chunk(allDistricts, 500);
-  for (const batch of districtChunks) {
-    await prisma.district.createMany({
+  for (const batch of chunk(wardRows, 500)) {
+    await prisma.ward.createMany({
       data: batch,
       skipDuplicates: true,
     });
   }
-  console.log(`   ✔ ${allDistricts.length} districts seeded`);
 
-  // ── 4. Collect and seed Wards ──────────────────────────────────────────────
-  console.log(" Seeding wards...");
-  const allWards: { code: number; name: string; districtCode: number }[] = [];
-  for (const province of provinces) {
-    for (const district of province.districts) {
-      for (const ward of district.wards) {
-        allWards.push({
-          code: ward.code,
-          name: ward.name,
-          districtCode: district.code,
-        });
-      }
-    }
-  }
-
-  let wardCount = 0;
-  const wardChunks = chunk(allWards, 1000);
-  for (let i = 0; i < wardChunks.length; i++) {
-    const result = await prisma.ward.createMany({
-      data: wardChunks[i],
-      skipDuplicates: true,
-    });
-    wardCount += result.count;
-    process.stdout.write(
-      `\r   Batch ${i + 1}/${wardChunks.length} — ${wardCount} wards inserted...`
-    );
-  }
-  console.log(`\n    ${wardCount} wards seeded`);
-
-  console.log("\n Address seed complete!");
+  console.log(`Seeded ${provinces.length} provinces and ${wardRows.length} wards`);
 }
 
 main()
-  .catch((e) => {
-    console.error("\n Seed failed:", e);
+  .catch((error) => {
+    console.error("Address seed failed:", error);
     process.exit(1);
   })
   .finally(async () => {

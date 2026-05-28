@@ -71,37 +71,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Features ──────────────────────────────────────────── */}
-      <section className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">
-            Vì sao chọn BookStore?
-          </h2>
-          <p className="mt-3 text-slate-500 max-w-md mx-auto">
-            Chúng tôi giúp bạn dễ dàng tìm, mua và tận hưởng những cuốn sách bạn yêu thích.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {[
-            { icon: BookOpen, title: "Kho sách khổng lồ", desc: "Hàng ngàn tựa sách đủ thể loại: tiểu thuyết, khoa học, lịch sử, v.v." },
-            { icon: Star, title: "Gợi ý chọn lọc", desc: "Đội ngũ biên tập viên đề xuất sách hay mỗi tuần." },
-            { icon: Truck, title: "Giao hàng nhanh", desc: "Giao trong ngày tại các thành phố lớn trên toàn quốc." },
-          ].map(({ icon: Icon, title, desc }) => (
-            <div
-              key={title}
-              className="flex flex-col items-center text-center gap-4 rounded-2xl border border-slate-200 bg-white px-8 py-10 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-            >
-              <div className="flex h-13 w-13 h-[52px] w-[52px] items-center justify-center rounded-xl bg-indigo-50">
-                <Icon className="h-6 w-6 text-indigo-600" />
-              </div>
-              <h3 className="text-[1rem] font-semibold text-slate-900">{title}</h3>
-              <p className="text-slate-500 text-[13.5px] leading-relaxed">{desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── CTA ───────────────────────────────────────────────── */}
       <section className="border-t border-slate-200 bg-white">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 text-center">

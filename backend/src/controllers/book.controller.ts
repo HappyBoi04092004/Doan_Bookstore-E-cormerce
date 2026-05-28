@@ -6,7 +6,7 @@ function extractImagePaths(files: Express.Multer.File[] | undefined): string[] {
   return files.map((file) => `/uploads/books/${file.filename}`);
 }
 
-function parseAttributes(raw: unknown): { attributeId: number; value: string }[] {
+function parseAttributes(raw: unknown): { attributeId?: number; name?: string; unit?: string; value: string }[] {
   if (!raw) return [];
 
   try {
@@ -14,9 +14,11 @@ function parseAttributes(raw: unknown): { attributeId: number; value: string }[]
     if (!Array.isArray(parsed)) return [];
 
     return parsed
-      .filter((attribute) => attribute?.attributeId && attribute?.value !== undefined)
+      .filter((attribute) => (attribute?.attributeId || attribute?.name) && attribute?.value !== undefined)
       .map((attribute) => ({
-        attributeId: Number(attribute.attributeId),
+        attributeId: attribute.attributeId ? Number(attribute.attributeId) : undefined,
+        name: attribute.name ? String(attribute.name) : undefined,
+        unit: attribute.unit ? String(attribute.unit) : undefined,
         value: String(attribute.value),
       }));
   } catch {

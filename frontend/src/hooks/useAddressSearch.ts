@@ -3,10 +3,8 @@ import { useState, useEffect, useRef } from "react";
 export interface AddressSuggestion {
   fullAddress: string;
   province: string;
-  district: string;
   ward: string;
   provinceCode: number;
-  districtCode: number;
   wardCode: number;
 }
 

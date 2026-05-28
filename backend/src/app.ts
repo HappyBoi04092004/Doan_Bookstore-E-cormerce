@@ -11,6 +11,10 @@ import userRoutes from "./routes/user.routes";
 import categoryRoutes from "./routes/category.routers";
 import addressRoutes from "./routes/address.routes";
 import wishlistRoutes from "./routes/wishlist.routes";
+import authorRoutes from "./routes/author.routes";
+import publisherRoutes from "./routes/publisher.routes";
+import contactRoutes from "./routes/contact.routes";
+import reviewRoutes from "./routes/review.routes";
 import passport from "./lib/passport";
 
 const app = express();
@@ -31,6 +35,10 @@ app.use("/orders", orderRoutes);
 app.use("/admin", adminRoutes);
 app.use("/users", userRoutes);
 app.use("/categories", categoryRoutes);
+app.use("/authors", authorRoutes);
+app.use("/publishers", publisherRoutes);
+app.use("/contacts", contactRoutes);
+app.use("/reviews", reviewRoutes);
 app.use("/api/address", addressRoutes);
 app.use("/wishlist", wishlistRoutes);
 

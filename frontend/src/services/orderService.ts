@@ -10,7 +10,6 @@ interface CreateOrderPayload {
     phone: string;
     street: string;
     provinceCode: number;
-    districtCode: number;
     wardCode: number;
   };
 }

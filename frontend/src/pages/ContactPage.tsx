@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
+import { contactService } from "../services/contactService";
 
 interface ContactForm {
   name: string;
@@ -19,9 +20,7 @@ export default function ContactPage() {
   } = useForm<ContactForm>();
 
   const onSubmit = async (data: ContactForm) => {
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 1000));
-    console.log("Contact form:", data);
+    await contactService.create(data);
     reset();
   };
 

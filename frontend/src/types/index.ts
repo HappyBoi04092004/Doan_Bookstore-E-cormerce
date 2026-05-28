@@ -45,7 +45,7 @@ export interface BookImage {
 
 export interface BookAttribute {
   id: number;
-  attributeId: number;
+  attributeId?: number;
   name: string;
   unit?: string | null;
   value: string;
@@ -73,6 +73,7 @@ export interface Book {
   id: number;
   title: string;
   author: { id?: number; name: string } | string;
+  publisher?: { id?: number; name: string } | string | null;
   category: { id?: number; name: string } | string;
   price: number;
   stock: number;
@@ -116,7 +117,6 @@ export interface Order {
     street: string;
     detail: string;
     wardCode: number;
-    districtCode: number;
     provinceCode: number;
   };
   items: OrderItem[];

@@ -15,7 +15,6 @@ type CheckoutForm = {
   street: string;
   addressSearch: string; // The selected suggestion
   provinceCode: number;
-  districtCode: number;
   wardCode: number;
   paymentMethod: "cod" | "banking";
 };
@@ -52,7 +51,6 @@ export default function CheckoutPage() {
           phone: formData.phone,
           street: formData.street,
           provinceCode: formData.provinceCode,
-          districtCode: formData.districtCode,
           wardCode: formData.wardCode,
         }
       };
@@ -127,7 +125,6 @@ export default function CheckoutPage() {
                   onSelect={(item) => {
                     setValue("addressSearch", item.fullAddress, { shouldValidate: true });
                     setValue("provinceCode", item.provinceCode);
-                    setValue("districtCode", item.districtCode);
                     setValue("wardCode", item.wardCode);
                   }}
                   error={errors.addressSearch?.message}

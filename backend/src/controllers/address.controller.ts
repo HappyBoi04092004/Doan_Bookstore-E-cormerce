@@ -5,7 +5,7 @@ import { addressService } from "../services/address.service";
  * GET /api/address/search?q=<query>
  *
  * Returns up to 15 address suggestions matching the query string.
- * Searches ward, district, and province names (case-insensitive).
+ * Searches ward names in the 34-province, two-level administrative dataset.
  */
 export const searchAddress = async (req: Request, res: Response): Promise<void> => {
   try {

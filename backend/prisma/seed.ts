@@ -111,6 +111,24 @@ async function main() {
     create: { name: "ISBN" },
   });
 
+  await Promise.all([
+    prisma.attribute.upsert({
+      where: { name: "Năm xuất bản" },
+      update: {},
+      create: { name: "Năm xuất bản" },
+    }),
+    prisma.attribute.upsert({
+      where: { name: "Kích thước" },
+      update: {},
+      create: { name: "Kích thước" },
+    }),
+    prisma.attribute.upsert({
+      where: { name: "Cách sử dụng" },
+      update: {},
+      create: { name: "Cách sử dụng" },
+    }),
+  ]);
+
   console.log("✅ Attributes defined");
 
   // ===== BOOKS & VARIANTS =====
@@ -189,8 +207,10 @@ async function main() {
     create: { userId: user.id },
   });
 
-  await prisma.cartItem.create({
-    data: { cartId: cart.id, variantId: ccVariant.id, qty: 1 },
+  await prisma.cartItem.upsert({
+    where: { cartId_variantId: { cartId: cart.id, variantId: ccVariant.id } },
+    update: { qty: 1 },
+    create: { cartId: cart.id, variantId: ccVariant.id, qty: 1 },
   });
 
   console.log("✅ Cart created");
@@ -215,8 +235,10 @@ async function main() {
   console.log("✅ Order created");
 
   // ===== WISHLIST =====
-  await prisma.wishlist.create({
-    data: { userId: user.id, variantId: ppVariant.id },
+  await prisma.wishlist.upsert({
+    where: { userId_variantId: { userId: user.id, variantId: ppVariant.id } },
+    update: {},
+    create: { userId: user.id, variantId: ppVariant.id },
   });
 
   console.log("✅ Wishlist created");

@@ -10,7 +10,7 @@ interface Props {
   defaultValue?: string;
 }
 
-export default function AddressAutocomplete({ onSelect, error, placeholder = "Tìm phường/xã, quận/huyện...", defaultValue = "" }: Props) {
+export default function AddressAutocomplete({ onSelect, error, placeholder = "Tìm phường/xã theo địa giới mới...", defaultValue = "" }: Props) {
   const { query, setQuery, results, loading } = useAddressSearch();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -133,7 +133,7 @@ export default function AddressAutocomplete({ onSelect, error, placeholder = "T�
           ) : (
             results.map((item, index) => (
               <div
-                key={`${item.ward}-${item.district}-${item.province}-${index}`}
+                key={`${item.ward}-${item.province}-${index}`}
                 onClick={() => handleSelect(item)}
                 className={`cursor-pointer px-4 py-2 flex items-start gap-3 transition-colors ${
                   index === selectedIndex ? "bg-indigo-50" : "hover:bg-gray-50"
@@ -142,7 +142,7 @@ export default function AddressAutocomplete({ onSelect, error, placeholder = "T�
                 <MapPin className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="text-sm font-medium text-gray-900 truncate">
-                    {renderHighlightedText(item.ward || item.district || item.province, query)}
+                    {renderHighlightedText(item.ward || item.province, query)}
                   </span>
                   <span className="text-xs text-gray-500 truncate">
                     {item.fullAddress}
