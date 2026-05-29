@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@types/sharp": "^0.31.1"
+  }
+}

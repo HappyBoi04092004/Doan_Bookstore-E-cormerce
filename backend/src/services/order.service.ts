@@ -18,6 +18,23 @@ export interface CreateOrderPayload {
   };
 }
 
+export interface SePayWebhookPayload {
+  id?: number | string;
+  gateway?: string;
+  transactionDate?: string;
+  accountNumber?: string;
+  code?: string;
+  content?: string;
+  transferType?: string;
+  transferAmount?: number;
+  referenceCode?: string;
+}
+
+function extractOrderIdFromPaymentText(text: string) {
+  const match = text.match(/\bDH(\d+)\b/i);
+  return match ? Number(match[1]) : null;
+}
+
 export const orderService = {
   // ── USER ──────────────────────────────────────────────────────────────────
 
@@ -91,7 +108,7 @@ export const orderService = {
           userId,
           total,
           status: "PENDING",
-          paymentMethod: paymentMethod === "cod" ? "COD" : paymentMethod === "banking" ? "MOMO" : undefined,
+          paymentMethod: paymentMethod === "cod" ? "COD" : paymentMethod === "banking" ? "SEPAY" : undefined,
           idempotencyKey,
           items: { create: enrichedItems },
         },
@@ -198,6 +215,80 @@ export const orderService = {
       where: { id: orderId },
       data: { status },
     });
+  },
+
+  async markMockPaymentPaid(orderId: number, userId: number) {
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+
+    if (!order) throw new Error("Khong tim thay don hang");
+    if (order.userId !== userId) throw new Error("Bi tu choi: Khong du quyen han");
+    if (order.paymentMethod !== "SEPAY") throw new Error("Don hang khong dung phuong thuc SePay");
+    if (order.status !== "PENDING") return order;
+
+    return prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: "PAID",
+        paymentStatus: "SUCCESS",
+      },
+    });
+  },
+
+  async handleSePayWebhook(payload: SePayWebhookPayload) {
+    const transferAmount = Number(payload.transferAmount);
+    const transferType = String(payload.transferType ?? "").toLowerCase();
+    const paymentText = [payload.code, payload.content].filter(Boolean).join(" ");
+    const orderId = extractOrderIdFromPaymentText(paymentText);
+
+    if (transferType && transferType !== "in") {
+      return { matched: false, reason: "not_incoming_transfer" };
+    }
+
+    if (!orderId) {
+      return { matched: false, reason: "order_code_not_found" };
+    }
+
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+
+    if (!order) {
+      return { matched: false, reason: "order_not_found", orderId };
+    }
+
+    if (order.total !== transferAmount) {
+      return {
+        matched: false,
+        reason: "amount_mismatch",
+        orderId,
+        expectedAmount: order.total,
+        receivedAmount: transferAmount,
+      };
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: "PAID",
+        paymentStatus: "SUCCESS",
+        payment: {
+          upsert: {
+            create: {
+              method: "SEPAY",
+              status: "SUCCESS",
+              transactionId: String(payload.referenceCode ?? payload.id ?? ""),
+              amount: transferAmount,
+            },
+            update: {
+              method: "SEPAY",
+              status: "SUCCESS",
+              transactionId: String(payload.referenceCode ?? payload.id ?? ""),
+              amount: transferAmount,
+            },
+          },
+        },
+      },
+    });
+
+    return { matched: true, orderId, order: updatedOrder };
   },
 
 };

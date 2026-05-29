@@ -116,15 +116,20 @@ model Order {
   status         String // PENDING | PAID | CANCELLED | FAILED
   total          Int
   idempotencyKey String? @unique
+  invoiceNumber  String? @unique
+  currency       String  @default("VND")
+  orderStatus    String  @default("PENDING") // PENDING | COMPLETED | CANCELLED | FAILED
 
-  paymentMethod String? // MOMO | COD
-  paymentStatus String? // PENDING | SUCCESS | FAILED
+  paymentMethod String? // COD | SEPAY
+  paymentStatus String? // PENDING | PAID | FAILED | CANCELLED
 
   items   OrderItem[]
   payment Payment?
+  transactions PaymentTransaction[]
 
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model OrderItem {
@@ -167,13 +172,43 @@ model Payment {
   id      Int @id @default(autoincrement())
   orderId Int @unique
 
-  method String // MOMO, COD
-  status String // PENDING, SUCCESS, FAILED
+  method String // COD | SEPAY
+  status String // PENDING | PAID | FAILED | CANCELLED
 
   transactionId String?
   amount        Int?
+  currency      String @default("VND")
+  invoiceNumber String? @unique
+  paymentUrl    String? @db.Text
 
   order Order @relation(fields: [orderId], references: [id])
+  transactions PaymentTransaction[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PaymentTransaction {
+  id        Int @id @default(autoincrement())
+  orderId   Int
+  paymentId Int?
+
+  transactionId     String?
+  invoiceNumber     String
+  amount            Int
+  currency          String @default("VND")
+  paymentMethod     String @default("SEPAY")
+  transactionStatus String
+  notificationType  String?
+  rawPayload        Json?
+
+  order   Order    @relation(fields: [orderId], references: [id])
+  payment Payment? @relation(fields: [paymentId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([paymentId])
+  @@index([invoiceNumber])
+  @@index([transactionId])
 }
 
 model Province {

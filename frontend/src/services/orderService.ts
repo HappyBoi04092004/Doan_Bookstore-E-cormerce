@@ -34,6 +34,11 @@ export const orderService = {
 
   // ── Admin ─────────────────────────────────────────────────────────────────
 
+  markMockPaymentPaid: async (id: number): Promise<Order> => {
+    const { data } = await apiClient.patch<ApiResponse<Order>>(`/api/orders/${id}/mock-paid`);
+    return data.data;
+  },
+
   adminGetAllOrders: async (): Promise<Order[]> => {
     const { data } = await apiClient.get<ApiResponse<Order[]>>("/api/admin/orders");
     return data.data;

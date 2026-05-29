@@ -71,6 +71,36 @@ export const getOrderById = async (req: Request, res: Response): Promise<void> =
 
 // ── ADMIN ─────────────────────────────────────────────────────────────────────
 
+export const markMockPaymentPaid = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const orderId = Number(req.params.id);
+
+    if (!Number.isInteger(orderId) || orderId <= 0) {
+      res.status(400).json({ message: "Ma don hang khong hop le" });
+      return;
+    }
+
+    const order = await orderService.markMockPaymentPaid(orderId, userId);
+    res.json({ message: "Gia lap thanh toan thanh cong", data: order });
+  } catch (error: any) {
+    if (error.message === "Khong tim thay don hang") {
+      res.status(404).json({ message: "Khong tim thay don hang" });
+      return;
+    }
+    if (error.message === "Bi tu choi: Khong du quyen han") {
+      res.status(403).json({ message: "Bi tu choi: Khong du quyen han" });
+      return;
+    }
+    if (error.message === "Don hang khong dung phuong thuc SePay") {
+      res.status(400).json({ message: "Don hang khong dung phuong thuc SePay" });
+      return;
+    }
+    console.error("[markMockPaymentPaid]", error);
+    res.status(500).json({ message: "Loi may chu noi bo" });
+  }
+};
+
 export const adminGetAllOrders = async (req: Request, res: Response): Promise<void> => {
   try {
     const orders = await orderService.getAllOrders();

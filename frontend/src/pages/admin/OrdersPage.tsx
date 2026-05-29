@@ -62,8 +62,8 @@ function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => voi
             <div>
               <p className="text-gray-500 mb-1">Phương thức thanh toán</p>
               <p className="font-medium text-gray-900">
-                {order.paymentMethod === 'cod' ? "Thanh toán khi nhận hàng (COD)" : 
-                 order.paymentMethod === 'banking' ? "Chuyển khoản ngân hàng" : 
+                {order.paymentMethod === "COD" || order.paymentMethod === "cod" ? "Thanh toán khi nhận hàng (COD)" :
+                 order.paymentMethod === "SEPAY" || order.paymentMethod === "banking" ? "Chuyển khoản SePay QR" :
                  order.paymentMethod}
               </p>
             </div>

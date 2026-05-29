@@ -21,6 +21,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ContactPage from "./pages/ContactPage";
 import MyOrdersPage from "./pages/usermenu/MyOrdersPage";
+import PaymentResultPage from "./pages/PaymentResultPage";
 
 // Admin Pages
 import DashboardPage from "./pages/admin/DashboardPage";
@@ -68,6 +69,9 @@ export default function App() {
             <Route path="/books/:id" element={<BookDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/payment/success" element={<PaymentResultPage result="success" />} />
+            <Route path="/payment/error" element={<PaymentResultPage result="error" />} />
+            <Route path="/payment/cancel" element={<PaymentResultPage result="cancel" />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
 

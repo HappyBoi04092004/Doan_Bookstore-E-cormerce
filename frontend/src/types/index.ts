@@ -108,9 +108,13 @@ export interface Order {
   id: number;
   userId: number;
   status: OrderStatus;
+  orderStatus?: string;
+  invoiceNumber?: string | null;
+  currency?: string;
   total: number;
   createdAt: string;
   paymentMethod?: string;
+  paymentStatus?: string;
   address?: {
     name: string;
     phone: string;

@@ -91,4 +91,14 @@ export const bookService = {
     const { data } = await apiClient.post("/api/books/meta/attributes", { name, unit });
     return data.data;
   },
+
+  async extractBookInfoFromImage(imageFile: File): Promise<any> {
+    const formData = new FormData();
+    formData.append("bookCover", imageFile); // 'bookCover' must match the field name in multer config
+
+    const response = await apiClient.post("/api/gemini/extract-from-image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data.data;
+  },
 };

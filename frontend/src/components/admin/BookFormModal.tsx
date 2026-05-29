@@ -37,6 +37,7 @@ export default function BookFormModal({
     attributes: [{ attributeId: "", name: "", value: "" }],
   });
   const [errorMsg, setErrorMsg] = useState("");
+  const [isExtracting, setIsExtracting] = useState(false); // New state for OCR loading
   const imagePreviewUrls = useMemo(
     () => formData.images.map((file) => URL.createObjectURL(file)),
     [formData.images]
@@ -153,6 +154,82 @@ export default function BookFormModal({
       ...prev,
       images: prev.images.filter((_, imageIdx) => imageIdx !== index),
     }));
+  };
+
+  const handleExtractBookInfo = async () => {
+    if (formData.images.length === 0) {
+      setErrorMsg("Vui lòng chọn ảnh bìa trước khi trích xuất.");
+      return;
+    }
+
+    const primaryImage = formData.images[0];
+    console.log("[OCR] Step 1: Starting extraction with image:", {
+      name: primaryImage.name,
+      size: primaryImage.size,
+      type: primaryImage.type,
+    });
+    
+    setIsExtracting(true);
+    setErrorMsg("");
+
+    try {
+      console.log("[OCR] Step 2: Calling API...");
+      const extractedData = await bookService.extractBookInfoFromImage(primaryImage);
+      console.log("[OCR] Step 3: Received extracted data:", extractedData);
+      
+      // Check if category exists in database (for dropdown validation)
+      const matchedCategory = categories.find(
+        (c) => c.name.toLowerCase() === extractedData.category?.toLowerCase()
+      );
+      console.log("[OCR] Step 4: Category matching:", {
+        extractedCategory: extractedData.category,
+        matchedCategory: matchedCategory?.name || null,
+        availableCategories: categories.map(c => c.name),
+      });
+
+      const newFormData = {
+        ...formData,
+        // Always use extracted data if available, allowing new entries
+        title: extractedData.title || formData.title,
+        author: extractedData.author || formData.author,
+        publisher: extractedData.publisher || formData.publisher,
+        // Only set category if it exists in dropdown options
+        category: matchedCategory ? matchedCategory.name : formData.category,
+        description: extractedData.description || formData.description,
+        variants: formData.variants.map((variant, index) => {
+          if (index === 1 && extractedData.price !== null) {
+            return { ...variant, price: String(extractedData.price) };
+          }
+          return variant;
+        }),
+      };
+      
+      console.log("[OCR] Step 5: Setting new form data:", newFormData);
+      setFormData(newFormData);
+      
+      // Provide feedback about what was extracted
+      const messages = [];
+      if (extractedData.title) messages.push("tiêu đề");
+      if (extractedData.author) messages.push("tác giả");
+      if (extractedData.publisher) messages.push("nhà xuất bản");
+      if (extractedData.price) messages.push("giá");
+      if (extractedData.description) messages.push("mô tả");
+      if (matchedCategory) messages.push("danh mục");
+      else if (extractedData.category) messages.push(`danh mục "${extractedData.category}" (không tìm thấy trong hệ thống)`);
+      
+      console.log("[OCR] Step 6: Extraction complete. Extracted fields:", messages);
+      setErrorMsg(`✓ Đã trích xuất: ${messages.join(", ")}. Vui lòng kiểm tra và chỉnh sửa nếu cần.`);
+    } catch (error: any) {
+      console.error("[OCR] Error during extraction:", error);
+      console.error("[OCR] Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      setErrorMsg(error.response?.data?.message || "Lỗi khi trích xuất thông tin sách.");
+    } finally {
+      setIsExtracting(false);
+    }
   };
 
   const handleVariantChange = (index: number, field: string, value: string) => {
@@ -339,10 +416,21 @@ export default function BookFormModal({
                 type="file" 
                 name="images" 
                 onChange={handleChange} 
-                accept="image/*"
+                accept="image/jpeg,image/png" // Restrict to JPEG/PNG as per backend validation
                 multiple
                 className="mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" 
               />
+              {formData.images.length > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleExtractBookInfo}
+                  disabled={isExtracting || isLoading}
+                  className="mt-2 w-full"
+                >
+                  {isExtracting ? "Đang trích xuất..." : "Trích xuất thông tin từ ảnh bìa"}
+                </Button>
+              )}
               {initialData?.images?.length > 0 && formData.images.length === 0 && (
                 <p className="mt-1 text-xs text-gray-400 italic">Giữ lại {initialData.images.length} ảnh hiện có nếu không tải ảnh mới.</p>
               )}

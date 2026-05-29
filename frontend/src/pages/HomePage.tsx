@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Star, Truck, Search } from "lucide-react";
+import { ArrowRight, BookOpen, Search } from "lucide-react";
 
 export default function HomePage() {
   return (
