@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, CheckCircle2, CreditCard, QrCode } from "lucide-react";
+import { ArrowLeft, CheckCircle2, QrCode } from "lucide-react";
 import { useCart } from "../hooks/useCart";
 import { formatPrice } from "../utils";
 import Input from "../components/ui/Input";
@@ -275,11 +275,10 @@ export default function CheckoutPage() {
         className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 mb-6 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Quay lai
+        Quay lại
       </Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
-        <CreditCard className="h-6 w-6 text-indigo-600" />
-        Thanh toan
+        Thanh toán
       </h1>
 
       {orderError && (
@@ -294,7 +293,7 @@ export default function CheckoutPage() {
       >
         <div className="space-y-6">
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="font-semibold text-gray-900 mb-4">Dia chi nhan hang</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">Địa chỉ nhận hàng</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input
                 label="Ho ten"
@@ -307,7 +306,7 @@ export default function CheckoutPage() {
                 error={errors.phone?.message}
               />
               <div className="sm:col-span-2 space-y-1">
-                <label className="block text-sm font-medium text-gray-700">Tinh/Thanh pho, Quan/Huyen, Phuong/Xa</label>
+                <label className="block text-sm font-medium text-gray-700">Tỉnh/Thành phố, Phường/Xã </label>
                 <AddressAutocomplete
                   onSelect={(item) => {
                     setValue("addressSearch", item.fullAddress, { shouldValidate: true });
@@ -316,13 +315,13 @@ export default function CheckoutPage() {
                   }}
                   error={errors.addressSearch?.message}
                 />
-                <input type="hidden" {...register("addressSearch", { required: "Vui long chon phuong/xa" })} />
+                <input type="hidden" {...register("addressSearch", { required: "Vui lòng chọn địa chỉ" })} />
               </div>
 
               <div className="sm:col-span-2">
                 <Input
-                  label="Dia chi chi tiet (So nha, duong...)"
-                  {...register("street", { required: "Bat buoc" })}
+                  label="Địa chỉ chi tiết (Số nhà, đường...)"
+                  {...register("street", { required: "Bắt buộc" })}
                   error={errors.street?.message}
                 />
               </div>
@@ -330,11 +329,11 @@ export default function CheckoutPage() {
           </div>
 
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="font-semibold text-gray-900 mb-4">Phuong thuc thanh toan</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">Phương thức thanh toán</h2>
             <div className="space-y-2">
               {[
-                { value: "cod", label: "Thanh toan khi nhan hang" },
-                { value: "banking", label: "Thanh toan bang SePay" },
+                { value: "cod", label: "Thanh toán khi nhận hàng" },
+                { value: "banking", label: "Thanh toán bằng SePay" },
               ].map(({ value, label }) => (
                 <label
                   key={value}
@@ -355,7 +354,7 @@ export default function CheckoutPage() {
 
         <div>
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4 sticky top-24">
-            <h2 className="font-semibold text-gray-900 text-lg">Tom tat don hang</h2>
+            <h2 className="font-semibold text-gray-900 text-lg">Tóm tắt đơn hàng</h2>
             <ul className="space-y-2 text-sm text-gray-600">
               {items.map((item) => (
                 <li key={item.variant.id} className="flex justify-between gap-3">
@@ -367,11 +366,11 @@ export default function CheckoutPage() {
               ))}
             </ul>
             <div className="border-t pt-3 flex justify-between font-bold text-gray-900">
-              <span>Tong cong</span>
+              <span>Tổng cộng</span>
               <span className="text-indigo-600">{formatPrice(totalPrice)}</span>
             </div>
             <Button type="submit" isLoading={isSubmitting} className="w-full" size="lg">
-              {selectedPaymentMethod === "banking" ? "Thanh toan bang SePay" : "Dat hang"}
+              {selectedPaymentMethod === "banking" ? "Thanh toán bằng SePay" : "Đặt hàng"}
             </Button>
           </div>
         </div>

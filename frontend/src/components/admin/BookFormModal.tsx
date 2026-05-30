@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Images, Package2, ScrollText } from "lucide-react";
+import { ArrowLeft, Images } from "lucide-react";
 import Button from "../ui/Button";
 import { categoryService } from "../../services/categoryService";
 import { bookService } from "../../services/bookService";
@@ -15,6 +15,30 @@ interface BookFormModalProps {
   isLoading?: boolean;
 }
 
+const defaultVariants = [
+  { id: undefined, name: "E-book", sku: "", price: "", stock: "999" },
+  { id: undefined, name: "Bản tiêu chuẩn", sku: "", price: "", stock: "0" },
+  { id: undefined, name: "Bản đặc biệt", sku: "", price: "", stock: "0" },
+];
+
+const emptyFormData = {
+  title: "",
+  author: "",
+  publisher: "",
+  isbn: "",
+  publishYear: "",
+  pageCount: "",
+  language: "",
+  size: "",
+  format: "",
+  category: "",
+  price: "",
+  stock: "",
+  description: "",
+  images: [] as File[],
+  variants: defaultVariants,
+};
+
 export default function BookFormModal({
   isOpen,
   onClose,
@@ -22,22 +46,9 @@ export default function BookFormModal({
   initialData,
   isLoading,
 }: BookFormModalProps) {
-  const [formData, setFormData] = useState({
-    title: "",
-    author: "",
-    publisher: "",
-    category: "",
-    description: "",
-    images: [] as File[],
-    variants: [
-      { id: undefined, name: "E-book", sku: "", price: "", stock: "999", discountPercent: "" },
-      { id: undefined, name: "Bản tiêu chuẩn", sku: "", price: "", stock: "0", discountPercent: "" },
-      { id: undefined, name: "Bản đặc biệt", sku: "", price: "", stock: "0", discountPercent: "" },
-    ],
-    attributes: [{ attributeId: "", name: "", value: "" }],
-  });
+  const [formData, setFormData] = useState(emptyFormData);
   const [errorMsg, setErrorMsg] = useState("");
-  const [isExtracting, setIsExtracting] = useState(false); // New state for OCR loading
+  const [isExtracting, setIsExtracting] = useState(false);
   const imagePreviewUrls = useMemo(
     () => formData.images.map((file) => URL.createObjectURL(file)),
     [formData.images]
@@ -51,7 +62,6 @@ export default function BookFormModal({
       );
   }, [initialData?.images]);
 
-  // Load categories for the dropdown
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: categoryService.getAll,
@@ -67,61 +77,41 @@ export default function BookFormModal({
     queryFn: publisherService.getAll,
     enabled: isOpen,
   });
-  const { data: attributes = [] } = useQuery({
-    queryKey: ["book-attributes"],
-    queryFn: bookService.getAttributes,
-    enabled: isOpen,
-  });
 
   useEffect(() => {
-    if (isOpen) {
-      setErrorMsg("");
-      if (initialData) {
-        setFormData({
-          title: initialData.title || "",
-          author: typeof initialData.author === "object" ? initialData.author?.name || "" : initialData.author || "",
-          publisher: typeof initialData.publisher === "object" ? initialData.publisher?.name || "" : initialData.publisher || "",
-          category: typeof initialData.category === "object" ? initialData.category?.name || "" : initialData.category || "",
-          description: initialData.description || "",
-          images: [],
-          variants: Array.isArray(initialData.variants) && initialData.variants.length > 0
-            ? initialData.variants.map((variant: any) => ({
-                id: variant.id,
-                name: variant.name || "",
-                sku: variant.sku || "",
-                price: String(variant.price ?? ""),
-                stock: String(variant.stock ?? ""),
-                discountPercent: String(variant.discountPercent ?? ""),
-              }))
-            : [
-                { id: undefined, name: "E-book", sku: "", price: "", stock: "999", discountPercent: "" },
-                { id: undefined, name: "Bản tiêu chuẩn", sku: "", price: "", stock: "0", discountPercent: "" },
-                { id: undefined, name: "Bản đặc biệt", sku: "", price: "", stock: "0", discountPercent: "" },
-              ],
-          attributes: Array.isArray(initialData.attributes) && initialData.attributes.length > 0
-            ? initialData.attributes.map((attribute: any) => ({
-                attributeId: String(attribute.attributeId ?? ""),
-                name: attribute.name || "",
-                value: attribute.value || "",
-              }))
-            : [{ attributeId: "", name: "", value: "" }],
-        });
-      } else {
-        setFormData({
-          title: "",
-          author: "",
-          publisher: "",
-          category: "",
-          description: "",
-          images: [],
-          variants: [
-            { id: undefined, name: "E-book", sku: "", price: "", stock: "999", discountPercent: "" },
-            { id: undefined, name: "Bản tiêu chuẩn", sku: "", price: "", stock: "0", discountPercent: "" },
-            { id: undefined, name: "Bản đặc biệt", sku: "", price: "", stock: "0", discountPercent: "" },
-          ],
-          attributes: [{ attributeId: "", name: "", value: "" }],
-        });
-      }
+    if (!isOpen) return;
+
+    setErrorMsg("");
+    if (initialData) {
+      const variants = Array.isArray(initialData.variants) && initialData.variants.length > 0
+        ? initialData.variants.map((variant: any) => ({
+            id: variant.id,
+            name: variant.name || "",
+            sku: variant.sku || "",
+            price: String(variant.price ?? ""),
+            stock: String(variant.stock ?? ""),
+          }))
+        : defaultVariants;
+
+      setFormData({
+        title: initialData.title || "",
+        author: typeof initialData.author === "object" ? initialData.author?.name || "" : initialData.author || "",
+        publisher: typeof initialData.publisher === "object" ? initialData.publisher?.name || "" : initialData.publisher || "",
+        isbn: initialData.isbn || "",
+        publishYear: String(initialData.publishYear ?? ""),
+        pageCount: String(initialData.pageCount ?? ""),
+        language: initialData.language || "",
+        size: initialData.size || "",
+        format: initialData.format || "",
+        category: typeof initialData.category === "object" ? initialData.category?.name || "" : initialData.category || "",
+        price: String(initialData.price ?? ""),
+        stock: String(initialData.stock ?? ""),
+        description: initialData.description || "",
+        images: [],
+        variants,
+      });
+    } else {
+      setFormData({ ...emptyFormData, variants: defaultVariants.map((variant) => ({ ...variant })) });
     }
   }, [initialData, isOpen]);
 
@@ -132,6 +122,13 @@ export default function BookFormModal({
   }, [imagePreviewUrls]);
 
   if (!isOpen) return null;
+
+  const syncStandardVariant = (next: typeof formData, field: "price" | "stock", value: string) => ({
+    ...next,
+    variants: next.variants.map((variant, index) =>
+      index === 1 ? { ...variant, [field]: value } : variant
+    ),
+  });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -144,9 +141,17 @@ export default function BookFormModal({
         images: [...prev.images, ...nextFiles].slice(0, 10),
       }));
       fileInput.value = "";
-    } else {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
+      return;
     }
+
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === "price" || name === "stock") {
+        return syncStandardVariant(next, name, value);
+      }
+      return next;
+    });
   };
 
   const removeSelectedImage = (index: number) => {
@@ -158,75 +163,62 @@ export default function BookFormModal({
 
   const handleExtractBookInfo = async () => {
     if (formData.images.length === 0) {
-      setErrorMsg("Vui lòng chọn ảnh bìa trước khi trích xuất.");
+      setErrorMsg("Vui lòng chọn ảnh bìa trước hoặc bìa sau trước khi quét OCR.");
       return;
     }
 
-    const primaryImage = formData.images[0];
-    console.log("[OCR] Step 1: Starting extraction with image:", {
-      name: primaryImage.name,
-      size: primaryImage.size,
-      type: primaryImage.type,
-    });
-    
     setIsExtracting(true);
     setErrorMsg("");
 
     try {
-      console.log("[OCR] Step 2: Calling API...");
-      const extractedData = await bookService.extractBookInfoFromImage(primaryImage);
-      console.log("[OCR] Step 3: Received extracted data:", extractedData);
-      
-      // Check if category exists in database (for dropdown validation)
+      const extractedData = await bookService.extractBookInfoFromImage(formData.images.slice(0, 2));
       const matchedCategory = categories.find(
         (c) => c.name.toLowerCase() === extractedData.category?.toLowerCase()
       );
-      console.log("[OCR] Step 4: Category matching:", {
-        extractedCategory: extractedData.category,
-        matchedCategory: matchedCategory?.name || null,
-        availableCategories: categories.map(c => c.name),
+
+      setFormData((prev) => {
+        let next = {
+          ...prev,
+          title: extractedData.title || prev.title,
+          author: extractedData.author || prev.author,
+          publisher: extractedData.publisher || prev.publisher,
+          isbn: extractedData.isbn || prev.isbn,
+          publishYear: extractedData.publishYear ? String(extractedData.publishYear) : prev.publishYear,
+          pageCount: extractedData.pageCount ? String(extractedData.pageCount) : prev.pageCount,
+          language: extractedData.language || prev.language,
+          size: extractedData.size || prev.size,
+          format: extractedData.format || prev.format,
+          category: matchedCategory ? matchedCategory.name : prev.category,
+          price: extractedData.price ? String(extractedData.price) : prev.price,
+          description: extractedData.description || prev.description,
+        };
+
+        if (extractedData.price) {
+          next = syncStandardVariant(next, "price", String(extractedData.price));
+        }
+        return next;
       });
 
-      const newFormData = {
-        ...formData,
-        // Always use extracted data if available, allowing new entries
-        title: extractedData.title || formData.title,
-        author: extractedData.author || formData.author,
-        publisher: extractedData.publisher || formData.publisher,
-        // Only set category if it exists in dropdown options
-        category: matchedCategory ? matchedCategory.name : formData.category,
-        description: extractedData.description || formData.description,
-        variants: formData.variants.map((variant, index) => {
-          if (index === 1 && extractedData.price !== null) {
-            return { ...variant, price: String(extractedData.price) };
-          }
-          return variant;
-        }),
-      };
-      
-      console.log("[OCR] Step 5: Setting new form data:", newFormData);
-      setFormData(newFormData);
-      
-      // Provide feedback about what was extracted
       const messages = [];
-      if (extractedData.title) messages.push("tiêu đề");
+      if (extractedData.title) messages.push("tên sách");
       if (extractedData.author) messages.push("tác giả");
       if (extractedData.publisher) messages.push("nhà xuất bản");
+      if (extractedData.isbn) messages.push("ISBN");
+      if (extractedData.publishYear) messages.push("năm xuất bản");
+      if (extractedData.pageCount) messages.push("số trang");
+      if (extractedData.language) messages.push("ngôn ngữ");
+      if (extractedData.size) messages.push("kích thước");
+      if (extractedData.format) messages.push("định dạng");
       if (extractedData.price) messages.push("giá");
-      if (extractedData.description) messages.push("mô tả");
       if (matchedCategory) messages.push("danh mục");
-      else if (extractedData.category) messages.push(`danh mục "${extractedData.category}" (không tìm thấy trong hệ thống)`);
-      
-      console.log("[OCR] Step 6: Extraction complete. Extracted fields:", messages);
-      setErrorMsg(`✓ Đã trích xuất: ${messages.join(", ")}. Vui lòng kiểm tra và chỉnh sửa nếu cần.`);
+
+      setErrorMsg(
+        messages.length > 0
+          ? `Đã quét OCR: ${messages.join(", ")}. Vui lòng kiểm tra và chỉnh sửa trước khi lưu.`
+          : "OCR chưa nhận diện được dữ liệu phù hợp. Vui lòng nhập thủ công."
+      );
     } catch (error: any) {
-      console.error("[OCR] Error during extraction:", error);
-      console.error("[OCR] Error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
-      setErrorMsg(error.response?.data?.message || "Lỗi khi trích xuất thông tin sách.");
+      setErrorMsg(error.response?.data?.message || "Lỗi khi quét OCR thông tin sách.");
     } finally {
       setIsExtracting(false);
     }
@@ -241,23 +233,27 @@ export default function BookFormModal({
     }));
   };
 
-  const handleAttributeChange = (index: number, field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      attributes: prev.attributes.map((attribute, attrIdx) =>
-        attrIdx === index ? { ...attribute, [field]: value } : attribute
-      ),
-    }));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
-    if (!formData.title || !formData.author || !formData.category) {
-      setErrorMsg("Tiêu đề, Tác giả và Danh mục là bắt buộc");
+    if (!formData.title.trim() || !formData.author.trim() || !formData.publisher.trim()) {
+      setErrorMsg("Tên sách, Tác giả và Nhà xuất bản là bắt buộc");
       return;
     }
+    if (!formData.category.trim()) {
+      setErrorMsg("Danh mục là bắt buộc");
+      return;
+    }
+    if (!formData.price || Number(formData.price) <= 0) {
+      setErrorMsg("Giá bán phải lớn hơn 0");
+      return;
+    }
+    if (formData.stock === "" || Number(formData.stock) < 0) {
+      setErrorMsg("Số lượng tồn kho không được âm");
+      return;
+    }
+
     const normalizedVariants = formData.variants
       .map((variant) => ({
         id: variant.id,
@@ -265,13 +261,9 @@ export default function BookFormModal({
         sku: variant.sku.trim(),
         price: variant.price === "" ? null : Number(variant.price),
         stock: variant.stock === "" ? null : Number(variant.stock),
-        discountPercent: variant.discountPercent === "" ? null : Number(variant.discountPercent),
       }))
       .filter((variant) => variant.name || variant.sku || variant.price !== null || variant.stock !== null);
-    if (normalizedVariants.length === 0) {
-      setErrorMsg("Cần ít nhất một biến thể hợp lệ");
-      return;
-    }
+
     if (
       normalizedVariants.some(
         (variant) => !variant.name || variant.price === null || Number.isNaN(variant.price) || variant.price <= 0
@@ -289,24 +281,33 @@ export default function BookFormModal({
       return;
     }
 
-    const normalizedAttributes = formData.attributes
-      .map((attribute) => ({
-        attributeId: Number(attribute.attributeId),
-        value: attribute.value.trim(),
-      }))
-      .filter((attribute) => attribute.attributeId > 0 && attribute.value);
-
     onSubmit({
-      title: formData.title,
-      author: formData.author,
-      publisher: formData.publisher,
+      title: formData.title.trim(),
+      author: formData.author.trim(),
+      publisher: formData.publisher.trim(),
+      isbn: formData.isbn.trim(),
+      publishYear: formData.publishYear,
+      pageCount: formData.pageCount,
+      language: formData.language.trim(),
+      size: formData.size.trim(),
+      format: formData.format.trim(),
       category: formData.category,
+      price: formData.price,
+      stock: formData.stock,
       description: formData.description,
       images: formData.images,
       variants: normalizedVariants,
-      attributes: normalizedAttributes,
     });
   };
+
+  const detailInputs = [
+    { name: "isbn", label: "ISBN", type: "text" },
+    { name: "publishYear", label: "Năm xuất bản", type: "number" },
+    { name: "pageCount", label: "Số trang", type: "number" },
+    { name: "language", label: "Ngôn ngữ", type: "text" },
+    { name: "size", label: "Kích thước", type: "text" },
+    { name: "format", label: "Định dạng", type: "text" },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -320,82 +321,84 @@ export default function BookFormModal({
                 className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Quay lại trang admin sách
+                Quay lại
               </button>
               <h2 className="mt-2 text-2xl font-bold text-gray-900">
                 {initialData ? "Chỉnh sửa sách" : "Thêm sách mới"}
               </h2>
               <p className="mt-1 text-sm text-gray-500">
-                Quản lý ảnh, biến thể và thông tin chi tiết của từng quyển sách trong một màn hình lớn hơn.
+                Nhập thông tin sách cố định, quét OCR từ tối đa 2 ảnh bìa và kiểm tra lại trước khi lưu.
               </p>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span className="rounded-full bg-indigo-50 px-3 py-1 font-medium text-indigo-700">
-                3 phiên bản mặc định
-              </span>
-              <span className="rounded-full bg-slate-100 px-3 py-1 font-medium">
-                Nhiều ảnh sản phẩm
-              </span>
             </div>
           </div>
         </div>
 
-        {errorMsg && <div className="mb-4 text-red-600 text-sm bg-red-50 border border-red-200 rounded-md px-3 py-2">{errorMsg}</div>}
+        {errorMsg && <div className="mx-6 mt-4 text-red-600 text-sm bg-red-50 border border-red-200 rounded-md px-3 py-2">{errorMsg}</div>}
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-8 p-6 sm:p-8 xl:grid-cols-[1.15fr_0.85fr]">
           <div className="space-y-6">
             <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2">
-                <Package2 className="h-5 w-5 text-indigo-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Thông tin cơ bản</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Thông tin sách</h3>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-              <label className="block text-sm font-medium text-gray-700">Tiêu đề <span className="text-red-500">*</span></label>
-              <input type="text" name="title" value={formData.title} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                  <label className="block text-sm font-medium text-gray-700">Tên sách <span className="text-red-500">*</span></label>
+                  <input type="text" name="title" value={formData.title} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
                 </div>
                 <div>
-              <label className="block text-sm font-medium text-gray-700">Tác giả <span className="text-red-500">*</span></label>
-              <input type="text" name="author" list="author-options" value={formData.author} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
-              <datalist id="author-options">
-                {authors.map((author) => (
-                  <option key={author.id} value={author.name} />
-                ))}
-              </datalist>
+                  <label className="block text-sm font-medium text-gray-700">Tác giả <span className="text-red-500">*</span></label>
+                  <input type="text" name="author" list="author-options" value={formData.author} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                  <datalist id="author-options">
+                    {authors.map((author) => (
+                      <option key={author.id} value={author.name} />
+                    ))}
+                  </datalist>
                 </div>
                 <div>
-              <label className="block text-sm font-medium text-gray-700">Nhà xuất bản</label>
-              <input type="text" name="publisher" list="publisher-options" value={formData.publisher} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
-              <datalist id="publisher-options">
-                {publishers.map((publisher) => (
-                  <option key={publisher.id} value={publisher.name} />
-                ))}
-              </datalist>
+                  <label className="block text-sm font-medium text-gray-700">Nhà xuất bản <span className="text-red-500">*</span></label>
+                  <input type="text" name="publisher" list="publisher-options" value={formData.publisher} onChange={handleChange} className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                  <datalist id="publisher-options">
+                    {publishers.map((publisher) => (
+                      <option key={publisher.id} value={publisher.name} />
+                    ))}
+                  </datalist>
                 </div>
                 <div>
-              <label className="block text-sm font-medium text-gray-700">Danh mục <span className="text-red-500">*</span></label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none bg-white"
-              >
-                <option value="">-- Chọn danh mục --</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                  <label className="block text-sm font-medium text-gray-700">Danh mục <span className="text-red-500">*</span></label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none bg-white"
+                  >
+                    <option value="">-- Chọn danh mục --</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+                {detailInputs.map((input) => (
+                  <div key={input.name}>
+                    <label className="block text-sm font-medium text-gray-700">{input.label}</label>
+                    <input
+                      type={input.type}
+                      name={input.name}
+                      value={(formData as any)[input.name]}
+                      onChange={handleChange}
+                      className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                    />
+                  </div>
+                ))}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Mô tả / Giới thiệu sách</label>
+                  <label className="block text-sm font-medium text-gray-700">Mô tả</label>
                   <textarea
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
-                    rows={10}
-                    placeholder="Nhập phần giới thiệu sách dài, nội dung nổi bật, đối tượng phù hợp, giá trị cuốn sách..."
+                    rows={8}
                     className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm leading-6 focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
@@ -405,20 +408,19 @@ export default function BookFormModal({
             <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2">
                 <Images className="h-5 w-5 text-indigo-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Hình ảnh sản phẩm</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Hình ảnh</h3>
               </div>
-              <div>
               <label className="block text-sm font-medium text-gray-700">Ảnh sản phẩm</label>
               <p className="mt-1 text-xs text-gray-500">
-                Có thể chọn nhiều lần để cộng dồn ảnh. Tối đa 10 ảnh cho mỗi sản phẩm.
+                Ảnh 1 là bìa trước, ảnh 2 là bìa sau. Nút OCR sẽ quét tối đa 2 ảnh đầu tiên.
               </p>
-              <input 
-                type="file" 
-                name="images" 
-                onChange={handleChange} 
-                accept="image/jpeg,image/png" // Restrict to JPEG/PNG as per backend validation
+              <input
+                type="file"
+                name="images"
+                onChange={handleChange}
+                accept="image/jpeg,image/png"
                 multiple
-                className="mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" 
+                className="mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
               />
               {formData.images.length > 0 && (
                 <Button
@@ -428,159 +430,87 @@ export default function BookFormModal({
                   disabled={isExtracting || isLoading}
                   className="mt-2 w-full"
                 >
-                  {isExtracting ? "Đang trích xuất..." : "Trích xuất thông tin từ ảnh bìa"}
+                  {isExtracting ? "Đang quét OCR..." : "Quét OCR từ ảnh bìa"}
                 </Button>
               )}
               {initialData?.images?.length > 0 && formData.images.length === 0 && (
                 <p className="mt-1 text-xs text-gray-400 italic">Giữ lại {initialData.images.length} ảnh hiện có nếu không tải ảnh mới.</p>
               )}
-                {existingImageUrls.length > 0 && formData.images.length === 0 && (
-                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-                    {existingImageUrls.map((url: string, index: number) => (
-                      <div key={`${url}-${index}`} className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
-                        <img src={url} alt={`Ảnh hiện có ${index + 1}`} className="aspect-[3/4] w-full object-cover" />
-                        <div className="px-3 py-2 text-xs text-gray-500">
-                          {index === 0 ? "Ảnh bìa hiện tại" : `Ảnh hiện có ${index + 1}`}
-                        </div>
+              {existingImageUrls.length > 0 && formData.images.length === 0 && (
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+                  {existingImageUrls.map((url: string, index: number) => (
+                    <div key={`${url}-${index}`} className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                      <img src={url} alt={`Ảnh hiện có ${index + 1}`} className="aspect-[3/4] w-full object-cover" />
+                      <div className="px-3 py-2 text-xs text-gray-500">
+                        {index === 0 ? "Ảnh bìa hiện tại" : `Ảnh hiện có ${index + 1}`}
                       </div>
-                    ))}
-                  </div>
-                )}
-                {imagePreviewUrls.length > 0 && (
-                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-                    {imagePreviewUrls.map((url, index) => (
-                      <div key={url} className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
-                        <img src={url} alt={`Preview ${index + 1}`} className="aspect-[3/4] w-full object-cover" />
-                        <div className="flex items-center justify-between gap-2 px-3 py-2 text-xs text-gray-500">
-                          <span>{index === 0 ? "Ảnh bìa chính" : `Ảnh phụ ${index + 1}`}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeSelectedImage(index)}
-                            className="font-medium text-red-500 hover:text-red-600"
-                          >
-                            Xóa
-                          </button>
-                        </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {imagePreviewUrls.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+                  {imagePreviewUrls.map((url, index) => (
+                    <div key={url} className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                      <img src={url} alt={`Preview ${index + 1}`} className="aspect-[3/4] w-full object-cover" />
+                      <div className="flex items-center justify-between gap-2 px-3 py-2 text-xs text-gray-500">
+                        <span>{index === 0 ? "Bìa trước" : index === 1 ? "Bìa sau" : `Ảnh phụ ${index + 1}`}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeSelectedImage(index)}
+                          className="font-medium text-red-500 hover:text-red-600"
+                        >
+                          Xóa
+                        </button>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           </div>
 
           <div className="space-y-6">
             <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2">
-                <Package2 className="h-5 w-5 text-indigo-600" />
                 <h3 className="text-lg font-semibold text-gray-900">Biến thể sản phẩm</h3>
               </div>
               <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">Biến thể sản phẩm</label>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    variants: [...prev.variants, { id: undefined, name: "", sku: "", price: "", stock: "0", discountPercent: "" }],
-                  }))
-                }
-              >
-                Thêm biến thể
-              </Button>
-              </div>
-              <p className="mt-2 text-xs text-gray-500">
-                Mỗi biến thể cần có tên, giá và tồn kho. Dòng để trống hoàn toàn sẽ tự bỏ qua khi lưu.
-              </p>
-              <div className="mt-4 space-y-3">
-              {formData.variants.map((variant, index) => (
-                <div key={index} className="grid grid-cols-1 gap-3 rounded-xl border border-gray-200 p-4 md:grid-cols-2">
-                  <input type="text" value={variant.name} onChange={(e) => handleVariantChange(index, "name", e.target.value)} placeholder="Tên biến thể" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
-                  <input type="text" value={variant.sku} onChange={(e) => handleVariantChange(index, "sku", e.target.value)} placeholder="SKU" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
-                  <input type="number" min="1" value={variant.price} onChange={(e) => handleVariantChange(index, "price", e.target.value)} placeholder="Giá" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
-                  <input type="number" min="0" value={variant.stock} onChange={(e) => handleVariantChange(index, "stock", e.target.value)} placeholder="Tồn kho" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
-                  <input type="number" min="0" max="100" value={variant.discountPercent} onChange={(e) => handleVariantChange(index, "discountPercent", e.target.value)} placeholder="Giảm giá %" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        variants: prev.variants.length === 1 ? prev.variants : prev.variants.filter((_, variantIdx) => variantIdx !== index),
-                      }))
-                    }
-                  >
-                    Xóa biến thể
-                  </Button>
-                </div>
-              ))}
-              </div>
-            </section>
-
-            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-              <div className="mb-4 flex items-center gap-2">
-                <ScrollText className="h-5 w-5 text-indigo-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Thông tin chi tiết</h3>
-              </div>
-              <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">Thông tin chi tiết</label>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    attributes: [...prev.attributes, { attributeId: "", name: "", value: "" }],
-                  }))
-                }
-              >
-                Thêm thuộc tính
-              </Button>
+                <p className="text-sm text-gray-500">Giá bán và tồn kho cố định sẽ đồng bộ vào biến thể tiêu chuẩn.</p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      variants: [...prev.variants, { id: undefined, name: "", sku: "", price: "", stock: "0" }],
+                    }))
+                  }
+                >
+                  Thêm biến thể
+                </Button>
               </div>
               <div className="mt-4 space-y-3">
-              {formData.attributes.map((attribute, index) => (
-                <div key={`${attribute.attributeId}-${index}`} className="grid grid-cols-[1fr_auto] gap-3 rounded-lg border border-gray-200 p-3">
-                  <input
-                    type="text"
-                    value={attribute.name}
-                    onChange={(e) => handleAttributeChange(index, "name", e.target.value)}
-                    placeholder="Ten thuoc tinh"
-                    className="hidden"
-                  />
-                  <select
-                    value={attribute.attributeId}
-                    onChange={(e) => handleAttributeChange(index, "attributeId", e.target.value)}
-                    className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none bg-white"
-                  >
-                    <option value="">-- Chọn thuộc tính --</option>
-                    {attributes.map((attr) => (
-                      <option key={attr.id} value={attr.id}>
-                        {attr.name}{attr.unit ? ` (${attr.unit})` : ""}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    value={attribute.value}
-                    onChange={(e) => handleAttributeChange(index, "value", e.target.value)}
-                    placeholder="Giá trị"
-                    className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        attributes: prev.attributes.length === 1 ? prev.attributes : prev.attributes.filter((_, attrIdx) => attrIdx !== index),
-                      }))
-                    }
-                  >
-                    Xóa
-                  </Button>
-                </div>
-              ))}
+                {formData.variants.map((variant, index) => (
+                  <div key={index} className="grid grid-cols-1 gap-3 rounded-xl border border-gray-200 p-4 md:grid-cols-2">
+                    <input type="text" value={variant.name} onChange={(e) => handleVariantChange(index, "name", e.target.value)} placeholder="Tên biến thể" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                    <input type="text" value={variant.sku} onChange={(e) => handleVariantChange(index, "sku", e.target.value)} placeholder="SKU" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                    <input type="number" min="1" value={variant.price} onChange={(e) => handleVariantChange(index, "price", e.target.value)} placeholder="Giá" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                    <input type="number" min="0" value={variant.stock} onChange={(e) => handleVariantChange(index, "stock", e.target.value)} placeholder="Tồn kho" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          variants: prev.variants.length === 1 ? prev.variants : prev.variants.filter((_, variantIdx) => variantIdx !== index),
+                        }))
+                      }
+                    >
+                      Xóa biến thể
+                    </Button>
+                  </div>
+                ))}
               </div>
             </section>
 

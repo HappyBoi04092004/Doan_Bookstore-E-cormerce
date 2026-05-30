@@ -6,26 +6,6 @@ function extractImagePaths(files: Express.Multer.File[] | undefined): string[] {
   return files.map((file) => `/uploads/books/${file.filename}`);
 }
 
-function parseAttributes(raw: unknown): { attributeId?: number; name?: string; unit?: string; value: string }[] {
-  if (!raw) return [];
-
-  try {
-    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-    if (!Array.isArray(parsed)) return [];
-
-    return parsed
-      .filter((attribute) => (attribute?.attributeId || attribute?.name) && attribute?.value !== undefined)
-      .map((attribute) => ({
-        attributeId: attribute.attributeId ? Number(attribute.attributeId) : undefined,
-        name: attribute.name ? String(attribute.name) : undefined,
-        unit: attribute.unit ? String(attribute.unit) : undefined,
-        value: String(attribute.value),
-      }));
-  } catch {
-    return [];
-  }
-}
-
 function parseVariants(raw: unknown) {
   if (!raw) return [];
 
@@ -80,13 +60,11 @@ export const getAdminBooks = async (req: Request, res: Response): Promise<void> 
 export const createBook = async (req: Request, res: Response): Promise<void> => {
   try {
     const imagePaths = extractImagePaths(req.files as Express.Multer.File[]);
-    const attributes = parseAttributes(req.body.attributes);
     const variants = parseVariants(req.body.variants);
 
     const data = await bookService.createBook({
       ...req.body,
       imagePaths,
-      attributes,
       variants,
     });
     res.status(201).json({ success: true, data, message: "Tạo sách thành công" });
@@ -100,13 +78,11 @@ export const updateBook = async (req: Request, res: Response): Promise<void> => 
   try {
     const id = parseInt(req.params.id as string);
     const imagePaths = extractImagePaths(req.files as Express.Multer.File[]);
-    const attributes = parseAttributes(req.body.attributes);
     const variants = parseVariants(req.body.variants);
 
     const data = await bookService.updateBook(id, {
       ...req.body,
       imagePaths: imagePaths.length > 0 ? imagePaths : undefined,
-      attributes: req.body.attributes !== undefined ? attributes : undefined,
       variants: req.body.variants !== undefined ? variants : undefined,
     });
     res.json({ success: true, data, message: "Cập nhật sách thành công" });
@@ -124,31 +100,5 @@ export const deleteBook = async (req: Request, res: Response): Promise<void> => 
   } catch (error) {
     console.error("[deleteBook]", error);
     res.status(500).json({ success: false, message: "Lỗi máy chủ nội bộ" });
-  }
-};
-
-export const getAttributes = async (_req: Request, res: Response): Promise<void> => {
-  try {
-    const data = await bookService.getAttributes();
-    res.json({ success: true, data });
-  } catch (error) {
-    console.error("[getAttributes]", error);
-    res.status(500).json({ success: false, message: "Lỗi máy chủ nội bộ" });
-  }
-};
-
-export const createAttribute = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { name, unit } = req.body;
-    if (!name) {
-      res.status(400).json({ success: false, message: "Tên thuộc tính là bắt buộc" });
-      return;
-    }
-
-    const data = await bookService.createAttribute(name, unit);
-    res.status(201).json({ success: true, data, message: "Tạo thuộc tính thành công" });
-  } catch (error: any) {
-    console.error("[createAttribute]", error.message);
-    res.status(400).json({ success: false, message: error.message });
   }
 };

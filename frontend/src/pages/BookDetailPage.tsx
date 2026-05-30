@@ -11,7 +11,6 @@ import { formatPrice } from "../utils";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
 import Spinner from "../components/ui/Spinner";
-import type { BookAttribute } from "../types";
 
 const PLACEHOLDER = "https://placehold.co/300x400?text=Sách";
 
@@ -77,7 +76,15 @@ export default function BookDetailPage() {
       : typeof book?.price === "number"
         ? book.price
         : 0;
-  const attributes = Array.isArray(book?.attributes) ? book.attributes : [];
+  const detailRows = [
+    { label: "ISBN", value: book?.isbn },
+    { label: "Nhà xuất bản", value: book?.publisher },
+    { label: "Năm xuất bản", value: book?.publishYear },
+    { label: "Số trang", value: book?.pageCount },
+    { label: "Ngôn ngữ", value: book?.language },
+    { label: "Kích thước", value: book?.size },
+    { label: "Định dạng", value: book?.format },
+  ].filter((row) => row.value !== undefined && row.value !== null && String(row.value).trim() !== "");
   const categoryName =
     typeof book?.category === "object" && book.category?.name
       ? book.category.name
@@ -273,17 +280,16 @@ export default function BookDetailPage() {
             </div>
           )}
 
-          {attributes.length > 0 && (
+          {detailRows.length > 0 && (
             <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-lg shadow-slate-100">
               <h2 className="mb-4 text-left text-xl font-semibold text-gray-900">Thông tin chi tiết</h2>
               <table className="w-full text-sm overflow-hidden rounded-2xl">
                 <tbody className="divide-y divide-gray-100 rounded-2xl border border-gray-100">
-                  {attributes.map((attr: BookAttribute) => (
-                    <tr key={attr.id} className="transition-colors odd:bg-white even:bg-slate-50/70 hover:bg-indigo-50/40">
-                      <td className="w-1/3 px-4 py-3 align-top font-medium text-gray-500">{attr.name}</td>
+                  {detailRows.map((row) => (
+                    <tr key={row.label} className="transition-colors odd:bg-white even:bg-slate-50/70 hover:bg-indigo-50/40">
+                      <td className="w-1/3 px-4 py-3 align-top font-medium text-gray-500">{row.label}</td>
                       <td className="px-4 py-3 font-semibold text-gray-800">
-                        {attr.value}
-                        {attr.unit && <span className="ml-1 text-gray-400 font-normal text-xs">{attr.unit}</span>}
+                        {row.value}
                       </td>
                     </tr>
                   ))}

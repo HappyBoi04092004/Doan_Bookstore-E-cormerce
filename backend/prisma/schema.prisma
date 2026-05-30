@@ -47,7 +47,7 @@ model Author {
 model Publisher {
   id    Int    @id @default(autoincrement())
   name  String
-  books Book[]
+  books Book[] @relation("BookPublisher")
 }
 
 model Book {
@@ -55,6 +55,13 @@ model Book {
   title       String
   authorId    Int
   publisherId Int?
+  publisher   String
+  isbn        String?
+  publishYear Int?
+  pageCount   Int?
+  language    String?
+  size        String?
+  format      String?
   price       Int
   stock       Int
   description String?
@@ -62,11 +69,10 @@ model Book {
   createdAt   DateTime @default(now())
 
   images     BookImage[]
-  attributes BookAttribute[]
   variants   BookVariant[]
 
   author     Author      @relation(fields: [authorId], references: [id])
-  publisher  Publisher?  @relation(fields: [publisherId], references: [id])
+  publisherRecord Publisher?  @relation("BookPublisher", fields: [publisherId], references: [id])
   category   Category    @relation("CategoryBooks", fields: [categoryId], references: [id])
   reviews    Review[]
 }
@@ -78,7 +84,6 @@ model BookVariant {
   sku       String?  @unique
   price     Int
   stock     Int
-  discountPercent Int?
   
   book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   cartItems CartItem[]
@@ -245,12 +250,6 @@ model Address {
   ward     Ward     @relation(fields: [wardCode], references: [code])
 }
 
-model Coupon {
-  id       Int    @id @default(autoincrement())
-  code     String @unique
-  discount Int
-}
-
 model Wishlist {
   id        Int @id @default(autoincrement())
   userId    Int
@@ -279,31 +278,4 @@ model BookImage {
 
   @@index([bookId])
   @@index([variantId])
-}
-
-
-// ─── Product Attributes (3-table reusable EAV) ─────────────────────────────────
-// Attribute: defines the attribute type (e.g., "Format", "Language", "Pages")
-// BookAttribute: joins a Book with an Attribute and stores its value
-
-model Attribute {
-  id   Int     @id @default(autoincrement())
-  name String  @unique // e.g., "Language", "Format", "Publisher"
-  unit String? // optional unit, e.g., "pages", "mm"
-
-  bookAttributes BookAttribute[]
-}
-
-model BookAttribute {
-  id          Int    @id @default(autoincrement())
-  bookId      Int
-  attributeId Int
-  value       String // e.g., "English", "Paperback", "320"
-
-  book      Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  attribute Attribute @relation(fields: [attributeId], references: [id])
-
-  @@unique([bookId, attributeId])
-  @@index([bookId])
-  @@index([attributeId])
 }

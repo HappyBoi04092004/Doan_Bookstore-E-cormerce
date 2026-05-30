@@ -3,7 +3,6 @@ import type {
   Book,
   BookFilters,
   ApiResponse,
-  Attribute,
 } from "../types";
 
 export const bookService = {
@@ -17,7 +16,7 @@ export const bookService = {
 
   async createBook(data: any): Promise<Book> {
     const formData = new FormData();
-    const { images, attributes, variants, ...rest } = data;
+    const { images, variants, ...rest } = data;
 
     Object.keys(rest).forEach((key) => {
       if (rest[key] !== undefined && rest[key] !== null) {
@@ -27,9 +26,6 @@ export const bookService = {
 
     if (Array.isArray(images)) {
       images.forEach((file: File) => formData.append("images", file));
-    }
-    if (attributes) {
-      formData.append("attributes", JSON.stringify(attributes));
     }
     if (variants) {
       formData.append("variants", JSON.stringify(variants));
@@ -43,7 +39,7 @@ export const bookService = {
 
   async updateBook({ id, data }: { id: string | number; data: any }): Promise<Book> {
     const formData = new FormData();
-    const { images, attributes, variants, ...rest } = data;
+    const { images, variants, ...rest } = data;
 
     Object.keys(rest).forEach((key) => {
       if (rest[key] !== undefined && rest[key] !== null) {
@@ -52,9 +48,6 @@ export const bookService = {
     });
     if (Array.isArray(images) && images.length > 0) {
       images.forEach((file: File) => formData.append("images", file));
-    }
-    if (attributes !== undefined) {
-      formData.append("attributes", JSON.stringify(attributes));
     }
     if (variants !== undefined) {
       formData.append("variants", JSON.stringify(variants));
@@ -82,19 +75,10 @@ export const bookService = {
     return data.data;
   },
 
-  getAttributes: async (): Promise<Attribute[]> => {
-    const { data } = await apiClient.get("/api/books/meta/attributes");
-    return data.data;
-  },
-
-  createAttribute: async (name: string, unit?: string): Promise<Attribute> => {
-    const { data } = await apiClient.post("/api/books/meta/attributes", { name, unit });
-    return data.data;
-  },
-
-  async extractBookInfoFromImage(imageFile: File): Promise<any> {
+  async extractBookInfoFromImage(imageFiles: File | File[]): Promise<any> {
     const formData = new FormData();
-    formData.append("bookCover", imageFile); // 'bookCover' must match the field name in multer config
+    const files = Array.isArray(imageFiles) ? imageFiles.slice(0, 2) : [imageFiles];
+    files.forEach((file) => formData.append("bookCovers", file));
 
     const response = await apiClient.post("/api/gemini/extract-from-image", formData, {
       headers: { "Content-Type": "multipart/form-data" },

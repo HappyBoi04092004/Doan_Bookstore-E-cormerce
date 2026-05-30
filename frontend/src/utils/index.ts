@@ -25,15 +25,6 @@ export function formatRating(rating: number): string {
   return `${rating.toFixed(1)} / 5`;
 }
 
-/** Calculate discount percentage */
-export function discountPercent(
-  originalPrice: number,
-  currentPrice: number
-): number {
-  if (!originalPrice || originalPrice <= currentPrice) return 0;
-  return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
-}
-
 /** Build a URL-safe slug */
 export function slugify(text: string): string {
   return text

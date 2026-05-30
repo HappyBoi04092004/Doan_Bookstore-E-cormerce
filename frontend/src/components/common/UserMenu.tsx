@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { User, LogOut, FileText, ShoppingBag, ChevronDown, Heart } from "lucide-react";
+import { User, LogOut, ShoppingBag, ChevronDown, Heart } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
@@ -11,7 +11,6 @@ export default function UserMenu() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -39,7 +38,6 @@ export default function UserMenu() {
 
   return (
     <div className="relative" ref={menuRef}>
-      {/* Dropdown Trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors"
@@ -65,13 +63,10 @@ export default function UserMenu() {
         />
       </button>
 
-      {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-56 transform overflow-hidden rounded-xl bg-white border border-gray-100 shadow-lg ring-1 ring-black ring-opacity-5 origin-top-right transition-all animate-in fade-in slide-in-from-top-2 duration-150 z-50 p-1">
           <div className="px-3 py-2 border-b border-gray-100 mb-1">
-            <p className="text-sm font-semibold text-gray-900 truncate">
-              {user.name}
-            </p>
+            <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
             <p className="text-xs text-gray-500 truncate">{user.email}</p>
           </div>
 
@@ -82,7 +77,7 @@ export default function UserMenu() {
               className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
             >
               <User className="h-4 w-4 shrink-0" />
-              Trang cá nhân 
+              Trang cá nhân
             </Link>
 
             <Link
@@ -103,15 +98,6 @@ export default function UserMenu() {
               Danh sách yêu thích
             </Link>
 
-            <Link
-              to="/tests"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
-            >
-              <FileText className="h-4 w-4 shrink-0" />
-              Lịch sử kiểm tra
-            </Link>
-
             <div className="my-0.5 border-t border-gray-100" />
 
             <button
@@ -125,7 +111,6 @@ export default function UserMenu() {
         </div>
       )}
 
-      {/* Logout Confirmation Modal */}
       <Modal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}

@@ -4,12 +4,9 @@ import { Prisma } from "@prisma/client";
 export const bookInclude: Prisma.BookInclude = {
   category: true,
   author: true,
-  publisher: true,
+  publisherRecord: true,
   images: {
     orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
-  },
-  attributes: {
-    include: { attribute: true },
   },
   variants: {
     include: {
@@ -21,14 +18,22 @@ export const bookInclude: Prisma.BookInclude = {
   },
 };
 
-type AttributeInput = { attributeId?: number; name?: string; unit?: string; value: string };
 type VariantInput = {
   id?: number;
   name: string;
   sku?: string;
   price: number | string;
   stock: number | string;
-  discountPercent?: number | string | null;
+};
+
+type BookDetailInput = {
+  publisher?: string;
+  isbn?: string;
+  publishYear?: number | string | null;
+  pageCount?: number | string | null;
+  language?: string;
+  size?: string;
+  format?: string;
 };
 
 async function resolveCategory(name: string) {
@@ -49,14 +54,15 @@ async function resolvePublisher(name: string) {
   return record;
 }
 
-async function resolveAttribute(name: string, unit?: string) {
-  let record = await prisma.attribute.findFirst({ where: { name } });
-  if (!record) {
-    record = await prisma.attribute.create({ data: { name, unit: unit || null } });
-  } else if (unit !== undefined && unit !== record.unit) {
-    record = await prisma.attribute.update({ where: { id: record.id }, data: { unit: unit || null } });
-  }
-  return record;
+function optionalString(value: unknown) {
+  const trimmed = String(value ?? "").trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function optionalNumber(value: unknown) {
+  if (value === undefined || value === null || value === "") return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
 }
 
 function normalizeVariants(raw: unknown): VariantInput[] {
@@ -73,12 +79,6 @@ function normalizeVariants(raw: unknown): VariantInput[] {
       sku: variant.sku ? String(variant.sku).trim() : undefined,
       price: Number(variant.price ?? 0),
       stock: Number(variant.stock ?? 0),
-      discountPercent:
-        variant.discountPercent === undefined ||
-        variant.discountPercent === null ||
-        variant.discountPercent === ""
-          ? null
-          : Number(variant.discountPercent),
     }))
     .filter((variant) => variant.name.length > 0);
 }
@@ -108,21 +108,18 @@ function buildDefaultVariants(price: number, stock: number): VariantInput[] {
       sku: undefined,
       price: Math.max(Math.round(safePrice * 0.6), 1),
       stock: 999,
-      discountPercent: null,
     },
     {
       name: "Bản tiêu chuẩn",
       sku: undefined,
       price: safePrice,
       stock: safeStock,
-      discountPercent: null,
     },
     {
       name: "Bản đặc biệt",
       sku: undefined,
       price: Math.max(Math.round(safePrice * 1.35), 1),
       stock: Math.max(Math.round(safeStock * 0.4), 0),
-      discountPercent: null,
     },
   ];
 }
@@ -141,7 +138,28 @@ function summarizeStock(book: any) {
   return Number(book.stock ?? 0);
 }
 
+function buildBookDetailData(data: BookDetailInput) {
+  return {
+    publisher: String(data.publisher ?? "").trim(),
+    isbn: optionalString(data.isbn),
+    publishYear: optionalNumber(data.publishYear),
+    pageCount: optionalNumber(data.pageCount),
+    language: optionalString(data.language),
+    size: optionalString(data.size),
+    format: optionalString(data.format),
+  };
+}
+
+function validateRequired(data: { title?: string; author?: string; publisher?: string; price?: unknown; stock?: unknown }) {
+  if (!String(data.title ?? "").trim()) throw new Error("Tên sách là bắt buộc");
+  if (!String(data.author ?? "").trim()) throw new Error("Tác giả là bắt buộc");
+  if (!String(data.publisher ?? "").trim()) throw new Error("Nhà xuất bản là bắt buộc");
+  if (data.price === undefined || data.price === null || data.price === "") throw new Error("Giá bán là bắt buộc");
+  if (data.stock === undefined || data.stock === null || data.stock === "") throw new Error("Số lượng tồn kho là bắt buộc");
+}
+
 export function formatBook(book: any) {
+  const { publisherRecord, ...bookData } = book;
   const variants =
     book.variants?.map((variant: any) => ({
       ...variant,
@@ -152,61 +170,17 @@ export function formatBook(book: any) {
     })) ?? [];
 
   return {
-    ...book,
+    ...bookData,
+    publisher: book.publisher || publisherRecord?.name || "",
     primaryImage:
       book.images?.find((image: any) => image.isPrimary)?.url ??
       book.images?.[0]?.url ??
       variants[0]?.primaryImage ??
       null,
-    attributes:
-      book.attributes?.map((attributeRow: any) => ({
-        id: attributeRow.id,
-        attributeId: attributeRow.attributeId,
-        name: attributeRow.attribute?.name ?? "",
-        unit: attributeRow.attribute?.unit ?? null,
-        value: attributeRow.value,
-      })) ?? [],
     variants,
     price: summarizePrice({ ...book, variants }),
     stock: summarizeStock({ ...book, variants }),
   };
-}
-
-function normalizeAttributes(raw: unknown): AttributeInput[] {
-  if (!Array.isArray(raw)) return [];
-
-  const normalized = raw
-    .filter((attribute) => attribute && typeof attribute === "object")
-    .map((attribute: any) => ({
-      attributeId: Number(attribute.attributeId),
-      name: String(attribute.name ?? "").trim(),
-      unit: attribute.unit === undefined ? undefined : String(attribute.unit ?? "").trim(),
-      value: String(attribute.value ?? "").trim(),
-    }))
-    .filter(
-      (attribute) =>
-        ((Number.isInteger(attribute.attributeId) && attribute.attributeId > 0) || attribute.name) &&
-        attribute.value
-    );
-
-  const deduped = new Map<string, AttributeInput>();
-  for (const attribute of normalized) {
-    deduped.set(attribute.attributeId > 0 ? `id:${attribute.attributeId}` : `name:${attribute.name.toLowerCase()}`, attribute);
-  }
-
-  return Array.from(deduped.values());
-}
-
-async function buildAttributeCreates(attributes: AttributeInput[]) {
-  const rows = [];
-  for (const attribute of normalizeAttributes(attributes)) {
-    const attributeId =
-      attribute.attributeId && attribute.attributeId > 0
-        ? attribute.attributeId
-        : (await resolveAttribute(attribute.name!, attribute.unit)).id;
-    rows.push({ attributeId, value: attribute.value });
-  }
-  return rows;
 }
 
 export const bookService = {
@@ -253,19 +227,25 @@ export const bookService = {
   async createBook(data: {
     title: string;
     author: string;
-    publisher?: string;
+    publisher: string;
+    isbn?: string;
+    publishYear?: number | string | null;
+    pageCount?: number | string | null;
+    language?: string;
+    size?: string;
+    format?: string;
     category: string;
     price: number | string;
     stock: number | string;
     description?: string;
     imagePaths?: string[];
-    attributes?: AttributeInput[];
     variants?: VariantInput[];
   }) {
-    const { title, author, publisher, category, price, stock, description, imagePaths = [], attributes = [], variants = [] } = data;
-
-    if (!title || !author) throw new Error("Tiêu đề và tác giả là bắt buộc");
+    const { title, author, category, price, stock, description, imagePaths = [], variants = [] } = data;
+    validateRequired(data);
     if (!category) throw new Error("Danh mục là bắt buộc");
+    if (Number(price) <= 0) throw new Error("Giá bán phải lớn hơn 0");
+    if (Number(stock) < 0) throw new Error("Số lượng tồn kho không được âm");
 
     const normalizedVariants = normalizeVariants(variants);
     const variantsToCreate =
@@ -281,20 +261,25 @@ export const bookService = {
     }
     ensureUniqueVariants(variantsToCreate);
 
-    const [catRecord, authorRecord] = await Promise.all([
+    const [catRecord, authorRecord, publisherRecord] = await Promise.all([
       resolveCategory(category),
       resolveAuthor(author),
+      resolvePublisher(data.publisher.trim()),
     ]);
-    const [publisherRecord, attributeCreates] = await Promise.all([
-      publisher?.trim() ? resolvePublisher(publisher.trim()) : Promise.resolve(null),
-      buildAttributeCreates(attributes),
-    ]);
+    const detailData = buildBookDetailData(data);
 
     const book = await prisma.book.create({
       data: {
-        title,
+        title: title.trim(),
         authorId: authorRecord.id,
-        publisherId: publisherRecord?.id ?? null,
+        publisherId: publisherRecord.id,
+        publisher: detailData.publisher,
+        isbn: detailData.isbn,
+        publishYear: detailData.publishYear,
+        pageCount: detailData.pageCount,
+        language: detailData.language,
+        size: detailData.size,
+        format: detailData.format,
         categoryId: catRecord.id,
         description,
         price: Number(variantsToCreate[0].price),
@@ -306,19 +291,12 @@ export const bookService = {
             sortOrder: idx,
           })),
         },
-        attributes: {
-          create: attributeCreates,
-        },
         variants: {
           create: variantsToCreate.map((variant) => ({
             name: variant.name,
             sku: variant.sku || null,
             price: Number(variant.price),
             stock: Number(variant.stock),
-            discountPercent:
-              variant.discountPercent === null || variant.discountPercent === undefined
-                ? null
-                : Number(variant.discountPercent),
           })),
         },
       },
@@ -334,17 +312,35 @@ export const bookService = {
       title?: string;
       author?: string;
       publisher?: string;
+      isbn?: string;
+      publishYear?: number | string | null;
+      pageCount?: number | string | null;
+      language?: string;
+      size?: string;
+      format?: string;
       category?: string;
       price?: number | string;
       stock?: number | string;
       description?: string;
       imagePaths?: string[];
-      attributes?: AttributeInput[];
       variants?: VariantInput[];
     }
   ) {
     const existingBook = await prisma.book.findUnique({ where: { id } });
     if (!existingBook) throw new Error("Không tìm thấy sách");
+
+    const requiredCandidate = {
+      title: data.title ?? existingBook.title,
+      author: data.author ?? "",
+      publisher: data.publisher ?? existingBook.publisher,
+      price: data.price ?? existingBook.price,
+      stock: data.stock ?? existingBook.stock,
+    };
+    if (data.author === undefined) {
+      const existingAuthor = await prisma.author.findUnique({ where: { id: existingBook.authorId } });
+      requiredCandidate.author = existingAuthor?.name ?? "";
+    }
+    validateRequired(requiredCandidate);
 
     let categoryId = existingBook.categoryId;
     if (data.category) {
@@ -365,13 +361,19 @@ export const bookService = {
 
     if (data.publisher !== undefined) {
       const publisherName = data.publisher.trim();
-      updateData.publisher = publisherName
-        ? { connect: { id: (await resolvePublisher(publisherName)).id } }
-        : { disconnect: true };
+      const publisherRecord = await resolvePublisher(publisherName);
+      updateData.publisher = publisherName;
+      updateData.publisherRecord = { connect: { id: publisherRecord.id } };
     }
 
-    if (data.title !== undefined) updateData.title = data.title;
+    if (data.title !== undefined) updateData.title = data.title.trim();
     if (data.description !== undefined) updateData.description = data.description;
+    if (data.isbn !== undefined) updateData.isbn = optionalString(data.isbn);
+    if (data.publishYear !== undefined) updateData.publishYear = optionalNumber(data.publishYear);
+    if (data.pageCount !== undefined) updateData.pageCount = optionalNumber(data.pageCount);
+    if (data.language !== undefined) updateData.language = optionalString(data.language);
+    if (data.size !== undefined) updateData.size = optionalString(data.size);
+    if (data.format !== undefined) updateData.format = optionalString(data.format);
 
     const normalizedVariants = normalizeVariants(data.variants);
     if (normalizedVariants.length > 0) {
@@ -398,10 +400,6 @@ export const bookService = {
           sku: variant.sku || null,
           price: Number(variant.price),
           stock: Number(variant.stock),
-          discountPercent:
-            variant.discountPercent === null || variant.discountPercent === undefined
-              ? null
-              : Number(variant.discountPercent),
         };
 
         if (variant.id && existingVariantIds.has(variant.id)) {
@@ -443,14 +441,6 @@ export const bookService = {
       };
     }
 
-    if (data.attributes) {
-      const attributeCreates = await buildAttributeCreates(data.attributes);
-      await prisma.bookAttribute.deleteMany({ where: { bookId: id } });
-      updateData.attributes = {
-        create: attributeCreates,
-      };
-    }
-
     const book = await prisma.book.update({
       where: { id },
       data: updateData,
@@ -464,17 +454,5 @@ export const bookService = {
     await prisma.book.findUniqueOrThrow({ where: { id } });
     await prisma.book.delete({ where: { id } });
     return true;
-  },
-
-  async getAttributes() {
-    return prisma.attribute.findMany({ orderBy: { name: "asc" } });
-  },
-
-  async createAttribute(name: string, unit?: string) {
-    return prisma.attribute.upsert({
-      where: { name },
-      update: { unit: unit ?? null },
-      create: { name, unit: unit ?? null },
-    });
   },
 };

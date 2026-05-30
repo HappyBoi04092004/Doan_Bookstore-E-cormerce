@@ -43,20 +43,6 @@ export interface BookImage {
   sortOrder: number;
 }
 
-export interface BookAttribute {
-  id: number;
-  attributeId?: number;
-  name: string;
-  unit?: string | null;
-  value: string;
-}
-
-export interface Attribute {
-  id: number;
-  name: string;
-  unit?: string | null;
-}
-
 export interface BookVariant {
   id: number;
   bookId: number;
@@ -64,7 +50,6 @@ export interface BookVariant {
   sku?: string | null;
   price: number;
   stock: number;
-  discountPercent?: number | null;
   primaryImage?: string | null;
   images?: BookImage[];
 }
@@ -73,14 +58,19 @@ export interface Book {
   id: number;
   title: string;
   author: { id?: number; name: string } | string;
-  publisher?: { id?: number; name: string } | string | null;
+  publisher: string;
+  isbn?: string | null;
+  publishYear?: number | null;
+  pageCount?: number | null;
+  language?: string | null;
+  size?: string | null;
+  format?: string | null;
   category: { id?: number; name: string } | string;
   price: number;
   stock: number;
   description?: string;
   primaryImage?: string | null;
   images: BookImage[];
-  attributes: BookAttribute[];
   variants: BookVariant[];
   createdAt?: string;
 }

@@ -8,7 +8,10 @@ const upload = multer({ storage: multer.memoryStorage() }); // Store image in me
 
 router.post(
   '/extract-from-image',
-  upload.single('bookCover'), // 'bookCover' is the field name for the image file
+  upload.fields([
+    { name: 'bookCovers', maxCount: 2 },
+    { name: 'bookCover', maxCount: 1 },
+  ]),
   validateImage,
   extractBookInfoFromImage
 );

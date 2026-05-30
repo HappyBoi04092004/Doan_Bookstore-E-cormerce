@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getBooks, getBookById, getAdminBooks, createBook, updateBook, deleteBook, getAttributes, createAttribute } from "../controllers/book.controller";
+import { getBooks, getBookById, getAdminBooks, createBook, updateBook, deleteBook } from "../controllers/book.controller";
 import { authenticate } from "../middleware/authenticate";
 import { authorize } from "../middleware/authorize";
 import { uploadBook } from "../middleware/upload";
@@ -9,8 +9,6 @@ const router = Router();
 // Public routes
 router.get("/", getBooks);
 router.get("/admin/list", authenticate, authorize(["admin"]), getAdminBooks);
-router.get("/meta/attributes", getAttributes);
-router.post("/meta/attributes", authenticate, authorize(["admin"]), createAttribute);
 router.get("/:id", getBookById);
 
 // Admin strictly guarded routes
