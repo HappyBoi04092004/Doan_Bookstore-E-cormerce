@@ -93,6 +93,10 @@ export const orderService = {
           where: { id: variant.id },
           data: { stock: { decrement: item.quantity } }
         });
+        await tx.book.update({
+          where: { id: variant.bookId },
+          data: { stock: { decrement: item.quantity } },
+        });
         
         total += variant.price * item.quantity;
         enrichedItems.push({

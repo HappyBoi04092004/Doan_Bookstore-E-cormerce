@@ -4,6 +4,7 @@ import { useWishlist } from "../../hooks/useWishlist";
 import { useCart } from "../../hooks/useCart";
 import { formatPrice } from "../../utils";
 import Button from "../../components/ui/Button";
+import { getProductImage, useFallbackBookImage } from "../../utils/productImage";
 
 export default function WishlistPage() {
   const { items, isLoading, toggleWishlist } = useWishlist();
@@ -47,7 +48,7 @@ export default function WishlistPage() {
           {items.map((item) => (
             (() => {
               const book = item.variant.book;
-              const image = item.variant.primaryImage || book.primaryImage || "https://placehold.co/100x150?text=Sách";
+              const image = getProductImage(item.variant, book);
               const authorName = typeof book.author === "object" ? book.author?.name : book.author;
               return (
             <div
@@ -61,10 +62,7 @@ export default function WishlistPage() {
                     src={image}
                     alt={book.title}
                     className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = "https://placehold.co/100x150?text=Sách";
-                    }}
+                    onError={useFallbackBookImage}
                   />
                 </div>
               </Link>

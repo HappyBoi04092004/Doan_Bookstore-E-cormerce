@@ -1,21 +1,25 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, BriefcaseBusiness, Code2, GraduationCap, Languages, Library, Palette, Search, Sparkles, Star } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowRight, BookOpen, Image, Search } from "lucide-react";
 import { useBooks } from "../hooks/useBooks";
 import ProductCard from "../components/book/ProductCard";
+import { categoryService } from "../services/categoryService";
 
-const categories = [
-  { name: "Văn học", icon: Library },
-  { name: "Kinh tế", icon: BriefcaseBusiness },
-  { name: "Công nghệ", icon: Code2 },
-  { name: "Kỹ năng sống", icon: Sparkles },
-  { name: "Ngoại ngữ", icon: Languages },
-  { name: "Thiếu nhi", icon: Star },
-  { name: "Truyện tranh", icon: Palette },
-  { name: "Khác", icon: GraduationCap },
-];
+const heroBackground =
+  "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1800&q=80";
+
+const getAssetUrl = (url?: string | null) => {
+  if (!url) return "";
+  return url.startsWith("/") ? `${import.meta.env.VITE_API_URL || ""}${url}` : url;
+};
 
 export default function HomePage() {
   const { data: books } = useBooks();
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoryService.getAll,
+  });
+
   const newestBooks = [...(books ?? [])]
     .sort((a, b) => {
       const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -27,34 +31,32 @@ export default function HomePage() {
   return (
     <div className="bg-slate-50">
       {/* ── Hero ──────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-700">
-        {/* Subtle dot-grid decoration */}
+      <section className="relative overflow-hidden bg-slate-950">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage:
-              "radial-gradient(circle, white 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
+            backgroundImage: `url(${heroBackground})`,
           }}
         />
-        <div className="relative container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 md:py-32 flex flex-col items-center text-center gap-7">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/20 px-4 py-1.5 text-sm font-medium text-indigo-100 backdrop-blur-sm">
+        <div aria-hidden className="absolute inset-0 bg-slate-950/65" />
+        <div className="relative container mx-auto flex max-w-7xl flex-col items-start gap-6 px-4 py-20 text-left sm:px-6 md:py-28 lg:px-8">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-4 py-1.5 text-sm font-medium text-white backdrop-blur-sm">
             <BookOpen className="h-3.5 w-3.5" />
-            Nhà sách trực tuyến yêu thích của Việt Nam
+            Nhà sách trực tuyến
           </span>
 
-          <h1 className="text-4xl sm:text-5xl md:text-[3.5rem] font-extrabold text-white leading-[1.15] tracking-tight max-w-2xl">
+          <h1 className="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl md:text-[3.5rem]">
             Khám phá cuốn sách yêu thích tiếp theo của bạn
           </h1>
 
-          <p className="text-[1.05rem] text-indigo-200 max-w-lg leading-relaxed">
-            Khám phá hàng ngàn tựa sách — từ best-seller đến những cuốn sách quý hiếm. Giao hàng nhanh tận nhà.
+          <p className="max-w-xl text-[1.05rem] leading-relaxed text-slate-100">
+            Tìm sách mới, chọn đúng thể loại bạn thích và đặt mua nhanh trong một trải nghiệm đơn giản.
           </p>
 
           {/* Search bar */}
           <form
-            className="flex w-full max-w-md gap-0 rounded-xl overflow-hidden border border-white/20 bg-white/10 backdrop-blur-sm p-1"
+            className="flex w-full max-w-xl flex-col gap-2 rounded-xl border border-white/20 bg-white p-2 shadow-xl shadow-slate-950/20 sm:flex-row"
             onSubmit={(e) => {
               e.preventDefault();
               const q = (e.currentTarget.elements.namedItem("q") as HTMLInputElement).value;
@@ -65,21 +67,21 @@ export default function HomePage() {
               name="q"
               type="text"
               placeholder="Tìm kiếm sách, tác giả…"
-              className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-indigo-300 outline-none"
+              className="min-h-11 flex-1 rounded-lg bg-slate-50 px-4 text-sm text-slate-900 outline-none placeholder:text-slate-400"
             />
             <button
               type="submit"
-              className="flex items-center gap-1.5 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors"
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
             >
               <Search className="h-4 w-4" />
               Tìm kiếm
             </button>
           </form>
 
-          <div className="flex flex-wrap gap-3 justify-center mt-1">
+          <div className="mt-1 flex flex-wrap gap-3">
             <Link
               to="/books"
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition-colors hover:bg-slate-100"
             >
               Xem tất cả sách <ArrowRight className="h-4 w-4" />
             </Link>
@@ -93,31 +95,52 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-white">
-        <div className="container mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="mb-6 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Khám phá</p>
-              <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Danh mục sách</h2>
+      {categories.length > 0 && (
+        <section className="bg-white">
+          <div className="container mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+            <div className="mb-6 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Khám phá</p>
+                <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Danh mục sách</h2>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {categories.map((category) => {
+                const imageUrl = getAssetUrl(category.image);
+                return (
+                  <Link
+                    key={category.id}
+                    to={`/books?category=${encodeURIComponent(category.name)}`}
+                    className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-100/70"
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={category.name}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-slate-300">
+                          <Image className="h-10 w-10" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-slate-950/10 to-transparent" />
+                      <h3 className="absolute bottom-3 left-3 right-3 text-base font-bold text-white">
+                        {category.name}
+                      </h3>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8">
-            {categories.map(({ name, icon: Icon }) => (
-              <Link
-                key={name}
-                to={`/books?category=${encodeURIComponent(name)}`}
-                className="group rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-200 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/70"
-              >
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm transition-colors group-hover:bg-indigo-600 group-hover:text-white">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <h3 className="text-sm font-bold text-slate-900">{name}</h3>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {newestBooks.length > 0 && (
         <section className="bg-slate-50">

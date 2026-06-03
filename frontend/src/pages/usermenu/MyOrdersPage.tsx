@@ -5,6 +5,7 @@ import { orderService } from "../../services/orderService";
 import type { Order, OrderItem } from "../../types";
 import Spinner from "../../components/ui/Spinner";
 import { ArrowLeft } from "lucide-react";
+import { getProductImage, useFallbackBookImage } from "../../utils/productImage";
 
 const statusColor: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800 border-yellow-300",
@@ -72,19 +73,13 @@ function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => voi
                         <div className="flex items-center gap-3">
                           {(() => {
                             const book = item.variant.book;
-                            const image =
-                              item.variant.primaryImage ||
-                              book.primaryImage ||
-                              "https://placehold.co/100x120?text=Sách";
+                            const image = getProductImage(item.variant, book);
                             return (
                           <img 
                             src={image} 
                             alt={book.title} 
                             className="w-12 h-16 object-cover rounded-md flex-shrink-0 border border-gray-200"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = "https://placehold.co/100x120?text=Sách";
-                            }}
+                            onError={useFallbackBookImage}
                           />
                             );
                           })()}
@@ -214,6 +209,25 @@ export default function MyOrdersPage() {
                 </div>
                 <div className="text-sm text-gray-600 flex items-center gap-2 mt-2 bg-gray-50 w-fit px-3 py-1.5 rounded-lg border border-gray-100">
                   <span className="font-semibold text-indigo-600">{order.items.length}</span> sản phẩm
+                </div>
+                <div className="mt-3 flex -space-x-2">
+                  {order.items.slice(0, 4).map((item) => {
+                    const book = item.variant.book;
+                    return (
+                      <img
+                        key={item.id}
+                        src={getProductImage(item.variant, book)}
+                        alt={book.title}
+                        className="h-12 w-9 rounded-md border-2 border-white bg-gray-100 object-cover shadow-sm"
+                        onError={useFallbackBookImage}
+                      />
+                    );
+                  })}
+                  {order.items.length > 4 && (
+                    <span className="flex h-12 w-9 items-center justify-center rounded-md border-2 border-white bg-gray-100 text-xs font-semibold text-gray-500 shadow-sm">
+                      +{order.items.length - 4}
+                    </span>
+                  )}
                 </div>
               </div>
 

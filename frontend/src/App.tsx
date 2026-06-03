@@ -30,6 +30,8 @@ import AuthorsPage from "./pages/admin/AuthorsPage";
 import PublishersPage from "./pages/admin/PublishersPage";
 import ContactsPage from "./pages/admin/ContactsPage";
 import ReviewsPage from "./pages/admin/ReviewsPage";
+import ImportReceiptsPage from "./pages/admin/ImportReceiptsPage";
+import SuppliersPage from "./pages/admin/SuppliersPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,6 +87,8 @@ export default function App() {
               <Route path="/admin/authors" element={<AuthorsPage />} />
               <Route path="/admin/publishers" element={<PublishersPage />} />
               <Route path="/admin/orders" element={<OrdersPage />} />
+              <Route path="/admin/import-receipts" element={<ImportReceiptsPage />} />
+              <Route path="/admin/suppliers" element={<SuppliersPage />} />
               <Route path="/admin/contacts" element={<ContactsPage />} />
               <Route path="/admin/reviews" element={<ReviewsPage />} />
             </Route>

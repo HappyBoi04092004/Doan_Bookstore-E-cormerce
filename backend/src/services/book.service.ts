@@ -28,6 +28,7 @@ type VariantInput = {
 
 type BookDetailInput = {
   publisher?: string;
+  importPrice?: number | string | null;
   isbn?: string;
   publishYear?: number | string | null;
   pageCount?: number | string | null;
@@ -132,10 +133,34 @@ function summarizePrice(book: any) {
 }
 
 function summarizeStock(book: any) {
-  if (Array.isArray(book.variants) && book.variants.length > 0) {
-    return book.variants.reduce((sum: number, variant: any) => sum + (Number(variant.stock) || 0), 0);
-  }
   return Number(book.stock ?? 0);
+}
+
+async function attachAdminStockMetrics(books: any[]) {
+  const bookIds = books.map((book) => book.id);
+  if (bookIds.length === 0) return books;
+
+  const soldItems = await prisma.orderItem.findMany({
+    where: {
+      variant: { bookId: { in: bookIds } },
+      order: { status: { in: ["PAID", "COMPLETED"] } },
+    },
+    select: {
+      qty: true,
+      variant: { select: { bookId: true } },
+    },
+  });
+
+  const soldByBookId = new Map<number, number>();
+  soldItems.forEach((item) => {
+    soldByBookId.set(item.variant.bookId, (soldByBookId.get(item.variant.bookId) ?? 0) + item.qty);
+  });
+
+  return books.map((book) => ({
+    ...book,
+    soldQuantity: soldByBookId.get(book.id) ?? 0,
+    stockStatus: book.stock === 0 ? "Hết hàng" : book.stock < 10 ? "Sắp hết hàng" : "Còn hàng",
+  }));
 }
 
 function buildBookDetailData(data: BookDetailInput) {
@@ -150,12 +175,11 @@ function buildBookDetailData(data: BookDetailInput) {
   };
 }
 
-function validateRequired(data: { title?: string; author?: string; publisher?: string; price?: unknown; stock?: unknown }) {
+function validateRequired(data: { title?: string; author?: string; publisher?: string; price?: unknown }) {
   if (!String(data.title ?? "").trim()) throw new Error("Tên sách là bắt buộc");
   if (!String(data.author ?? "").trim()) throw new Error("Tác giả là bắt buộc");
   if (!String(data.publisher ?? "").trim()) throw new Error("Nhà xuất bản là bắt buộc");
   if (data.price === undefined || data.price === null || data.price === "") throw new Error("Giá bán là bắt buộc");
-  if (data.stock === undefined || data.stock === null || data.stock === "") throw new Error("Số lượng tồn kho là bắt buộc");
 }
 
 export function formatBook(book: any) {
@@ -202,7 +226,8 @@ export const bookService = {
       prisma.book.count({ where: whereClause }),
     ]);
 
-    return { books: books.map(formatBook), total, page, limit };
+    const formattedBooks = books.map(formatBook);
+    return { books: await attachAdminStockMetrics(formattedBooks), total, page, limit };
   },
 
   async getBooks() {
@@ -237,6 +262,7 @@ export const bookService = {
     category: string;
     price: number | string;
     stock: number | string;
+    importPrice?: number | string;
     description?: string;
     imagePaths?: string[];
     variants?: VariantInput[];
@@ -283,6 +309,7 @@ export const bookService = {
         categoryId: catRecord.id,
         description,
         price: Number(variantsToCreate[0].price),
+        importPrice: Number(data.importPrice ?? 0),
         stock: variantsToCreate.reduce((sum, variant) => sum + Number(variant.stock || 0), 0),
         images: {
           create: imagePaths.map((url, idx) => ({
@@ -321,6 +348,7 @@ export const bookService = {
       category?: string;
       price?: number | string;
       stock?: number | string;
+      importPrice?: number | string;
       description?: string;
       imagePaths?: string[];
       variants?: VariantInput[];
@@ -334,7 +362,6 @@ export const bookService = {
       author: data.author ?? "",
       publisher: data.publisher ?? existingBook.publisher,
       price: data.price ?? existingBook.price,
-      stock: data.stock ?? existingBook.stock,
     };
     if (data.author === undefined) {
       const existingAuthor = await prisma.author.findUnique({ where: { id: existingBook.authorId } });
@@ -380,9 +407,6 @@ export const bookService = {
       if (normalizedVariants.some((variant) => Number(variant.price) <= 0)) {
         throw new Error("Giá biến thể phải lớn hơn 0");
       }
-      if (normalizedVariants.some((variant) => Number(variant.stock) < 0)) {
-        throw new Error("Tồn kho biến thể không được âm");
-      }
       ensureUniqueVariants(normalizedVariants);
 
       const existingVariantIds = new Set(
@@ -399,7 +423,6 @@ export const bookService = {
           name: variant.name,
           sku: variant.sku || null,
           price: Number(variant.price),
-          stock: Number(variant.stock),
         };
 
         if (variant.id && existingVariantIds.has(variant.id)) {
@@ -411,6 +434,7 @@ export const bookService = {
           await prisma.bookVariant.create({
             data: {
               ...variantPayload,
+              stock: Number(variant.stock ?? 0),
               bookId: id,
             },
           });
@@ -418,16 +442,16 @@ export const bookService = {
       }
 
       updateData.price = Number(normalizedVariants[0].price);
-      updateData.stock = normalizedVariants.reduce((sum, variant) => sum + Number(variant.stock || 0), 0);
     } else {
       if (data.price !== undefined) {
         if (Number(data.price) <= 0) throw new Error("Giá phải lớn hơn 0");
         updateData.price = Number(data.price);
       }
-      if (data.stock !== undefined) {
-        if (Number(data.stock) < 0) throw new Error("Số lượng không được âm");
-        updateData.stock = Number(data.stock);
-      }
+    }
+
+    if (data.importPrice !== undefined) {
+      if (Number(data.importPrice) < 0) throw new Error("Giá nhập không được âm");
+      updateData.importPrice = Number(data.importPrice);
     }
 
     if (data.imagePaths && data.imagePaths.length > 0) {

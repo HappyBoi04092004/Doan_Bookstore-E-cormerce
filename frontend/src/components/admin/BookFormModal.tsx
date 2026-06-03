@@ -16,7 +16,7 @@ interface BookFormModalProps {
 }
 
 const defaultVariants = [
-  { id: undefined, name: "E-book", sku: "", price: "", stock: "999" },
+  { id: undefined, name: "E-book", sku: "", price: "", stock: "0" },
   { id: undefined, name: "Bản tiêu chuẩn", sku: "", price: "", stock: "0" },
   { id: undefined, name: "Bản đặc biệt", sku: "", price: "", stock: "0" },
 ];
@@ -123,10 +123,10 @@ export default function BookFormModal({
 
   if (!isOpen) return null;
 
-  const syncStandardVariant = (next: typeof formData, field: "price" | "stock", value: string) => ({
+  const syncStandardVariantPrice = (next: typeof formData, value: string) => ({
     ...next,
     variants: next.variants.map((variant, index) =>
-      index === 1 ? { ...variant, [field]: value } : variant
+      index === 1 ? { ...variant, price: value } : variant
     ),
   });
 
@@ -147,8 +147,8 @@ export default function BookFormModal({
     const { name, value } = e.target;
     setFormData((prev) => {
       const next = { ...prev, [name]: value };
-      if (name === "price" || name === "stock") {
-        return syncStandardVariant(next, name, value);
+      if (name === "price") {
+        return syncStandardVariantPrice(next, value);
       }
       return next;
     });
@@ -194,7 +194,7 @@ export default function BookFormModal({
         };
 
         if (extractedData.price) {
-          next = syncStandardVariant(next, "price", String(extractedData.price));
+          next = syncStandardVariantPrice(next, String(extractedData.price));
         }
         return next;
       });
@@ -249,20 +249,15 @@ export default function BookFormModal({
       setErrorMsg("Giá bán phải lớn hơn 0");
       return;
     }
-    if (formData.stock === "" || Number(formData.stock) < 0) {
-      setErrorMsg("Số lượng tồn kho không được âm");
-      return;
-    }
-
     const normalizedVariants = formData.variants
       .map((variant) => ({
         id: variant.id,
         name: variant.name.trim(),
         sku: variant.sku.trim(),
         price: variant.price === "" ? null : Number(variant.price),
-        stock: variant.stock === "" ? null : Number(variant.stock),
+        stock: Number(variant.stock || 0),
       }))
-      .filter((variant) => variant.name || variant.sku || variant.price !== null || variant.stock !== null);
+      .filter((variant) => variant.name || variant.sku || variant.price !== null);
 
     if (
       normalizedVariants.some(
@@ -272,15 +267,6 @@ export default function BookFormModal({
       setErrorMsg("Mỗi biến thể cần có tên và giá lớn hơn 0");
       return;
     }
-    if (
-      normalizedVariants.some(
-        (variant) => variant.stock === null || Number.isNaN(variant.stock) || variant.stock < 0
-      )
-    ) {
-      setErrorMsg("Tồn kho biến thể không được âm");
-      return;
-    }
-
     onSubmit({
       title: formData.title.trim(),
       author: formData.author.trim(),
@@ -293,7 +279,7 @@ export default function BookFormModal({
       format: formData.format.trim(),
       category: formData.category,
       price: formData.price,
-      stock: formData.stock,
+      stock: "0",
       description: formData.description,
       images: formData.images,
       variants: normalizedVariants,
@@ -476,7 +462,7 @@ export default function BookFormModal({
                 <h3 className="text-lg font-semibold text-gray-900">Biến thể sản phẩm</h3>
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500">Giá bán và tồn kho cố định sẽ đồng bộ vào biến thể tiêu chuẩn.</p>
+                <p className="text-sm text-gray-500">Giá bán sẽ đồng bộ vào biến thể tiêu chuẩn. Tồn kho được cập nhật bằng phiếu nhập kho.</p>
                 <Button
                   type="button"
                   variant="ghost"
@@ -496,7 +482,9 @@ export default function BookFormModal({
                     <input type="text" value={variant.name} onChange={(e) => handleVariantChange(index, "name", e.target.value)} placeholder="Tên biến thể" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
                     <input type="text" value={variant.sku} onChange={(e) => handleVariantChange(index, "sku", e.target.value)} placeholder="SKU" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
                     <input type="number" min="1" value={variant.price} onChange={(e) => handleVariantChange(index, "price", e.target.value)} placeholder="Giá" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
-                    <input type="number" min="0" value={variant.stock} onChange={(e) => handleVariantChange(index, "stock", e.target.value)} placeholder="Tồn kho" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                    <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                      Tồn kho hiện tại: {variant.stock || 0}
+                    </div>
                     <Button
                       type="button"
                       variant="outline"

@@ -10,14 +10,17 @@ import {
   Building2,
   MessageSquare,
   Star,
+  ClipboardList,
 } from "lucide-react";
 import UserMenu from "../common/UserMenu";
 
 const adminNav = [
-  { to: "/admin", label: "Bảng điều khiển", icon: LayoutDashboard, end: true },
-  { to: "/admin/products", label: "Sản phẩm", icon: Package, end: false },
+  { to: "/admin", label: "Tổng quan", icon: LayoutDashboard, end: true },
+  { to: "/admin/products", label: "Sách", icon: Package, end: false },
   { to: "/admin/categories", label: "Danh mục", icon: Tag, end: false },
   { to: "/admin/orders", label: "Đơn hàng", icon: ShoppingBag, end: false },
+  { to: "/admin/import-receipts", label: "Phiếu nhập kho", icon: ClipboardList, end: false },
+  { to: "/admin/suppliers", label: "Nhà cung cấp", icon: Building2, end: false },
   { to: "/admin/users", label: "Người dùng", icon: Users, end: false },
   { to: "/admin/authors", label: "Tác giả", icon: PenLine, end: false },
   { to: "/admin/publishers", label: "Nhà xuất bản", icon: Building2, end: false },
@@ -28,11 +31,10 @@ const adminNav = [
 export default function AdminLayout() {
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
       <aside className="w-64 shrink-0 bg-gray-900 text-white">
-        <div className="flex items-center gap-2 px-6 py-5 border-b border-gray-700">
+        <div className="flex items-center gap-2 border-b border-gray-700 px-6 py-5">
           <BookOpen className="h-6 w-6 text-indigo-400" />
-          <span className="font-bold text-lg">Quản trị HPStore</span>
+          <span className="text-lg font-bold">Quản trị HPStore</span>
         </div>
         <nav className="mt-4 px-3">
           {adminNav.map(({ to, label, icon: Icon, end }) => (
@@ -41,7 +43,7 @@ export default function AdminLayout() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2.5 mb-1 text-sm font-medium transition-colors ${
+                `mb-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-indigo-600 text-white"
                     : "text-gray-300 hover:bg-gray-800 hover:text-white"
@@ -55,12 +57,9 @@ export default function AdminLayout() {
         </nav>
       </aside>
 
-      {/* Main */}
       <div className="flex flex-1 flex-col">
-        <header className="border-b border-gray-200 bg-white px-8 py-4 shadow-sm flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-gray-800">
-            Trang quản trị
-          </h1>
+        <header className="flex items-center justify-between border-b border-gray-200 bg-white px-8 py-4 shadow-sm">
+          <h1 className="text-lg font-semibold text-gray-800">Trang quản trị</h1>
           <UserMenu />
         </header>
         <main className="flex-1 overflow-auto p-8">

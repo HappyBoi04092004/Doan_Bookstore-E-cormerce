@@ -67,12 +67,52 @@ export interface Book {
   format?: string | null;
   category: { id?: number; name: string } | string;
   price: number;
+  importPrice?: number;
   stock: number;
+  soldQuantity?: number;
+  stockStatus?: string;
   description?: string;
   primaryImage?: string | null;
   images: BookImage[];
   variants: BookVariant[];
   createdAt?: string;
+}
+
+export interface Supplier {
+  id: number;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  status: "ACTIVE" | "INACTIVE";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ImportReceiptDetail {
+  id: number;
+  importReceiptId: number;
+  productId: number;
+  variantId?: number | null;
+  quantity: number;
+  importPrice: number;
+  subtotal: number;
+  product: Book;
+  variant?: BookVariant | null;
+}
+
+export interface ImportReceipt {
+  id: number;
+  code: string;
+  supplierId: number;
+  totalAmount: number;
+  note?: string | null;
+  createdBy?: number | null;
+  supplier: Supplier;
+  creator?: Pick<User, "id" | "name" | "email"> | null;
+  details: ImportReceiptDetail[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ─── Cart ────────────────────────────────────────────────────────────────────

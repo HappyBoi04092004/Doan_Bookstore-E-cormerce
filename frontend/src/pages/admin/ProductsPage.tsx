@@ -33,11 +33,9 @@ export default function ProductsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminBooks"] });
       setIsModalOpen(false);
-      alert("Book created successfully!");
+      alert("Tạo sách thành công!");
     },
-    onError: (err: any) => {
-      alert(err?.response?.data?.message || "Failed to create book");
-    }
+    onError: (err: any) => alert(err?.response?.data?.message || "Không thể tạo sách"),
   });
 
   const updateMutation = useMutation({
@@ -45,103 +43,79 @@ export default function ProductsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminBooks"] });
       setIsModalOpen(false);
-      alert("Book updated successfully!");
+      alert("Cập nhật sách thành công!");
     },
-    onError: (err: any) => {
-      alert(err?.response?.data?.message || "Failed to update book");
-    }
+    onError: (err: any) => alert(err?.response?.data?.message || "Không thể cập nhật sách"),
   });
 
   const deleteMutation = useMutation({
     mutationFn: bookService.deleteBook,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminBooks"] });
-      alert("Book deleted successfully!");
+      alert("Xóa sách thành công!");
     },
-    onError: (err: any) => {
-      alert(err?.response?.data?.message || "Failed to delete book");
-    }
+    onError: (err: any) => alert(err?.response?.data?.message || "Không thể xóa sách"),
   });
-
-  const handleDelete = (id: string | number) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa cuốn sách này không?")) {
-      deleteMutation.mutate(id);
-    }
-  };
-
-  const handleEdit = (book: any) => {
-    setEditingBook(book);
-    setIsModalOpen(true);
-  };
-
-  const handleCreate = () => {
-    setEditingBook(null);
-    setIsModalOpen(true);
-  };
-
-  const handleModalSubmit = (formData: any) => {
-    if (editingBook) {
-      updateMutation.mutate({ id: editingBook.id, data: formData });
-    } else {
-      createMutation.mutate(formData);
-    }
-  };
 
   const columns: Column<any>[] = [
     {
       key: "image",
       header: "Hình ảnh",
-      render: (p) => (
-        <img 
-          src={p.primaryImage || p.variants?.[0]?.primaryImage || "https://placehold.co/100x120?text=Sách"} 
-          alt={p.title} 
-          className="h-12 w-10 object-cover rounded border border-gray-100 placeholder-img" 
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = "https://placehold.co/100x120?text=Sách";
+      render: (book) => (
+        <img
+          src={book.primaryImage || book.variants?.[0]?.primaryImage || "https://placehold.co/100x120?text=Sách"}
+          alt={book.title}
+          className="h-12 w-10 rounded border border-gray-100 object-cover"
+          onError={(event) => {
+            event.currentTarget.onerror = null;
+            event.currentTarget.src = "https://placehold.co/100x120?text=Sách";
           }}
         />
       ),
     },
     {
       key: "title",
-      header: "Sản phẩm",
-      render: (p) => (
+      header: "Sách",
+      render: (book) => (
         <div>
-          <p className="font-medium text-gray-900 line-clamp-1">{p.title}</p>
-          <p className="text-xs text-gray-500">{typeof p.author === "object" ? p.author?.name : p.author}</p>
+          <p className="line-clamp-1 font-medium text-gray-900">{book.title}</p>
+          <p className="text-xs text-gray-500">{typeof book.author === "object" ? book.author?.name : book.author}</p>
         </div>
       ),
     },
-    { 
-      key: "category", 
-      header: "Danh mục", 
-      render: (p) => <Badge variant="info">{typeof p.category === "object" ? p.category?.name : p.category}</Badge> 
+    {
+      key: "category",
+      header: "Danh mục",
+      render: (book) => <Badge variant="info">{typeof book.category === "object" ? book.category?.name : book.category}</Badge>,
     },
-    { 
-      key: "price", 
-      header: "Giá", 
-      render: (p) => formatPrice(p.price) 
-    },
+    { key: "price", header: "Giá bán", render: (book) => formatPrice(book.price) },
     {
       key: "stock",
-      header: "Tồn kho",
-      render: (p) => (
+      header: "Kho",
+      render: (book) => (
         <div className="space-y-1">
-          <Badge variant={p.stock === 0 ? "danger" : p.stock < 10 ? "warning" : "success"}>
-            {p.stock === 0 ? "Hết hàng" : `${p.stock} sản phẩm`}
+          <p className="text-sm font-medium text-gray-900">Tồn kho: {book.stock}</p>
+          <p className="text-xs text-gray-500">Đã bán: {book.soldQuantity ?? 0}</p>
+          <Badge variant={book.stock === 0 ? "danger" : book.stock < 10 ? "warning" : "success"}>
+            {book.stockStatus || (book.stock === 0 ? "Hết hàng" : book.stock < 10 ? "Sắp hết hàng" : "Còn hàng")}
           </Badge>
-          <p className="text-xs text-gray-400">{p.variants?.length ?? 0} biến thể</p>
         </div>
       ),
     },
     {
       key: "actions",
       header: "Thao tác",
-      render: (p) => (
+      render: (book) => (
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => handleEdit(p)}>Sửa</Button>
-          <Button variant="danger" size="sm" onClick={() => handleDelete(p.id)} disabled={deleteMutation.isPending}>Xóa</Button>
+          <Button variant="ghost" size="sm" onClick={() => { setEditingBook(book); setIsModalOpen(true); }}>Sửa</Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => window.confirm("Bạn có chắc chắn muốn xóa cuốn sách này không?") && deleteMutation.mutate(book.id)}
+            disabled={deleteMutation.isPending}
+          >
+            Xóa
+          </Button>
         </div>
       ),
     },
@@ -149,63 +123,50 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Sách</h1>
-          <p className="text-sm text-gray-500 mt-1">{data?.data?.total || 0} sản phẩm</p>
+          <p className="mt-1 text-sm text-gray-500">{data?.data?.total || 0} sách</p>
         </div>
-        <Button variant="primary" onClick={handleCreate}>
-          <Plus className="h-4 w-4 mr-1" /> Thêm sách
+        <Button variant="primary" onClick={() => { setEditingBook(null); setIsModalOpen(true); }}>
+          <Plus className="mr-1 h-4 w-4" /> Thêm sách
         </Button>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-4">
+      <div className="flex flex-col items-center gap-4 sm:flex-row">
         <input
           type="text"
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Tìm kiếm sách theo tên…"
-          className="w-full sm:max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+          onChange={(event) => { setSearch(event.target.value); setPage(1); }}
+          placeholder="Tìm kiếm sách theo tên..."
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none sm:max-w-xs"
         />
-        
         <select
           value={category}
-          onChange={(e) => {
-            setCategory(e.target.value);
-            setPage(1);
-          }}
-          className="w-full sm:max-w-[180px] rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+          onChange={(event) => { setCategory(event.target.value); setPage(1); }}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none sm:max-w-[180px]"
         >
           <option value="">Tất cả danh mục</option>
-          {categories.map((c: any) => (
-            <option key={c.id} value={c.name}>{c.name}</option>
-          ))}
+          {categories.map((item: any) => <option key={item.id} value={item.name}>{item.name}</option>)}
         </select>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-10">Đang tải danh sách sách...</div>
+        <div className="py-10 text-center">Đang tải danh sách sách...</div>
       ) : isError ? (
-         <div className="text-center py-10 text-red-500">Không thể tải danh sách sách.</div>
+        <div className="py-10 text-center text-red-500">Không thể tải danh sách sách.</div>
       ) : (
         <>
           <AdminTable
             columns={columns}
             data={data?.data?.books || []}
-            keyExtractor={(p) => String(p.id)}
+            keyExtractor={(book) => String(book.id)}
             emptyMessage="Không tìm thấy sách nào."
           />
-          <div className="flex justify-between items-center mt-4">
-             <Button variant="ghost" disabled={page === 1} onClick={() => setPage(page - 1)}>
-                Trang trước
-             </Button>
-             <span className="text-sm">Trang {page}</span>
-             <Button variant="ghost" disabled={!data?.data?.books?.length || data.data.books.length < 10} onClick={() => setPage(page + 1)}>
-                Trang sau
-             </Button>
+          <div className="mt-4 flex items-center justify-between">
+            <Button variant="ghost" disabled={page === 1} onClick={() => setPage(page - 1)}>Trang trước</Button>
+            <span className="text-sm">Trang {page}</span>
+            <Button variant="ghost" disabled={!data?.data?.books?.length || data.data.books.length < 10} onClick={() => setPage(page + 1)}>Trang sau</Button>
           </div>
         </>
       )}
@@ -214,7 +175,7 @@ export default function ProductsPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         initialData={editingBook}
-        onSubmit={handleModalSubmit}
+        onSubmit={(formData) => editingBook ? updateMutation.mutate({ id: editingBook.id, data: formData }) : createMutation.mutate(formData)}
         isLoading={createMutation.isPending || updateMutation.isPending}
       />
     </div>
