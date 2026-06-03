@@ -1,115 +1,106 @@
 import { Link } from "react-router-dom";
-import { BookOpen, Github, Mail, Phone } from "lucide-react";
+import { BookOpen, Facebook, Instagram, Mail, MapPin, Music2, Phone, Youtube } from "lucide-react";
 
-const footerLinks = {
-  "Cửa hàng": [
-    { to: "/books", label: "Xem tất cả sách" },
-    { to: "/books?sort=newest", label: "Sách mới" },
-    { to: "/books?sort=rating", label: "Bán chạy nhất" },
-  ],
-  "Tài khoản": [
-    { to: "/login", label: "Đăng nhập" },
-    { to: "/register", label: "Đăng ký" },
-    { to: "/cart", label: "Giỏ hàng" },
-  ],
-};
+const categoryLinks = ["Văn học", "Công nghệ", "Kinh tế", "Kỹ năng sống", "Ngoại ngữ"];
+
+const supportLinks = [
+  { to: "/contact", label: "Liên hệ" },
+  { to: "#", label: "Chính sách giao hàng" },
+  { to: "#", label: "Chính sách đổi trả" },
+  { to: "#", label: "Điều khoản sử dụng" },
+  { to: "#", label: "Chính sách bảo mật" },
+];
+
+const socialLinks = [
+  { label: "Facebook", icon: Facebook },
+  { label: "Instagram", icon: Instagram },
+  { label: "TikTok", icon: Music2 },
+  { label: "YouTube", icon: Youtube },
+];
 
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-slate-900 text-slate-400">
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
-          {/* Brand */}
-          <div className="md:col-span-1">
-            <Link
-              to="/"
-              className="flex items-center gap-2.5 font-bold text-white mb-4"
-            >
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600">
-                <BookOpen className="h-4 w-4 text-white" />
+    <footer className="border-t border-slate-200 bg-slate-950 text-slate-400">
+      <div className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <Link to="/" className="mb-4 flex items-center gap-2.5 font-bold text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600">
+                <BookOpen className="h-5 w-5 text-white" />
               </div>
-              <span className="text-[16px]">HPStore</span>
+              <span className="text-lg">BookStore</span>
             </Link>
-            <p className="text-[13px] leading-relaxed text-slate-400">
-              HPStore không chỉ bán sản phẩm, chúng tôi còn mang những trí thức đến gần hơn với người Việt
+            <p className="max-w-sm text-sm leading-6 text-slate-400">
+              BookStore là website bán sách trực tuyến cung cấp nhiều đầu sách thuộc các lĩnh vực khác nhau phục vụ nhu cầu học tập và giải trí.
             </p>
-
-            {/* Contact info */}
-            <div className="mt-5 space-y-2">
-              <a
-                href="mailto:nguyenhanhphuc08102004@gmail.com"
-                className="flex items-center gap-2 text-[12.5px] text-slate-500 hover:text-slate-300 transition-colors"
-              >
-                <Mail className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
-                nguyenhanhphuc08102004@gmail.com
-              </a>
-              <a
-                href="tel:+84901234567"
-                className="flex items-center gap-2 text-[12.5px] text-slate-500 hover:text-slate-300 transition-colors"
-              >
-                <Phone className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
-                +84941579339
-              </a>
-              <a
-                href="https://github.com/HappyBoi04092004"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-[12.5px] text-slate-500 hover:text-slate-300 transition-colors"
-              >
-                <Github className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
-                GitHub của nhà sáng lập
-              </a>
-            </div>
           </div>
 
-          {/* Quick link columns */}
-          {Object.entries(footerLinks).map(([section, links]) => (
-            <div key={section}>
-              <h4 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-4">
-                {section}
-              </h4>
-              <ul className="space-y-2.5">
-                {links.map(({ to, label }) => (
-                  <li key={to}>
-                    <Link
-                      to={to}
-                      className="text-[13px] text-slate-400 hover:text-white transition-colors"
-                    >
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-
-          {/* Newsletter */}
           <div>
-            <h4 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-4">
-              Theo dõi chúng tôi
-            </h4>
-            <p className="text-[13px] text-slate-400 mb-3 leading-relaxed">
-              Nhận những gợi ý sách hay và ưu đãi độc quyền.
-            </p>
-            <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="Email của bạn"
-                className="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-[12.5px] text-slate-300 placeholder-slate-600 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-              />
-              <button
-                type="submit"
-                className="rounded-lg bg-indigo-600 px-3 py-2 text-[12px] font-semibold text-white hover:bg-indigo-700 transition-colors shrink-0"
+            <h4 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">Danh mục</h4>
+            <ul className="space-y-2.5">
+              {categoryLinks.map((category) => (
+                <li key={category}>
+                  <Link
+                    to={`/books?category=${encodeURIComponent(category)}`}
+                    className="text-sm transition-colors hover:text-white"
+                  >
+                    {category}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">Hỗ trợ khách hàng</h4>
+            <ul className="space-y-2.5">
+              {supportLinks.map(({ to, label }) => (
+                <li key={label}>
+                  <Link to={to} className="text-sm transition-colors hover:text-white">
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">Thông tin liên hệ</h4>
+            <div className="space-y-3 text-sm">
+              <a
+                href="mailto:bookstore@example.com"
+                className="flex items-start gap-3 transition-colors hover:text-white"
               >
-                Đăng ký nhận tin
-              </button>
-            </form>
+                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
+                bookstore@example.com
+              </a>
+              <a href="tel:+84941579339" className="flex items-start gap-3 transition-colors hover:text-white">
+                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
+                +84 941 579 339
+              </a>
+              <div className="flex items-start gap-3">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
+                123 Đường Sách, TP. Hồ Chí Minh
+              </div>
+            </div>
+
+            <div className="mt-5 flex gap-2">
+              {socialLinks.map(({ label, icon: Icon }) => (
+                <a
+                  key={label}
+                  href="#"
+                  aria-label={label}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-800 bg-slate-900 text-slate-300 transition-colors hover:border-indigo-500 hover:bg-indigo-600 hover:text-white"
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-10 border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-slate-600">
-          <span>© {new Date().getFullYear()} BookStore. Đã đăng ký bản quyền bởi Happyboi.</span>
+        <div className="mt-10 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
+          © 2026 BookStore. All Rights Reserved.
         </div>
       </div>
     </footer>

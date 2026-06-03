@@ -1,7 +1,29 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Search } from "lucide-react";
+import { ArrowRight, BookOpen, BriefcaseBusiness, Code2, GraduationCap, Languages, Library, Palette, Search, Sparkles, Star } from "lucide-react";
+import { useBooks } from "../hooks/useBooks";
+import ProductCard from "../components/book/ProductCard";
+
+const categories = [
+  { name: "Văn học", icon: Library },
+  { name: "Kinh tế", icon: BriefcaseBusiness },
+  { name: "Công nghệ", icon: Code2 },
+  { name: "Kỹ năng sống", icon: Sparkles },
+  { name: "Ngoại ngữ", icon: Languages },
+  { name: "Thiếu nhi", icon: Star },
+  { name: "Truyện tranh", icon: Palette },
+  { name: "Khác", icon: GraduationCap },
+];
 
 export default function HomePage() {
+  const { data: books } = useBooks();
+  const newestBooks = [...(books ?? [])]
+    .sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime;
+    })
+    .slice(0, 8);
+
   return (
     <div className="bg-slate-50">
       {/* ── Hero ──────────────────────────────────────────────── */}
@@ -70,6 +92,57 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <section className="bg-white">
+        <div className="container mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Khám phá</p>
+              <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Danh mục sách</h2>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8">
+            {categories.map(({ name, icon: Icon }) => (
+              <Link
+                key={name}
+                to={`/books?category=${encodeURIComponent(name)}`}
+                className="group rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-200 hover:bg-white hover:shadow-lg hover:shadow-indigo-100/70"
+              >
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm transition-colors group-hover:bg-indigo-600 group-hover:text-white">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-sm font-bold text-slate-900">{name}</h3>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {newestBooks.length > 0 && (
+        <section className="bg-slate-50">
+          <div className="container mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Mới nhất</p>
+                <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Sách mới cập nhật</h2>
+              </div>
+              <Link
+                to="/books"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-indigo-200 hover:text-indigo-600"
+              >
+                Xem tất cả <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {newestBooks.map((book) => (
+                <ProductCard key={book.id} book={book} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── CTA ───────────────────────────────────────────────── */}
       <section className="border-t border-slate-200 bg-white">

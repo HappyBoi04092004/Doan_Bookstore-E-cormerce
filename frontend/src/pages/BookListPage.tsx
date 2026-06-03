@@ -1,41 +1,121 @@
-import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Book as BookIcon, Filter, Search, SearchX, SlidersHorizontal } from "lucide-react";
 import { useBooks } from "../hooks/useBooks";
-import { useCart } from "../hooks/useCart";
 import Spinner from "../components/ui/Spinner";
-import Badge from "../components/ui/Badge";
-import { Book as BookIcon, User, Tag, ShoppingCart, Filter, SearchX } from "lucide-react";
 import FilterSidebar from "../components/book/FilterSidebar";
+import ProductCard from "../components/book/ProductCard";
+import type { Book } from "../types";
+
+type SortOption = "newest" | "price-asc" | "price-desc" | "title-asc" | "title-desc";
+type PriceRange = "all" | "under-100" | "100-300" | "300-500" | "over-500";
+
+const getCategoryName = (book: Book) =>
+  typeof book.category === "object" ? book.category?.name : book.category;
+
+const getAuthorName = (book: Book) =>
+  typeof book.author === "object" ? book.author?.name : book.author;
+
+const getBookPrice = (book: Book) => book.variants?.[0]?.price ?? book.price;
+
+const getPriceRange = (range: PriceRange) => {
+  switch (range) {
+    case "under-100":
+      return { min: 0, max: 100000 };
+    case "100-300":
+      return { min: 100000, max: 300000 };
+    case "300-500":
+      return { min: 300000, max: 500000 };
+    case "over-500":
+      return { min: 500000, max: Number.POSITIVE_INFINITY };
+    default:
+      return { min: 0, max: Number.POSITIVE_INFINITY };
+  }
+};
 
 const BookListPage: React.FC = () => {
   const { data: books, isLoading, isError, refetch } = useBooks();
-  const { addToCart } = useCart();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
+    const category = searchParams.get("category");
+    return category ? [category] : [];
+  });
   const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get("search") ?? "");
+  const [priceRange, setPriceRange] = useState<PriceRange>("all");
+  const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const category = searchParams.get("category");
+    setSelectedCategories(category ? [category] : []);
+    setSearchTerm(searchParams.get("search") ?? "");
+  }, [searchParams]);
 
   const filteredBooks = useMemo(() => {
     if (!books) return [];
-    return books.filter((book) => {
-      const categoryName = typeof book.category === "object" ? book.category?.name : book.category;
-      const authorName = typeof book.author === "object" ? book.author?.name : book.author;
-      const categoryMatch =
-        selectedCategories.length === 0 ||
-        selectedCategories.includes(categoryName || "");
-      const authorMatch =
-        selectedAuthors.length === 0 ||
-        selectedAuthors.includes(authorName || "");
-      return categoryMatch && authorMatch;
-    });
-  }, [books, selectedCategories, selectedAuthors]);
+
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const { min, max } = getPriceRange(priceRange);
+
+    return books
+      .filter((book) => {
+        const categoryName = getCategoryName(book);
+        const authorName = getAuthorName(book);
+        const price = getBookPrice(book);
+
+        const categoryMatch =
+          selectedCategories.length === 0 ||
+          selectedCategories.includes(categoryName || "");
+        const authorMatch =
+          selectedAuthors.length === 0 ||
+          selectedAuthors.includes(authorName || "");
+        const searchMatch =
+          normalizedSearch.length === 0 ||
+          book.title.toLowerCase().includes(normalizedSearch);
+        const priceMatch = price >= min && price <= max;
+
+        return categoryMatch && authorMatch && searchMatch && priceMatch;
+      })
+      .sort((a, b) => {
+        switch (sortOption) {
+          case "price-asc":
+            return getBookPrice(a) - getBookPrice(b);
+          case "price-desc":
+            return getBookPrice(b) - getBookPrice(a);
+          case "title-asc":
+            return a.title.localeCompare(b.title, "vi");
+          case "title-desc":
+            return b.title.localeCompare(a.title, "vi");
+          case "newest":
+          default: {
+            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : a.id;
+            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : b.id;
+            return bTime - aTime;
+          }
+        }
+      });
+  }, [books, selectedCategories, selectedAuthors, searchTerm, priceRange, sortOption]);
+
+  const syncCategoryToUrl = (nextCategories: string[]) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextCategories.length === 1) {
+      nextParams.set("category", nextCategories[0]);
+    } else {
+      nextParams.delete("category");
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
 
   const handleCategoryToggle = (category: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
+    setSelectedCategories((prev) => {
+      const next = prev.includes(category)
         ? prev.filter((c) => c !== category)
-        : [...prev, category]
-    );
+        : [...prev, category];
+      syncCategoryToUrl(next);
+      return next;
+    });
   };
 
   const handleAuthorToggle = (author: string) => {
@@ -49,30 +129,34 @@ const BookListPage: React.FC = () => {
   const handleClearFilters = () => {
     setSelectedCategories([]);
     setSelectedAuthors([]);
+    setSearchTerm("");
+    setPriceRange("all");
+    setSortOption("newest");
+    setSearchParams({}, { replace: true });
   };
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <div className="flex min-h-[400px] flex-col items-center justify-center space-y-4">
         <Spinner size="lg" />
-        <p className="text-gray-500 animate-pulse font-medium">Đang tải thư viện sách...</p>
+        <p className="animate-pulse font-medium text-gray-500">Đang tải thư viện sách...</p>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center bg-red-50 rounded-2xl border border-red-100 mx-4">
-        <div className="bg-red-100 p-3 rounded-full mb-4">
-          <BookIcon className="w-8 h-8 text-red-600" />
+      <div className="mx-4 flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-red-100 bg-red-50 p-8 text-center">
+        <div className="mb-4 rounded-full bg-red-100 p-3">
+          <BookIcon className="h-8 w-8 text-red-600" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Không thể tải sách</h2>
-        <p className="text-red-600/80 mb-6 max-w-md">
+        <h2 className="mb-2 text-xl font-bold text-gray-900">Không thể tải sách</h2>
+        <p className="mb-6 max-w-md text-red-600/80">
           Đã xảy ra lỗi khi tải danh sách sách. Vui lòng kiểm tra kết nối hoặc thử lại.
         </p>
         <button
           onClick={() => refetch()}
-          className="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all shadow-md active:scale-95"
+          className="rounded-lg bg-red-600 px-6 py-2 font-semibold text-white shadow-md transition-all hover:bg-red-700 active:scale-95"
         >
           Thử lại
         </button>
@@ -82,35 +166,39 @@ const BookListPage: React.FC = () => {
 
   if (!books || books.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-300 mx-4">
-        <div className="bg-gray-100 p-3 rounded-full mb-4">
-          <BookIcon className="w-8 h-8 text-gray-400" />
+      <div className="mx-4 flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+        <div className="mb-4 rounded-full bg-gray-100 p-3">
+          <BookIcon className="h-8 w-8 text-gray-400" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Chưa có sách</h2>
-        <p className="text-gray-500 mb-0">Hiện chưa có sách nào. Vui lòng quay lại sau!</p>
+        <h2 className="mb-2 text-xl font-bold text-gray-900">Chưa có sách</h2>
+        <p className="mb-0 text-gray-500">Hiện chưa có sách nào. Vui lòng quay lại sau!</p>
       </div>
     );
   }
 
+  const activeFilterCount =
+    selectedCategories.length +
+    selectedAuthors.length +
+    (searchTerm.trim() ? 1 : 0) +
+    (priceRange !== "all" ? 1 : 0);
+
   return (
-    <div className="container mx-auto px-4 py-12 max-w-7xl">
-      {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+    <div className="container mx-auto max-w-7xl px-4 py-10">
+      <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
+          <h1 className="mb-2 text-4xl font-extrabold tracking-tight text-gray-900">
             Khám phá kho sách
           </h1>
-          <p className="text-lg text-gray-600 font-medium">
+          <p className="text-lg font-medium text-gray-600">
             Tìm kiếm cuốn sách yêu thích tiếp theo trong bộ sưu tập chọn lọc của chúng tôi.
           </p>
         </div>
-        <div className="hidden md:block text-sm font-semibold text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
+        <div className="hidden rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-500 md:block">
           Đã tìm thấy {filteredBooks.length} sách
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Sidebar */}
+      <div className="flex flex-col gap-8 md:flex-row">
         <FilterSidebar
           books={books}
           selectedCategories={selectedCategories}
@@ -122,19 +210,61 @@ const BookListPage: React.FC = () => {
           onClose={() => setIsSidebarOpen(false)}
         />
 
-        {/* Main Content */}
         <div className="flex-1">
-          {/* Mobile Filter Trigger */}
-          <div className="md:hidden flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+          <div className="mb-5 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_190px_170px]">
+              <form
+                className="relative"
+                onSubmit={(event) => event.preventDefault()}
+              >
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <input
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Tìm kiếm tên sách..."
+                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 text-sm font-medium text-gray-800 outline-none transition-colors placeholder:text-gray-400 focus:border-indigo-300 focus:bg-white focus:ring-4 focus:ring-indigo-50"
+                />
+              </form>
+
+              <label className="relative">
+                <SlidersHorizontal className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <select
+                  value={priceRange}
+                  onChange={(event) => setPriceRange(event.target.value as PriceRange)}
+                  className="h-11 w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 text-sm font-semibold text-gray-700 outline-none transition-colors focus:border-indigo-300 focus:bg-white focus:ring-4 focus:ring-indigo-50"
+                >
+                  <option value="all">Tất cả giá</option>
+                  <option value="under-100">Dưới 100.000đ</option>
+                  <option value="100-300">100.000đ - 300.000đ</option>
+                  <option value="300-500">300.000đ - 500.000đ</option>
+                  <option value="over-500">Trên 500.000đ</option>
+                </select>
+              </label>
+
+              <select
+                value={sortOption}
+                onChange={(event) => setSortOption(event.target.value as SortOption)}
+                className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm font-semibold text-gray-700 outline-none transition-colors focus:border-indigo-300 focus:bg-white focus:ring-4 focus:ring-indigo-50"
+              >
+                <option value="newest">Mới nhất</option>
+                <option value="price-asc">Giá tăng dần</option>
+                <option value="price-desc">Giá giảm dần</option>
+                <option value="title-asc">Tên A-Z</option>
+                <option value="title-desc">Tên Z-A</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="mb-8 flex items-center justify-between border-b border-gray-100 pb-4 md:hidden">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="flex items-center gap-2.5 px-5 py-2.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-700 shadow-sm active:scale-95 transition-all"
+              className="flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white px-5 py-2.5 font-bold text-gray-700 shadow-sm transition-all active:scale-95"
             >
-              <Filter className="w-4 h-4 text-indigo-600" />
+              <Filter className="h-4 w-4 text-indigo-600" />
               Bộ lọc
-              {(selectedCategories.length + selectedAuthors.length) > 0 && (
-                <span className="flex items-center justify-center min-w-[1.25rem] h-5 px-1 bg-indigo-600 text-white text-[10px] rounded-full font-black">
-                  {selectedCategories.length + selectedAuthors.length}
+              {activeFilterCount > 0 && (
+                <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-black text-white">
+                  {activeFilterCount}
                 </span>
               )}
             </button>
@@ -144,84 +274,21 @@ const BookListPage: React.FC = () => {
           </div>
 
           {filteredBooks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center min-h-[300px] p-8 text-center bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-              <SearchX className="w-12 h-12 text-gray-300 mb-4" />
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Không tìm thấy sách phù hợp</h3>
-              <p className="text-gray-500 mb-6">Vui lòng thử thay đổi bộ lọc của bạn.</p>
+            <div className="flex min-h-[300px] flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
+              <SearchX className="mb-4 h-12 w-12 text-gray-300" />
+              <h3 className="mb-1 text-lg font-bold text-gray-900">Không tìm thấy sách phù hợp</h3>
+              <p className="mb-6 text-gray-500">Vui lòng thử thay đổi bộ lọc của bạn.</p>
               <button
                 onClick={handleClearFilters}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95"
+                className="rounded-xl bg-indigo-600 px-6 py-2 font-bold text-white shadow-lg shadow-indigo-100 transition-all hover:bg-indigo-700 active:scale-95"
               >
                 Xóa tất cả bộ lọc
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8 items-stretch">
+            <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 xl:grid-cols-3">
               {filteredBooks.map((book) => (
-                <Link to={`/books/${book.id}`} key={book.id} className="group">
-                  <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col overflow-hidden h-full">
-                    <div className="h-64 bg-gray-50 relative overflow-hidden">
-                      <img 
-                        src={book.primaryImage || book.variants?.[0]?.primaryImage || "https://placehold.co/200x240?text=Sách"} 
-                        alt={book.title} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = "https://placehold.co/200x240?text=Sách";
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 duration-300" />
-                      <div className="absolute top-3 right-3">
-                        <Badge variant={book.stock > 0 ? "success" : "danger"} className="shadow-sm">
-                          {book.stock > 0 ? `${book.stock} còn hàng` : "Hết hàng"}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="p-6 flex-1 flex flex-col">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 uppercase tracking-wider">
-                          <Tag className="w-3 h-3" />
-                          {typeof book.category === "object" ? book.category.name : book.category}
-                        </div>
-                      </div>
-
-                      <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors">
-                        {book.title}
-                      </h3>
-
-                      <div className="flex items-center gap-2 text-gray-600 mb-4 text-sm font-medium">
-                        <div className="bg-gray-100 p-1.5 rounded-full">
-                          <User className="w-3.5 h-3.5" />
-                        </div>
-                        <span>{typeof book.author === "object" ? book.author.name : book.author}</span>
-                      </div>
-
-                      <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-400 font-bold uppercase tracking-tighter">Giá</span>
-                          <span className="text-2xl font-black text-gray-900">
-                            {book.price.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
-                          </span>
-                        </div>
-                        <button
-                          disabled={book.stock === 0}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            const firstVariant = book.variants?.[0];
-                            if (firstVariant) {
-                              addToCart({ ...firstVariant, book });
-                            }
-                          }}
-                          className="p-3 bg-gray-900 text-white rounded-xl hover:bg-indigo-600 disabled:opacity-30 disabled:hover:bg-gray-900 transition-all shadow-lg shadow-gray-200 hover:shadow-indigo-200"
-                        >
-                          <ShoppingCart className="w-5 h-5" />
-                          <span className="sr-only">Thêm vào giỏ</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <ProductCard key={book.id} book={book} />
               ))}
             </div>
           )}
@@ -232,4 +299,3 @@ const BookListPage: React.FC = () => {
 };
 
 export default BookListPage;
-
