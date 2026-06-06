@@ -155,6 +155,19 @@ async function main() {
   await prisma.payment.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
+  await prisma.cartItem.deleteMany();
+  await prisma.cart.deleteMany();
+  await prisma.wishlist.deleteMany();
+  await prisma.review.deleteMany();
+  await prisma.importReceiptDetail.deleteMany();
+  await prisma.importReceipt.deleteMany();
+  await prisma.bookImage.deleteMany();
+  await prisma.bookVariant.deleteMany();
+  await prisma.book.deleteMany();
+  await prisma.supplier.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.author.deleteMany();
+  await prisma.publisher.deleteMany();
 
   const categoryRecords = Object.fromEntries(
     await Promise.all(categories.map(async (name) => [name, await findOrCreateCategory(name)]))
@@ -178,7 +191,6 @@ async function main() {
   const seededBooks: Array<{ id: number; variantId: number; stock: number; importPrice: number }> = [];
 
   for (const [index, [title, authorName, publisherName, categoryName, isbn, price, importPrice, stock]] of books.entries()) {
-    const existing = await prisma.book.findFirst({ where: { isbn } });
     const data = {
       title,
       authorId: authorRecords[authorName].id,
@@ -191,41 +203,28 @@ async function main() {
       size: "14.5 x 20.5 cm",
       format: "Bìa mềm",
       categoryId: categoryRecords[categoryName].id,
-      price,
       importPrice,
-      stock,
       description: `${title} là đầu sách được chọn lọc cho danh mục ${categoryName}, phù hợp để kinh doanh trong nhà sách trực tuyến.`,
     };
 
-    const book = existing
-      ? await prisma.book.update({ where: { id: existing.id }, data })
-      : await prisma.book.create({
-          data: {
-            ...data,
-            images: {
-              create: [{ url: coverImages[index % coverImages.length], isPrimary: true, sortOrder: 0 }],
-            },
-          },
-        });
+    const book = await prisma.book.create({
+      data: {
+        ...data,
+        images: {
+          create: [{ url: coverImages[index % coverImages.length], isPrimary: true, sortOrder: 0 }],
+        },
+      },
+    });
 
-    const variantCount = await prisma.bookVariant.count({ where: { bookId: book.id } });
-    if (variantCount === 0) {
-      await prisma.bookVariant.createMany({
-        data: [
-          { bookId: book.id, name: "Bản tiêu chuẩn", price, stock, sku: `BOOK-${book.id}-STD` },
-          { bookId: book.id, name: "E-book", price: Math.max(Math.round(price * 0.6), 1), stock: 999, sku: `BOOK-${book.id}-EB` },
-        ],
-      });
-    }
+    await prisma.bookVariant.createMany({
+      data: [
+        { bookId: book.id, name: "Bản tiêu chuẩn", price, stock, sku: `BOOK-${book.id}-STD` },
+        { bookId: book.id, name: "Bản đặc biệt", price: Math.max(Math.round(price * 1.35), 1), stock: Math.max(Math.round(stock * 0.4), 0), sku: `BOOK-${book.id}-SP` },
+      ],
+    });
 
     const stockVariant = await prisma.bookVariant.findFirst({
-      where: {
-        bookId: book.id,
-        NOT: [
-          { name: { contains: "ebook" } },
-          { name: { contains: "E-book" } },
-        ],
-      },
+      where: { bookId: book.id, name: { contains: "Bản tiêu chuẩn" } },
       orderBy: { id: "asc" },
     }) ?? await prisma.bookVariant.findFirst({
       where: { bookId: book.id },

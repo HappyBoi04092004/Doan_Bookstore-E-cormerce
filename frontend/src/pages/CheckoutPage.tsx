@@ -296,12 +296,12 @@ export default function CheckoutPage() {
             <h2 className="font-semibold text-gray-900 mb-4">Địa chỉ nhận hàng</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input
-                label="Ho ten"
+                label="Họ tên"
                 {...register("fullName", { required: "Bat buoc" })}
                 error={errors.fullName?.message}
               />
               <Input
-                label="So dien thoai"
+                label="Số điện thoại"
                 {...register("phone", { required: "Bat buoc" })}
                 error={errors.phone?.message}
               />

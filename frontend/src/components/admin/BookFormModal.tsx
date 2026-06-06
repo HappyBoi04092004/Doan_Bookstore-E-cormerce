@@ -16,9 +16,7 @@ interface BookFormModalProps {
 }
 
 const defaultVariants = [
-  { id: undefined, name: "E-book", sku: "", price: "", stock: "0" },
   { id: undefined, name: "Bản tiêu chuẩn", sku: "", price: "", stock: "0" },
-  { id: undefined, name: "Bản đặc biệt", sku: "", price: "", stock: "0" },
 ];
 
 const emptyFormData = {
@@ -84,7 +82,9 @@ export default function BookFormModal({
     setErrorMsg("");
     if (initialData) {
       const variants = Array.isArray(initialData.variants) && initialData.variants.length > 0
-        ? initialData.variants.map((variant: any) => ({
+        ? initialData.variants
+          .filter((variant: any) => !["ebook", "e-book"].includes(String(variant.name ?? "").trim().toLowerCase()))
+          .map((variant: any) => ({
             id: variant.id,
             name: variant.name || "",
             sku: variant.sku || "",
@@ -108,7 +108,7 @@ export default function BookFormModal({
         stock: String(initialData.stock ?? ""),
         description: initialData.description || "",
         images: [],
-        variants,
+        variants: variants.length > 0 ? variants : defaultVariants.map((variant) => ({ ...variant })),
       });
     } else {
       setFormData({ ...emptyFormData, variants: defaultVariants.map((variant) => ({ ...variant })) });
@@ -126,7 +126,7 @@ export default function BookFormModal({
   const syncStandardVariantPrice = (next: typeof formData, value: string) => ({
     ...next,
     variants: next.variants.map((variant, index) =>
-      index === 1 ? { ...variant, price: value } : variant
+      index === 0 ? { ...variant, price: value } : variant
     ),
   });
 
@@ -227,9 +227,26 @@ export default function BookFormModal({
   const handleVariantChange = (index: number, field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
+      price: index === 0 && field === "price" ? value : prev.price,
       variants: prev.variants.map((variant, variantIdx) =>
         variantIdx === index ? { ...variant, [field]: value } : variant
       ),
+    }));
+  };
+
+  const addSpecialVariant = () => {
+    setFormData((prev) => ({
+      ...prev,
+      variants: [
+        ...prev.variants,
+        {
+          id: undefined,
+          name: " ",
+          sku: "",
+          price: "",
+          stock: "0",
+        },
+      ],
     }));
   };
 
@@ -245,7 +262,10 @@ export default function BookFormModal({
       setErrorMsg("Danh mục là bắt buộc");
       return;
     }
-    if (!formData.price || Number(formData.price) <= 0) {
+    const standardVariantPrice = formData.variants[0]?.price;
+    const effectivePrice = formData.price || standardVariantPrice;
+
+    if (!effectivePrice || Number(effectivePrice) <= 0) {
       setErrorMsg("Giá bán phải lớn hơn 0");
       return;
     }
@@ -278,7 +298,7 @@ export default function BookFormModal({
       size: formData.size.trim(),
       format: formData.format.trim(),
       category: formData.category,
-      price: formData.price,
+      price: effectivePrice,
       stock: "0",
       description: formData.description,
       images: formData.images,
@@ -462,16 +482,11 @@ export default function BookFormModal({
                 <h3 className="text-lg font-semibold text-gray-900">Biến thể sản phẩm</h3>
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500">Giá bán sẽ đồng bộ vào biến thể tiêu chuẩn. Tồn kho được cập nhật bằng phiếu nhập kho.</p>
+                <p className="text-sm text-gray-500">Thêm các biến thể của sản phẩm </p>
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      variants: [...prev.variants, { id: undefined, name: "", sku: "", price: "", stock: "0" }],
-                    }))
-                  }
+                  onClick={addSpecialVariant}
                 >
                   Thêm biến thể
                 </Button>
@@ -485,18 +500,6 @@ export default function BookFormModal({
                     <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
                       Tồn kho hiện tại: {variant.stock || 0}
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          variants: prev.variants.length === 1 ? prev.variants : prev.variants.filter((_, variantIdx) => variantIdx !== index),
-                        }))
-                      }
-                    >
-                      Xóa biến thể
-                    </Button>
                   </div>
                 ))}
               </div>

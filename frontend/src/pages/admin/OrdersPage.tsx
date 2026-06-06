@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { orderService } from "../../services/orderService";
 import type { Order, OrderStatus, OrderItem } from "../../types";
 import Spinner from "../../components/ui/Spinner";
+import { getProductImage, useFallbackBookImage } from "../../utils/productImage";
 
 const statusColor: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800 border-yellow-300",
@@ -88,13 +89,10 @@ function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => voi
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <img 
-                            src={item.variant.primaryImage || item.variant.book.primaryImage || "https://placehold.co/100x120?text=Sách"} 
+                            src={getProductImage(item.variant, item.variant.book)} 
                             alt={item.variant.book.title} 
                             className="w-10 h-14 object-cover rounded flex-shrink-0 border border-gray-200"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = "https://placehold.co/100x120?text=Sách";
-                            }}
+                            onError={useFallbackBookImage}
                           />
                           <div>
                             <p className="text-sm font-medium text-gray-900">{item.variant.book.title}</p>

@@ -96,8 +96,18 @@ export const deleteBook = async (req: Request, res: Response): Promise<void> => 
   try {
     const id = parseInt(req.params.id as string);
     await bookService.deleteBook(id);
-    res.json({ success: true, message: "Xoá sách thành công" });
-  } catch (error) {
+    res.json({ success: true, message: "Xóa sách thành công." });
+  } catch (error: any) {
+    if (error.statusCode) {
+      res.status(error.statusCode).json({ success: false, message: error.message });
+      return;
+    }
+
+    if (error.message === "Không tìm thấy sách") {
+      res.status(404).json({ success: false, message: error.message });
+      return;
+    }
+
     console.error("[deleteBook]", error);
     res.status(500).json({ success: false, message: "Lỗi máy chủ nội bộ" });
   }

@@ -1,6 +1,9 @@
 import prisma from "../lib/prisma";
 import { Prisma } from "@prisma/client";
 
+export const BOOK_USED_IN_ORDER_MESSAGE =
+  "Không thể xóa sách này vì đã phát sinh trong đơn hàng của khách hàng.";
+
 export const bookInclude: Prisma.BookInclude = {
   category: true,
   author: true,
@@ -36,6 +39,10 @@ type BookDetailInput = {
   size?: string;
   format?: string;
 };
+
+function isEbookVariantName(name: string) {
+  return ["ebook", "e-book"].includes(name.trim().toLowerCase());
+}
 
 async function resolveCategory(name: string) {
   let record = await prisma.category.findFirst({ where: { name } });
@@ -81,7 +88,7 @@ function normalizeVariants(raw: unknown): VariantInput[] {
       price: Number(variant.price ?? 0),
       stock: Number(variant.stock ?? 0),
     }))
-    .filter((variant) => variant.name.length > 0);
+    .filter((variant) => variant.name.length > 0 && !isEbookVariantName(variant.name));
 }
 
 function ensureUniqueVariants(variants: VariantInput[]) {
@@ -105,12 +112,6 @@ function buildDefaultVariants(price: number, stock: number): VariantInput[] {
 
   return [
     {
-      name: "E-book",
-      sku: undefined,
-      price: Math.max(Math.round(safePrice * 0.6), 1),
-      stock: 999,
-    },
-    {
       name: "Bản tiêu chuẩn",
       sku: undefined,
       price: safePrice,
@@ -129,11 +130,14 @@ function summarizePrice(book: any) {
   if (Array.isArray(book.variants) && book.variants.length > 0) {
     return Number(book.variants[0]?.price ?? 0);
   }
-  return Number(book.price ?? 0);
+  return 0;
 }
 
 function summarizeStock(book: any) {
-  return Number(book.stock ?? 0);
+  if (Array.isArray(book.variants)) {
+    return book.variants.reduce((sum: number, variant: any) => sum + Number(variant.stock ?? 0), 0);
+  }
+  return 0;
 }
 
 async function attachAdminStockMetrics(books: any[]) {
@@ -175,11 +179,10 @@ function buildBookDetailData(data: BookDetailInput) {
   };
 }
 
-function validateRequired(data: { title?: string; author?: string; publisher?: string; price?: unknown }) {
+function validateRequired(data: { title?: string; author?: string; publisher?: string }) {
   if (!String(data.title ?? "").trim()) throw new Error("Tên sách là bắt buộc");
   if (!String(data.author ?? "").trim()) throw new Error("Tác giả là bắt buộc");
   if (!String(data.publisher ?? "").trim()) throw new Error("Nhà xuất bản là bắt buộc");
-  if (data.price === undefined || data.price === null || data.price === "") throw new Error("Giá bán là bắt buộc");
 }
 
 export function formatBook(book: any) {
@@ -308,9 +311,7 @@ export const bookService = {
         format: detailData.format,
         categoryId: catRecord.id,
         description,
-        price: Number(variantsToCreate[0].price),
         importPrice: Number(data.importPrice ?? 0),
-        stock: variantsToCreate.reduce((sum, variant) => sum + Number(variant.stock || 0), 0),
         images: {
           create: imagePaths.map((url, idx) => ({
             url,
@@ -361,7 +362,7 @@ export const bookService = {
       title: data.title ?? existingBook.title,
       author: data.author ?? "",
       publisher: data.publisher ?? existingBook.publisher,
-      price: data.price ?? existingBook.price,
+      price: data.price,
     };
     if (data.author === undefined) {
       const existingAuthor = await prisma.author.findUnique({ where: { id: existingBook.authorId } });
@@ -441,11 +442,9 @@ export const bookService = {
         }
       }
 
-      updateData.price = Number(normalizedVariants[0].price);
     } else {
       if (data.price !== undefined) {
         if (Number(data.price) <= 0) throw new Error("Giá phải lớn hơn 0");
-        updateData.price = Number(data.price);
       }
     }
 
@@ -475,8 +474,50 @@ export const bookService = {
   },
 
   async deleteBook(id: number) {
-    await prisma.book.findUniqueOrThrow({ where: { id } });
-    await prisma.book.delete({ where: { id } });
+    const book = await prisma.book.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!book) throw new Error("Không tìm thấy sách");
+
+    const hasOrder = await prisma.orderItem.findFirst({
+      where: {
+        variant: { bookId: id },
+      },
+      select: { id: true },
+    });
+
+    if (hasOrder) {
+      const error = new Error(BOOK_USED_IN_ORDER_MESSAGE) as Error & { statusCode?: number };
+      error.statusCode = 409;
+      throw error;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const variants = await tx.bookVariant.findMany({
+        where: { bookId: id },
+        select: { id: true },
+      });
+      const variantIds = variants.map((variant) => variant.id);
+
+      if (variantIds.length > 0) {
+        await tx.cartItem.deleteMany({ where: { variantId: { in: variantIds } } });
+        await tx.wishlist.deleteMany({ where: { variantId: { in: variantIds } } });
+        await tx.importReceiptDetail.deleteMany({
+          where: {
+            OR: [{ productId: id }, { variantId: { in: variantIds } }],
+          },
+        });
+      } else {
+        await tx.importReceiptDetail.deleteMany({ where: { productId: id } });
+      }
+
+      await tx.review.deleteMany({ where: { bookId: id } });
+      await tx.bookImage.deleteMany({ where: { bookId: id } });
+      await tx.bookVariant.deleteMany({ where: { bookId: id } });
+      await tx.book.delete({ where: { id } });
+    });
+
     return true;
   },
 };

@@ -63,9 +63,7 @@ model Book {
   language    String?
   size        String?
   format      String?
-  price       Int
   importPrice Int      @default(0)
-  stock       Int
   description String?
   categoryId  Int
   createdAt   DateTime @default(now())

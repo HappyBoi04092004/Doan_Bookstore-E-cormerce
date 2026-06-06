@@ -30,7 +30,6 @@ export const dashboardService = {
       paidOrders,
       importReceipts,
       orderStatusGroups,
-      lowStockBooks,
       recentOrders,
       recentImports,
       recentUsers,
@@ -58,12 +57,6 @@ export const dashboardService = {
         by: ["status"],
         _count: { _all: true },
       }),
-      prisma.book.findMany({
-        where: { stock: { lt: 10 } },
-        select: { id: true, title: true, stock: true },
-        orderBy: { stock: "asc" },
-        take: 8,
-      }),
       prisma.order.findMany({
         orderBy: { createdAt: "desc" },
         take: 5,
@@ -80,6 +73,24 @@ export const dashboardService = {
         select: { id: true, name: true, email: true, createdAt: true },
       }),
     ]);
+
+    const lowStockVariantGroups = await prisma.bookVariant.groupBy({
+      by: ["bookId"],
+      _sum: { stock: true },
+      having: { stock: { _sum: { lt: 10 } } },
+      orderBy: { _sum: { stock: "asc" } },
+      take: 8,
+    });
+    const lowStockBookRecords = await prisma.book.findMany({
+      where: { id: { in: lowStockVariantGroups.map((group) => group.bookId) } },
+      select: { id: true, title: true },
+    });
+    const lowStockBooks = lowStockVariantGroups
+      .map((group) => {
+        const book = lowStockBookRecords.find((item) => item.id === group.bookId);
+        return book ? { ...book, stock: group._sum.stock ?? 0 } : null;
+      })
+      .filter((book): book is { id: number; title: string; stock: number } => Boolean(book));
 
     const totalRevenue = revenue._sum.total ?? 0;
     const totalImportCapital = importCapital._sum.totalAmount ?? 0;

@@ -52,9 +52,9 @@ export default function ProductsPage() {
     mutationFn: bookService.deleteBook,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminBooks"] });
-      alert("Xóa sách thành công!");
+      alert("Xóa sách thành công.");
     },
-    onError: (err: any) => alert(err?.response?.data?.message || "Không thể xóa sách"),
+    onError: (err: any) => alert(err?.response?.data?.message || "Không thể xóa sách này vì đã có trong đơn hàng."),
   });
 
   const columns: Column<any>[] = [

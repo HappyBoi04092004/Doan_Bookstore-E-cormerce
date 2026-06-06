@@ -130,7 +130,6 @@ export const importReceiptService = {
         await tx.book.update({
           where: { id: item.productId },
           data: {
-            stock: { increment: item.quantity },
             importPrice: item.importPrice,
           },
         });
