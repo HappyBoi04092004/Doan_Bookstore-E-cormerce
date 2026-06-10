@@ -21,6 +21,7 @@ import geminiRoutes from "./routes/gemini.routes";
 import supplierRoutes from "./routes/supplier.routes";
 import importReceiptRoutes from "./routes/importReceipt.routes";
 import dashboardRoutes from "./routes/dashboard.routes";
+import couponRoutes from "./routes/coupon.routes";
 import passport from "./lib/passport";
 
 const app = express();
@@ -32,6 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use("/uploads", express.static("uploads"));
 app.use(paymentRoutes);
+app.use(couponRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend running ");

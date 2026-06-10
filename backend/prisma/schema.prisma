@@ -8,22 +8,23 @@ datasource db {
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  email     String     @unique
-  password  String?
-  googleId  String?    @unique
-  avatar    String?
-  name      String
-  roleId    Int
-  role      Role       @relation(fields: [roleId], references: [id])
-  orders    Order[]
-  importReceipts ImportReceipt[]
-  reviews   Review[]
+  id              Int              @id @default(autoincrement())
+  email           String           @unique
+  password        String?
+  googleId        String?          @unique
+  avatar          String?
+  phone           String?
+  name            String
+  roleId          Int
+  role            Role             @relation(fields: [roleId], references: [id])
+  orders          Order[]
+  importReceipts  ImportReceipt[]
+  reviews         Review[]
   contactMessages ContactMessage[]
-  cart      Cart?
-  addresses Address[]
-  wishlist  Wishlist[]
-  createdAt DateTime   @default(now())
+  cart            Cart?
+  addresses       Address[]
+  wishlist        Wishlist[]
+  createdAt       DateTime         @default(now())
 }
 
 model Role {
@@ -68,42 +69,42 @@ model Book {
   categoryId  Int
   createdAt   DateTime @default(now())
 
-  images     BookImage[]
-  variants   BookVariant[]
+  images   BookImage[]
+  variants BookVariant[]
 
-  author     Author      @relation(fields: [authorId], references: [id])
-  publisherRecord Publisher?  @relation("BookPublisher", fields: [publisherId], references: [id])
-  category   Category    @relation("CategoryBooks", fields: [categoryId], references: [id])
-  reviews    Review[]
+  author               Author                @relation(fields: [authorId], references: [id])
+  publisherRecord      Publisher?            @relation("BookPublisher", fields: [publisherId], references: [id])
+  category             Category              @relation("CategoryBooks", fields: [categoryId], references: [id])
+  reviews              Review[]
   importReceiptDetails ImportReceiptDetail[]
 }
 
 model Supplier {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String?
-  phone     String?
-  address   String?
-  status    String   @default("ACTIVE")
+  id             Int             @id @default(autoincrement())
+  name           String
+  email          String?
+  phone          String?
+  address        String?
+  status         String          @default("ACTIVE")
   importReceipts ImportReceipt[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([name])
 }
 
 model ImportReceipt {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique
+  id          Int                   @id @default(autoincrement())
+  code        String                @unique
   supplierId  Int
   totalAmount Int
   note        String?
   createdBy   Int?
-  supplier    Supplier @relation(fields: [supplierId], references: [id])
-  creator     User?    @relation(fields: [createdBy], references: [id])
+  supplier    Supplier              @relation(fields: [supplierId], references: [id])
+  creator     User?                 @relation(fields: [createdBy], references: [id])
   details     ImportReceiptDetail[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
 
   @@index([supplierId])
   @@index([createdBy])
@@ -111,7 +112,7 @@ model ImportReceipt {
 }
 
 model ImportReceiptDetail {
-  id              Int @id @default(autoincrement())
+  id              Int  @id @default(autoincrement())
   importReceiptId Int
   productId       Int
   variantId       Int?
@@ -129,23 +130,22 @@ model ImportReceiptDetail {
 }
 
 model BookVariant {
-  id              Int      @id @default(autoincrement())
-  bookId    Int
-  name      String   // e.g., "Bản đặc biệt", "Bản thường"
-  sku       String?  @unique
-  price     Int
-  stock     Int
-  
-  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  cartItems CartItem[]
-  orderItems OrderItem[]
-  wishlists Wishlist[]
-  images    BookImage[]
+  id     Int     @id @default(autoincrement())
+  bookId Int
+  name   String // e.g., "Bản đặc biệt", "Bản thường"
+  sku    String? @unique
+  price  Int
+  stock  Int
+
+  book                 Book                  @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  cartItems            CartItem[]
+  orderItems           OrderItem[]
+  wishlists            Wishlist[]
+  images               BookImage[]
   importReceiptDetails ImportReceiptDetail[]
 
   @@index([bookId])
 }
-
 
 model Cart {
   id     Int        @id @default(autoincrement())
@@ -166,7 +166,6 @@ model CartItem {
   @@unique([cartId, variantId])
 }
 
-
 model Order {
   id             Int     @id @default(autoincrement())
   userId         Int
@@ -180,11 +179,20 @@ model Order {
   paymentMethod String? // COD | SEPAY
   paymentStatus String? // PENDING | PAID | FAILED | CANCELLED
 
-  items   OrderItem[]
-  payment Payment?
+  couponId       Int?
+  couponCode     String?
+  discountAmount Decimal @default(0)
+  finalAmount    Decimal @default(0)
+
+  items        OrderItem[]
+  payment      Payment?
   transactions PaymentTransaction[]
 
+  addressId Int?
+  address   Address? @relation(fields: [addressId], references: [id])
+
   user      User     @relation(fields: [userId], references: [id])
+  coupon    Coupon?  @relation(fields: [couponId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -200,13 +208,12 @@ model OrderItem {
   variant BookVariant @relation(fields: [variantId], references: [id])
 }
 
-
 model Review {
-  id      Int    @id @default(autoincrement())
-  rating  Int
-  comment String
-  userId  Int
-  bookId  Int
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String
+  userId    Int
+  bookId    Int
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
@@ -234,32 +241,32 @@ model Payment {
 
   transactionId String?
   amount        Int?
-  currency      String @default("VND")
+  currency      String  @default("VND")
   invoiceNumber String? @unique
   paymentUrl    String? @db.Text
 
-  order Order @relation(fields: [orderId], references: [id])
+  order        Order                @relation(fields: [orderId], references: [id])
   transactions PaymentTransaction[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
 }
 
 model PaymentTransaction {
-  id        Int @id @default(autoincrement())
+  id        Int  @id @default(autoincrement())
   orderId   Int
   paymentId Int?
 
   transactionId     String?
   invoiceNumber     String
   amount            Int
-  currency          String @default("VND")
-  paymentMethod     String @default("SEPAY")
+  currency          String  @default("VND")
+  paymentMethod     String  @default("SEPAY")
   transactionStatus String
   notificationType  String?
   rawPayload        Json?
 
-  order   Order    @relation(fields: [orderId], references: [id])
-  payment Payment? @relation(fields: [paymentId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+  payment   Payment? @relation(fields: [paymentId], references: [id])
   createdAt DateTime @default(now())
 
   @@index([orderId])
@@ -269,7 +276,7 @@ model PaymentTransaction {
 }
 
 model Province {
-  code      Int        @id
+  code      Int       @id
   name      String
   wards     Ward[]
   addresses Address[]
@@ -300,6 +307,7 @@ model Address {
   user     User     @relation(fields: [userId], references: [id])
   province Province @relation(fields: [provinceCode], references: [code])
   ward     Ward     @relation(fields: [wardCode], references: [code])
+  Order    Order[]
 }
 
 model Wishlist {
@@ -312,7 +320,6 @@ model Wishlist {
 
   @@unique([userId, variantId])
 }
-
 
 // ─── Product Images ────────────────────────────────────────────────────────────
 
@@ -330,4 +337,35 @@ model BookImage {
 
   @@index([bookId])
   @@index([variantId])
+}
+
+model Coupon {
+  id            Int          @id @default(autoincrement())
+  code          String       @unique
+  name          String
+  description   String?
+  discountType  DiscountType
+  discountValue Decimal
+  maxDiscount   Decimal?
+  minOrderValue Decimal?
+  usageLimit    Int?
+  usedCount     Int          @default(0)
+  startDate     DateTime
+  endDate       DateTime
+  status        CouponStatus @default(ACTIVE)
+  isDeleted     Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  orders Order[]
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+enum CouponStatus {
+  ACTIVE
+  INACTIVE
 }

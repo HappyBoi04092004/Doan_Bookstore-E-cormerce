@@ -35,7 +35,10 @@ export default function ProductsPage() {
       setIsModalOpen(false);
       alert("Tạo sách thành công!");
     },
-    onError: (err: any) => alert(err?.response?.data?.message || "Không thể tạo sách"),
+    onError: (err: any) => {
+      const message = err?.response?.data?.message || "Không thể tạo sách. Vui lòng thử lại.";
+      alert(message);
+    },
   });
 
   const updateMutation = useMutation({

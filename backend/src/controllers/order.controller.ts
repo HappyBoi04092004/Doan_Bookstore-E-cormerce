@@ -12,7 +12,7 @@ const createOrderSchema = z.object({
   paymentMethod: z.enum(["cod", "banking"]).optional(),
   address: z.object({
     name: z.string(),
-    phone: z.string(),
+    phone: z.string().regex(/^\d{10}$/, "Số điện thoại phải có đúng 10 chữ số"),
     street: z.string(),
     provinceCode: z.number().int(),
     wardCode: z.number().int(),

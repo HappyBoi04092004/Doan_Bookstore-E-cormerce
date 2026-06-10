@@ -23,6 +23,14 @@ export const paymentRepository = {
     currency: string;
     paymentUrl: string;
     items: { variantId: number; quantity: number }[];
+    couponCode?: string;
+    address?: {
+      name: string;
+      phone: string;
+      street: string;
+      provinceCode: number;
+      wardCode: number;
+    };
   }) {
     return prisma.$transaction(async (tx) => {
       let total = 0;
@@ -42,20 +50,84 @@ export const paymentRepository = {
           data: { stock: { decrement: item.quantity } },
         });
 
-        total += variant.price * item.quantity;
+        total += Number(variant.price) * item.quantity;
         orderItems.push({
           variantId: variant.id,
           qty: item.quantity,
-          price: variant.price,
+          price: Number(variant.price),
         });
       }
 
-      if (total !== input.amount) throw new Error("ORDER_AMOUNT_MISMATCH");
+      // Coupon application
+      let couponId: number | null = null;
+      let discountAmount = 0;
+      let finalAmount = total;
+
+      if (input.couponCode) {
+        const coupon = await tx.coupon.findUnique({
+          where: { code: input.couponCode.trim().toUpperCase() }
+        });
+
+        if (!coupon || coupon.isDeleted) {
+          throw new Error("COUPON_NOT_FOUND");
+        }
+        if (coupon.status !== "ACTIVE") {
+          throw new Error("COUPON_INACTIVE");
+        }
+        const now = new Date();
+        if (now < coupon.startDate || now > coupon.endDate) {
+          throw new Error("COUPON_EXPIRED");
+        }
+        if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
+          throw new Error("COUPON_LIMIT_REACHED");
+        }
+        if (coupon.minOrderValue !== null && total < Number(coupon.minOrderValue)) {
+          throw new Error("COUPON_MIN_ORDER_NOT_MET");
+        }
+
+        couponId = coupon.id;
+        if (coupon.discountType === "PERCENT") {
+          discountAmount = (total * Number(coupon.discountValue)) / 100;
+          if (coupon.maxDiscount !== null && discountAmount > Number(coupon.maxDiscount)) {
+            discountAmount = Number(coupon.maxDiscount);
+          }
+        } else if (coupon.discountType === "FIXED") {
+          discountAmount = Number(coupon.discountValue);
+        }
+
+        if (discountAmount > total) {
+          discountAmount = total;
+        }
+        finalAmount = total - discountAmount;
+
+        // Increment usedCount
+        await tx.coupon.update({
+          where: { id: coupon.id },
+          data: { usedCount: { increment: 1 } }
+        });
+      }
+
+      if (finalAmount !== input.amount) throw new Error("ORDER_AMOUNT_MISMATCH");
+
+      let createdAddressId: number | null = null;
+      if (input.address) {
+        const newAddress = await tx.address.create({
+          data: {
+            userId: input.userId,
+            name: input.address.name,
+            phone: input.address.phone,
+            detail: input.address.street,
+            provinceCode: input.address.provinceCode,
+            wardCode: input.address.wardCode,
+          }
+        });
+        createdAddressId = newAddress.id;
+      }
 
       return tx.order.create({
         data: {
           userId: input.userId,
-          total: input.amount,
+          total: total,
           status: "PENDING",
           orderStatus: "PENDING",
           paymentStatus: "PENDING",
@@ -64,11 +136,16 @@ export const paymentRepository = {
           currency: input.currency,
           idempotencyKey: `sepay:${input.invoiceNumber}`,
           items: { create: orderItems },
+          couponId,
+          couponCode: input.couponCode ? input.couponCode.trim().toUpperCase() : null,
+          discountAmount: new Prisma.Decimal(discountAmount),
+          finalAmount: new Prisma.Decimal(finalAmount),
+          addressId: createdAddressId,
           payment: {
             create: {
               method: "SEPAY",
               status: "PENDING",
-              amount: input.amount,
+              amount: finalAmount,
               currency: input.currency,
               invoiceNumber: input.invoiceNumber,
               paymentUrl: input.paymentUrl,

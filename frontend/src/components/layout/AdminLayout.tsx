@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Star,
   ClipboardList,
+  Ticket,
 } from "lucide-react";
 import UserMenu from "../common/UserMenu";
 
@@ -18,6 +19,7 @@ const adminNav = [
   { to: "/admin", label: "Tổng quan", icon: LayoutDashboard, end: true },
   { to: "/admin/products", label: "Sách", icon: Package, end: false },
   { to: "/admin/categories", label: "Danh mục", icon: Tag, end: false },
+  { to: "/admin/coupons", label: "Mã giảm giá", icon: Ticket, end: false },
   { to: "/admin/orders", label: "Đơn hàng", icon: ShoppingBag, end: false },
   { to: "/admin/import-receipts", label: "Phiếu nhập kho", icon: ClipboardList, end: false },
   { to: "/admin/suppliers", label: "Nhà cung cấp", icon: Building2, end: false },

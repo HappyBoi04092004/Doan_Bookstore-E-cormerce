@@ -7,6 +7,14 @@ export interface CreateSePayPaymentInput {
   orderId: string;
   amount: number;
   items: { variantId: number; quantity: number }[];
+  couponCode?: string;
+  address?: {
+    name: string;
+    phone: string;
+    street: string;
+    provinceCode: number;
+    wardCode: number;
+  };
 }
 
 interface SePayIpnPayload {
@@ -91,6 +99,8 @@ export const paymentService = {
       currency,
       paymentUrl,
       items: input.items,
+      couponCode: input.couponCode,
+      address: input.address,
     }));
 
     if (existingOrder) {

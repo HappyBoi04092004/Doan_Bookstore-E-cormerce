@@ -32,6 +32,7 @@ import ContactsPage from "./pages/admin/ContactsPage";
 import ReviewsPage from "./pages/admin/ReviewsPage";
 import ImportReceiptsPage from "./pages/admin/ImportReceiptsPage";
 import SuppliersPage from "./pages/admin/SuppliersPage";
+import CouponsPage from "./pages/admin/CouponsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,6 +90,7 @@ export default function App() {
               <Route path="/admin/orders" element={<OrdersPage />} />
               <Route path="/admin/import-receipts" element={<ImportReceiptsPage />} />
               <Route path="/admin/suppliers" element={<SuppliersPage />} />
+              <Route path="/admin/coupons" element={<CouponsPage />} />
               <Route path="/admin/contacts" element={<ContactsPage />} />
               <Route path="/admin/reviews" element={<ReviewsPage />} />
             </Route>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, ArrowLeft, Heart, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useBook } from "../hooks/useBooks";
@@ -21,6 +21,7 @@ function resolveImageUrl(url?: string | null) {
 
 export default function BookDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { data: book, isLoading, error } = useBook(id ?? "");
@@ -124,6 +125,13 @@ export default function BookDetailPage() {
   const handleAddToCart = () => {
     if (selectedVariant) {
       addToCart({ ...selectedVariant, book });
+    }
+  };
+
+  const handleBuyNow = () => {
+    if (selectedVariant) {
+      addToCart({ ...selectedVariant, book });
+      navigate("/cart");
     }
   };
 
@@ -249,9 +257,19 @@ export default function BookDetailPage() {
                 disabled={!selectedVariant || currentStock === 0}
                 onClick={handleAddToCart}
                 className="flex-1"
+                variant="outline"
               >
                 <ShoppingCart className="h-5 w-5 mr-1" />
-                {!selectedVariant || currentStock === 0 ? "Hết hàng" : "Thêm vào giỏ hàng"}
+                {!selectedVariant || currentStock === 0 ? "Hết hàng" : "Thêm vào giỏ"}
+              </Button>
+
+              <Button
+                size="lg"
+                disabled={!selectedVariant || currentStock === 0}
+                onClick={handleBuyNow}
+                className="flex-1"
+              >
+                Mua ngay
               </Button>
 
               <Button

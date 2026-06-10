@@ -24,6 +24,9 @@ function formatPrice(n: number) {
 }
 
 function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => void }) {
+  const discount = order.discountAmount ? Number(order.discountAmount) : 0;
+  const finalAmt = order.finalAmount ? Number(order.finalAmount) : order.total;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -42,17 +45,27 @@ function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => voi
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-2xl mb-auto">×</button>
         </div>
-        
+
         <div className="p-6 space-y-6">
-          {order.address && (
-            <div className="bg-gray-50 p-4 rounded-xl text-sm">
-              <p className="text-gray-500 mb-1">Địa chỉ giao hàng</p>
-              <p className="font-medium text-gray-900">{order.address.name} - {order.address.phone}</p>
-              <p className="text-gray-600">
-                {order.address.detail}, {order.address.wardCode}, {order.address.provinceCode}
-              </p>
+          {/* Customer & Shipping Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-gray-50 p-4 rounded-xl">
+            <div>
+              <p className="text-gray-500 mb-1">Khách hàng</p>
+              <p className="font-semibold text-gray-800">{order.user?.name ?? "—"}</p>
+              <p className="text-gray-500">{order.user?.email}</p>
             </div>
-          )}
+            {order.address && (
+              <div>
+                <p className="text-gray-500 mb-1">Địa chỉ giao hàng</p>
+                <p className="font-semibold text-gray-800">
+                  {order.address.name} - {order.address.phone}
+                </p>
+                <p className="text-gray-500">
+                  {order.address.detail}, {order.address.ward?.name || order.address.wardCode}, {order.address.province?.name || order.address.provinceCode}
+                </p>
+              </div>
+            )}
+          </div>
 
           <div>
             <h3 className="font-semibold text-gray-900 mb-3">Sản phẩm ({order.items.length})</h3>
@@ -75,44 +88,64 @@ function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => voi
                             const book = item.variant.book;
                             const image = getProductImage(item.variant, book);
                             return (
-                          <img 
-                            src={image} 
-                            alt={book.title} 
-                            className="w-12 h-16 object-cover rounded-md flex-shrink-0 border border-gray-200"
-                            onError={useFallbackBookImage}
-                          />
+                              <img
+                                src={image}
+                                alt={book.title}
+                                className="w-12 h-16 object-cover rounded-md flex-shrink-0 border border-gray-200"
+                                onError={useFallbackBookImage}
+                              />
                             );
                           })()}
                           <div>
                             <p className="text-sm font-medium text-gray-900">{item.variant.book.title}</p>
                             <p className="text-xs text-indigo-600">{item.variant.name}</p>
-                            <p className="text-xs text-gray-500">{typeof item.variant.book.author === 'object' ? item.variant.book.author?.name : item.variant.book.author}</p>
+                            <p className="text-xs text-gray-500">
+                              {typeof item.variant.book.author === "object"
+                                ? item.variant.book.author?.name
+                                : item.variant.book.author}
+                            </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right text-sm text-gray-600">{formatPrice(item.price)}</td>
                       <td className="px-4 py-3 text-center text-sm font-medium text-gray-700">{item.qty}</td>
-                      <td className="px-4 py-3 text-right text-sm font-semibold text-indigo-600">{formatPrice(item.price * item.qty)}</td>
+                      <td className="px-4 py-3 text-right text-sm font-semibold text-indigo-600">
+                        {formatPrice(item.price * item.qty)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
-          
+
+          {/* Price summary */}
           <div className="flex justify-end pt-2">
             <div className="w-1/2 min-w-[200px] space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tạm tính</span>
                 <span className="font-medium text-gray-900">{formatPrice(order.total)}</span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">
+                    Giảm giá{" "}
+                    {order.couponCode && (
+                      <span className="font-mono bg-green-50 text-green-700 px-1 rounded text-xs">
+                        {order.couponCode}
+                      </span>
+                    )}
+                  </span>
+                  <span className="font-medium text-green-600">-{formatPrice(discount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Phí giao hàng</span>
                 <span className="font-medium text-gray-900">{formatPrice(0)}</span>
               </div>
               <div className="border-t pt-2 flex justify-between">
                 <span className="font-bold text-gray-900">Tổng cộng</span>
-                <span className="font-bold text-lg text-indigo-600">{formatPrice(order.total)}</span>
+                <span className="font-bold text-lg text-indigo-600">{formatPrice(finalAmt)}</span>
               </div>
             </div>
           </div>
@@ -155,7 +188,7 @@ export default function MyOrdersPage() {
         className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 mb-6 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Quay lại 
+        Quay lại
       </Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-1">Đơn hàng của tôi</h1>
       <p className="text-sm text-gray-500 mb-6">{orders?.length ?? 0} đơn hàng</p>
@@ -184,66 +217,82 @@ export default function MyOrdersPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {orders?.map((order) => (
-            <div
-              key={order.id}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 p-6 flex flex-col sm:flex-row gap-4 justify-between"
-            >
-              <div className="flex flex-col gap-1.5 flex-1">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-lg font-bold text-gray-900">#{order.id}</span>
-                  <span
-                    className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusColor[order.status]}`}
-                  >
-                    {statusLabel[order.status] ?? order.status}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-500 font-medium">
-                  {new Date(order.createdAt).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </div>
-                <div className="text-sm text-gray-600 flex items-center gap-2 mt-2 bg-gray-50 w-fit px-3 py-1.5 rounded-lg border border-gray-100">
-                  <span className="font-semibold text-indigo-600">{order.items.length}</span> sản phẩm
-                </div>
-                <div className="mt-3 flex -space-x-2">
-                  {order.items.slice(0, 4).map((item) => {
-                    const book = item.variant.book;
-                    return (
-                      <img
-                        key={item.id}
-                        src={getProductImage(item.variant, book)}
-                        alt={book.title}
-                        className="h-12 w-9 rounded-md border-2 border-white bg-gray-100 object-cover shadow-sm"
-                        onError={useFallbackBookImage}
-                      />
-                    );
-                  })}
-                  {order.items.length > 4 && (
-                    <span className="flex h-12 w-9 items-center justify-center rounded-md border-2 border-white bg-gray-100 text-xs font-semibold text-gray-500 shadow-sm">
-                      +{order.items.length - 4}
+          {orders?.map((order) => {
+            const finalAmt = order.finalAmount ? Number(order.finalAmount) : order.total;
+            return (
+              <div
+                key={order.id}
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 p-6 flex flex-col sm:flex-row gap-4 justify-between"
+              >
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-lg font-bold text-gray-900">#{order.id}</span>
+                    <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusColor[order.status]}`}>
+                      {statusLabel[order.status] ?? order.status}
                     </span>
+                    {order.couponCode && (
+                      <span className="text-xs font-mono bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
+                        🏷️ {order.couponCode}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-500 font-medium">
+                    {new Date(order.createdAt).toLocaleDateString("vi-VN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                  <div className="text-sm text-gray-600 flex items-center gap-2 mt-2 bg-gray-50 w-fit px-3 py-1.5 rounded-lg border border-gray-100">
+                    <span className="font-semibold text-indigo-600">{order.items.length}</span> sản phẩm
+                  </div>
+                  <div className="mt-3 flex -space-x-2">
+                    {order.items.slice(0, 4).map((item) => {
+                      const book = item.variant.book;
+                      return (
+                        <img
+                          key={item.id}
+                          src={getProductImage(item.variant, book)}
+                          alt={book.title}
+                          className="h-12 w-9 rounded-md border-2 border-white bg-gray-100 object-cover shadow-sm"
+                          onError={useFallbackBookImage}
+                        />
+                      );
+                    })}
+                    {order.items.length > 4 && (
+                      <span className="flex h-12 w-9 items-center justify-center rounded-md border-2 border-white bg-gray-100 text-xs font-semibold text-gray-500 shadow-sm">
+                        +{order.items.length - 4}
+                      </span>
+                    )}
+                  </div>
+                  {order.address && (
+                    <div className="text-xs text-gray-500 mt-3 bg-gray-50 border border-gray-100 rounded-xl p-3">
+                      <p className="font-semibold text-gray-700 mb-0.5">📍 Địa chỉ nhận hàng:</p>
+                      <p>{order.address.name} - {order.address.phone}</p>
+                      <p className="mt-0.5">
+                        {order.address.detail}, {order.address.ward?.name || order.address.wardCode}, {order.address.province?.name || order.address.provinceCode}
+                      </p>
+                    </div>
                   )}
                 </div>
-              </div>
 
-              <div className="flex flex-col items-start sm:items-end justify-between border-t sm:border-t-0 pt-4 sm:pt-0 sm:border-l border-gray-100 sm:pl-6">
-                <div className="text-sm text-gray-500 mb-1">Thành tiền</div>
-                <p className="text-xl font-extrabold text-indigo-600">{formatPrice(order.total)}</p>
-                
-                <button
-                  onClick={() => setSelectedOrder(order)}
-                  className="mt-4 w-full sm:w-auto px-5 py-2 text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 hover:bg-indigo-600 hover:text-white rounded-lg transition-colors focus:ring-4 focus:ring-indigo-100"
-                >
-                  Xem chi tiết
-                </button>
+                <div className="flex flex-col items-start sm:items-end justify-between border-t sm:border-t-0 pt-4 sm:pt-0 sm:border-l border-gray-100 sm:pl-6">
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">Thành tiền</div>
+                    <p className="text-xl font-extrabold text-indigo-600">{formatPrice(finalAmt)}</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedOrder(order)}
+                    className="mt-4 w-full sm:w-auto px-5 py-2 text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 hover:bg-indigo-600 hover:text-white rounded-lg transition-colors focus:ring-4 focus:ring-indigo-100"
+                  >
+                    Xem chi tiết
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

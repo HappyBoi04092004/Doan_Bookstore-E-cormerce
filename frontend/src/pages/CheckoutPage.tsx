@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useAuthStore } from "../stores/authStore";
 import { ArrowLeft, CheckCircle2, QrCode } from "lucide-react";
 import { useCart } from "../hooks/useCart";
 import { formatPrice } from "../utils";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import AddressAutocomplete from "../components/common/AddressAutocomplete";
+import CouponInput from "../components/order/CouponInput";
 import { orderService } from "../services/orderService";
 import { paymentService } from "../services/paymentService";
+import type { ValidateCouponResponse } from "../services/couponService";
 import type { Order } from "../types";
 
 type CheckoutForm = {
@@ -32,10 +35,13 @@ function getPaymentCode(orderId: number) {
 function buildSePayQrUrl(order: Order) {
   if (!SEPAY_BANK_CODE || !SEPAY_ACCOUNT_NUMBER) return null;
 
+  // Use finalAmount if available (coupon applied), otherwise total
+  const amount = order.finalAmount ? Number(order.finalAmount) : order.total;
+
   const params = new URLSearchParams({
     acc: SEPAY_ACCOUNT_NUMBER,
     bank: SEPAY_BANK_CODE,
-    amount: String(order.total),
+    amount: String(amount),
     des: getPaymentCode(order.id),
     template: SEPAY_QR_TEMPLATE,
   });
@@ -51,7 +57,6 @@ function submitSePayCheckout(paymentUrl: string, fields: Record<string, string |
 
   Object.entries(fields).forEach(([name, value]) => {
     if (value === undefined) return;
-
     const input = document.createElement("input");
     input.type = "hidden";
     input.name = name;
@@ -69,6 +74,10 @@ export default function CheckoutPage() {
   const [orderError, setOrderError] = useState<string | null>(null);
   const [pendingOrder, setPendingOrder] = useState<Order | null>(null);
   const [isMockingPayment, setIsMockingPayment] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<ValidateCouponResponse | null>(null);
+
+  const user = useAuthStore((state) => state.user);
+
   const {
     register,
     handleSubmit,
@@ -77,8 +86,21 @@ export default function CheckoutPage() {
     formState: { errors, isSubmitting },
   } = useForm<CheckoutForm>({ defaultValues: { paymentMethod: "cod" } });
 
+  useEffect(() => {
+    if (user) {
+      setValue("fullName", user.name);
+      if (user.phone) {
+        setValue("phone", user.phone);
+      }
+    }
+  }, [user, setValue]);
+
   const selectedPaymentMethod = watch("paymentMethod");
   const qrUrl = useMemo(() => (pendingOrder ? buildSePayQrUrl(pendingOrder) : null), [pendingOrder]);
+
+  // Calculate final price based on coupon
+  const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+  const finalPrice = appliedCoupon ? appliedCoupon.finalAmount : totalPrice;
 
   useEffect(() => {
     if (!pendingOrder) return;
@@ -105,7 +127,7 @@ export default function CheckoutPage() {
     setOrderError(null);
 
     if (items.length === 0) {
-      setOrderError("Gio hang trong. Vui long them sach truoc khi dat hang.");
+      setOrderError("Giỏ hàng trống. Vui lòng thêm sách trước khi đặt hàng.");
       return;
     }
 
@@ -114,15 +136,22 @@ export default function CheckoutPage() {
         const invoiceNumber = `DH${Date.now()}`;
         const payment = await paymentService.createSePayPayment({
           orderId: invoiceNumber,
-          amount: totalPrice,
+          amount: finalPrice,
           items: items.map((item) => ({
             variantId: item.variant.id,
             quantity: item.quantity,
           })),
+          couponCode: appliedCoupon?.coupon.code,
+          address: {
+            name: formData.fullName,
+            phone: formData.phone,
+            street: formData.street,
+            provinceCode: formData.provinceCode,
+            wardCode: formData.wardCode,
+          },
         });
 
         sessionStorage.setItem("sepayPendingOrderId", payment.orderId);
-
         submitSePayCheckout(payment.paymentUrl, payment.paymentFields);
         return;
       }
@@ -141,6 +170,7 @@ export default function CheckoutPage() {
           provinceCode: formData.provinceCode,
           wardCode: formData.wardCode,
         },
+        couponCode: appliedCoupon?.coupon.code,
       };
 
       await orderService.createOrder(payload);
@@ -149,7 +179,7 @@ export default function CheckoutPage() {
       navigate("/myorders", { state: { orderSuccess: true } });
     } catch (err: any) {
       setOrderError(
-        err?.response?.data?.message || "Dat hang that bai. Vui long thu lai."
+        err?.response?.data?.message || "Đặt hàng thất bại. Vui lòng thử lại."
       );
     }
   };
@@ -164,7 +194,7 @@ export default function CheckoutPage() {
       navigate("/myorders", { state: { orderSuccess: true } });
     } catch (err: any) {
       setOrderError(
-        err?.response?.data?.message || "Gia lap thanh toan that bai. Vui long thu lai."
+        err?.response?.data?.message || "Giả lập thanh toán thất bại. Vui lòng thử lại."
       );
     } finally {
       setIsMockingPayment(false);
@@ -174,9 +204,9 @@ export default function CheckoutPage() {
   if (items.length === 0 && !pendingOrder) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-4">
-        <p className="text-xl font-semibold text-gray-700">Gio hang trong</p>
+        <p className="text-xl font-semibold text-gray-700">Giỏ hàng trống</p>
         <a href="/books" className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors">
-          Kham pha sach
+          Khám phá sách
         </a>
       </div>
     );
@@ -184,6 +214,7 @@ export default function CheckoutPage() {
 
   if (pendingOrder) {
     const paymentCode = getPaymentCode(pendingOrder.id);
+    const displayAmount = pendingOrder.finalAmount ? Number(pendingOrder.finalAmount) : pendingOrder.total;
 
     return (
       <div className="container mx-auto max-w-5xl px-4 sm:px-6 py-10">
@@ -192,7 +223,7 @@ export default function CheckoutPage() {
           className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Quay lai
+          Quay lại
         </Link>
 
         {orderError && (
@@ -208,8 +239,8 @@ export default function CheckoutPage() {
                 <QrCode className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Quet QR SePay de thanh toan</h1>
-                <p className="text-sm text-gray-500">Don hang #{pendingOrder.id} dang cho thanh toan.</p>
+                <h1 className="text-xl font-bold text-gray-900">Quét QR SePay để thanh toán</h1>
+                <p className="text-sm text-gray-500">Đơn hàng #{pendingOrder.id} đang chờ thanh toán.</p>
               </div>
             </div>
 
@@ -218,29 +249,28 @@ export default function CheckoutPage() {
                 {qrUrl ? (
                   <img
                     src={qrUrl}
-                    alt={`QR thanh toan don hang ${pendingOrder.id}`}
+                    alt={`QR thanh toán đơn hàng ${pendingOrder.id}`}
                     className="h-64 w-64 object-contain"
                   />
                 ) : (
                   <div className="text-center text-sm text-gray-600">
-                    <p className="font-semibold text-gray-800">Chua cau hinh tai khoan SePay</p>
-                    <p className="mt-2">Them `VITE_SEPAY_BANK_CODE` va `VITE_SEPAY_ACCOUNT_NUMBER` vao frontend `.env`.</p>
+                    <p className="font-semibold text-gray-800">Chưa cấu hình tài khoản SePay</p>
                   </div>
                 )}
               </div>
 
               <div className="space-y-4 text-sm">
                 <div className="rounded-lg border border-gray-200 p-4">
-                  <p className="text-gray-500">So tien</p>
-                  <p className="mt-1 text-2xl font-bold text-indigo-600">{formatPrice(pendingOrder.total)}</p>
+                  <p className="text-gray-500">Số tiền</p>
+                  <p className="mt-1 text-2xl font-bold text-indigo-600">{formatPrice(displayAmount)}</p>
                 </div>
                 <div className="rounded-lg border border-gray-200 p-4">
-                  <p className="text-gray-500">Noi dung chuyen khoan</p>
+                  <p className="text-gray-500">Nội dung chuyển khoản</p>
                   <p className="mt-1 font-mono text-lg font-bold text-gray-900">{paymentCode}</p>
                 </div>
                 <div className="rounded-lg border border-gray-200 p-4">
-                  <p className="text-gray-500">Trang thai</p>
-                  <p className="mt-1 font-semibold text-yellow-700">Dang cho thanh toan</p>
+                  <p className="text-gray-500">Trạng thái</p>
+                  <p className="mt-1 font-semibold text-yellow-700">Đang chờ thanh toán</p>
                 </div>
                 <Button
                   type="button"
@@ -250,17 +280,17 @@ export default function CheckoutPage() {
                   size="lg"
                 >
                   <CheckCircle2 className="h-4 w-4" />
-                  Gia lap da thanh toan
+                  Giả lập đã thanh toán
                 </Button>
               </div>
             </div>
           </section>
 
           <aside className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm h-fit">
-            <h2 className="font-semibold text-gray-900 text-lg">Tom tat don hang</h2>
+            <h2 className="font-semibold text-gray-900 text-lg">Tóm tắt đơn hàng</h2>
             <div className="mt-4 flex justify-between border-t pt-4 font-bold text-gray-900">
-              <span>Tong cong</span>
-              <span className="text-indigo-600">{formatPrice(pendingOrder.total)}</span>
+              <span>Tổng cộng</span>
+              <span className="text-indigo-600">{formatPrice(displayAmount)}</span>
             </div>
           </aside>
         </div>
@@ -292,21 +322,28 @@ export default function CheckoutPage() {
         className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]"
       >
         <div className="space-y-6">
+          {/* Address */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="font-semibold text-gray-900 mb-4">Địa chỉ nhận hàng</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input
                 label="Họ tên"
-                {...register("fullName", { required: "Bat buoc" })}
+                {...register("fullName", { required: "Bắt buộc" })}
                 error={errors.fullName?.message}
               />
               <Input
                 label="Số điện thoại"
-                {...register("phone", { required: "Bat buoc" })}
+                {...register("phone", {
+                  required: "Bắt buộc",
+                  pattern: {
+                    value: /^\d{10}$/,
+                    message: "Số điện thoại phải có đúng 10 chữ số",
+                  },
+                })}
                 error={errors.phone?.message}
               />
               <div className="sm:col-span-2 space-y-1">
-                <label className="block text-sm font-medium text-gray-700">Tỉnh/Thành phố, Phường/Xã </label>
+                <label className="block text-sm font-medium text-gray-700">Tỉnh/Thành phố, Phường/Xã</label>
                 <AddressAutocomplete
                   onSelect={(item) => {
                     setValue("addressSearch", item.fullAddress, { shouldValidate: true });
@@ -328,6 +365,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          {/* Payment Method */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="font-semibold text-gray-900 mb-4">Phương thức thanh toán</h2>
             <div className="space-y-2">
@@ -352,9 +390,12 @@ export default function CheckoutPage() {
           </div>
         </div>
 
+        {/* Order Summary */}
         <div>
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4 sticky top-24">
             <h2 className="font-semibold text-gray-900 text-lg">Tóm tắt đơn hàng</h2>
+
+            {/* Items list */}
             <ul className="space-y-2 text-sm text-gray-600">
               {items.map((item) => (
                 <li key={item.variant.id} className="flex justify-between gap-3">
@@ -365,10 +406,35 @@ export default function CheckoutPage() {
                 </li>
               ))}
             </ul>
-            <div className="border-t pt-3 flex justify-between font-bold text-gray-900">
-              <span>Tổng cộng</span>
-              <span className="text-indigo-600">{formatPrice(totalPrice)}</span>
+
+            {/* Coupon input */}
+            <div className="border-t pt-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">Mã giảm giá</p>
+              <CouponInput
+                orderTotal={totalPrice}
+                appliedCoupon={appliedCoupon}
+                onApply={setAppliedCoupon}
+              />
             </div>
+
+            {/* Price breakdown */}
+            <div className="border-t pt-3 space-y-1.5 text-sm">
+              <div className="flex justify-between text-gray-600">
+                <span>Tạm tính</span>
+                <span>{formatPrice(totalPrice)}</span>
+              </div>
+              {appliedCoupon && (
+                <div className="flex justify-between text-green-600">
+                  <span>Giảm giá ({appliedCoupon.coupon.code})</span>
+                  <span>-{formatPrice(discountAmount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold text-gray-900 text-base pt-1 border-t">
+                <span>Thanh toán</span>
+                <span className="text-indigo-600">{formatPrice(finalPrice)}</span>
+              </div>
+            </div>
+
             <Button type="submit" isLoading={isSubmitting} className="w-full" size="lg">
               {selectedPaymentMethod === "banking" ? "Thanh toán bằng SePay" : "Đặt hàng"}
             </Button>

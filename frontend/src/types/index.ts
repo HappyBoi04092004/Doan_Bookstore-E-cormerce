@@ -6,6 +6,7 @@ export interface User {
   email: string;
   role: "user" | "admin";
   avatar?: string;
+  phone?: string | null;
   createdAt: string;
 }
 
@@ -22,6 +23,7 @@ export interface LoginCredentials {
 export interface RegisterPayload {
   name: string;
   email: string;
+  phone: string;
   password: string;
 }
 
@@ -148,11 +150,17 @@ export interface Order {
   address?: {
     name: string;
     phone: string;
-    street: string;
+    street?: string;
     detail: string;
     wardCode: number;
     provinceCode: number;
+    ward?: { name: string };
+    province?: { name: string };
   };
+  couponId?: number | null;
+  couponCode?: string | null;
+  discountAmount?: number | string | null;
+  finalAmount?: number | string | null;
   items: OrderItem[];
   user?: Pick<User, "id" | "name" | "email">;
 }
@@ -171,6 +179,32 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+
+// ─── Coupon ──────────────────────────────────────────────────────────────────
+
+export type CouponStatus = "ACTIVE" | "INACTIVE";
+export type DiscountType = "PERCENT" | "FIXED";
+
+export interface Coupon {
+  id: number;
+  code: string;
+  name: string;
+  description?: string | null;
+  discountType: DiscountType;
+  discountValue: number | string;
+  maxDiscount?: number | string | null;
+  minOrderValue?: number | string | null;
+  usageLimit?: number | null;
+  usedCount: number;
+  startDate: string;
+  endDate: string;
+  status: CouponStatus;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Misc ─────────────────────────────────────────────────────────────────────
 
 export interface BookFilters {
   search?: string;

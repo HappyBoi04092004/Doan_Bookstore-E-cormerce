@@ -12,6 +12,7 @@ interface CreateOrderPayload {
     provinceCode: number;
     wardCode: number;
   };
+  couponCode?: string;
 }
 
 export const orderService = {

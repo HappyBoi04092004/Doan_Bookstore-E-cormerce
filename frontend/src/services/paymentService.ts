@@ -4,6 +4,14 @@ export interface CreateSePayPaymentPayload {
   orderId: string;
   amount: number;
   items: { variantId: number; quantity: number }[];
+  couponCode?: string;
+  address?: {
+    name: string;
+    phone: string;
+    street: string;
+    provinceCode: number;
+    wardCode: number;
+  };
 }
 
 export interface CreateSePayPaymentResponse {

@@ -290,9 +290,35 @@ export const bookService = {
     }
     ensureUniqueVariants(variantsToCreate);
 
-    const [catRecord, authorRecord, publisherRecord] = await Promise.all([
+    // ── Kiểm tra sách trùng (cùng tên + cùng tác giả) ──────────────────────
+    const authorRecord = await resolveAuthor(author);
+    const duplicateBook = await prisma.book.findFirst({
+      where: {
+        title: { equals: title.trim() },
+        authorId: authorRecord.id,
+      },
+    });
+    if (duplicateBook) {
+      throw new Error(
+        `Sách "${title.trim()}" của tác giả "${author.trim()}" đã tồn tại trong hệ thống. Vui lòng kiểm tra lại hoặc chỉnh sửa sách hiện có.`
+      );
+    }
+
+    // ── Kiểm tra ISBN trùng (nếu có nhập) ──────────────────────────────────
+    const trimmedIsbn = optionalString(data.isbn);
+    if (trimmedIsbn) {
+      const duplicateIsbn = await prisma.book.findFirst({
+        where: { isbn: trimmedIsbn },
+      });
+      if (duplicateIsbn) {
+        throw new Error(
+          `ISBN "${trimmedIsbn}" đã được sử dụng cho sách "${duplicateIsbn.title}". Mỗi sách cần có ISBN khác nhau.`
+        );
+      }
+    }
+
+    const [catRecord, publisherRecord] = await Promise.all([
       resolveCategory(category),
-      resolveAuthor(author),
       resolvePublisher(data.publisher.trim()),
     ]);
     const detailData = buildBookDetailData(data);

@@ -70,6 +70,15 @@ export default function RegisterPage() {
               error={errors.email?.message}
             />
             <Input
+              label="Số điện thoại"
+              placeholder="0912345678"
+              {...register("phone", {
+                required: "Vui lòng nhập số điện thoại",
+                pattern: { value: /^\d{10}$/, message: "Số điện thoại phải có đúng 10 chữ số" },
+              })}
+              error={errors.phone?.message}
+            />
+            <Input
               label="Mật khẩu"
               type="password"
               placeholder="••••••••"

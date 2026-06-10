@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export interface OrderItemInput {
   variantId: number;
@@ -16,6 +17,7 @@ export interface CreateOrderPayload {
     provinceCode: number;
     wardCode: number;
   };
+  couponCode?: string;
 }
 
 export interface SePayWebhookPayload {
@@ -66,8 +68,8 @@ export const orderService = {
       }
       
       let total = 0;
-      const enrichedItems = [];
-      
+      const enrichedItems: { variantId: number; qty: number; price: number }[] = [];
+
       for (const item of items) {
         const variant = await tx.bookVariant.findUnique({
           where: { id: item.variantId },
@@ -94,15 +96,83 @@ export const orderService = {
           data: { stock: { decrement: item.quantity } }
         });
         
-        total += variant.price * item.quantity;
+        total += Number(variant.price) * item.quantity;
         enrichedItems.push({
           variantId: variant.id,
           qty: item.quantity,
-          price: variant.price
+          price: Number(variant.price),
         });
       }
 
-      // 3. Create the order
+      // 3. Coupon application
+      let couponId: number | null = null;
+      let discountAmount = 0;
+      let finalAmount = total;
+
+      if (payload.couponCode) {
+        const coupon = await tx.coupon.findUnique({
+          where: { code: payload.couponCode.trim().toUpperCase() }
+        });
+
+        if (!coupon || coupon.isDeleted) {
+          throw new Error("Mã giảm giá không tồn tại");
+        }
+        if (coupon.status !== "ACTIVE") {
+          throw new Error("Mã giảm giá đã bị vô hiệu hóa");
+        }
+        const now = new Date();
+        if (now < coupon.startDate) {
+          throw new Error("Mã giảm giá chưa có hiệu lực");
+        }
+        if (now > coupon.endDate) {
+          throw new Error("Mã giảm giá đã hết hạn sử dụng");
+        }
+        if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
+          throw new Error("Mã giảm giá đã đạt giới hạn sử dụng");
+        }
+        if (coupon.minOrderValue !== null && total < Number(coupon.minOrderValue)) {
+          throw new Error(`Đơn hàng tối thiểu để áp dụng mã này là ${Number(coupon.minOrderValue).toLocaleString("vi-VN")} VNĐ`);
+        }
+
+        couponId = coupon.id;
+        if (coupon.discountType === "PERCENT") {
+          discountAmount = (total * Number(coupon.discountValue)) / 100;
+          if (coupon.maxDiscount !== null && discountAmount > Number(coupon.maxDiscount)) {
+            discountAmount = Number(coupon.maxDiscount);
+          }
+        } else if (coupon.discountType === "FIXED") {
+          discountAmount = Number(coupon.discountValue);
+        }
+
+        if (discountAmount > total) {
+          discountAmount = total;
+        }
+        finalAmount = total - discountAmount;
+
+        // Increment usedCount
+        await tx.coupon.update({
+          where: { id: coupon.id },
+          data: { usedCount: { increment: 1 } }
+        });
+      }
+
+      let createdAddressId: number | null = null;
+      // 5. Save the address if provided
+      if (address) {
+        const newAddress = await tx.address.create({
+          data: {
+            userId,
+            name: address.name,
+            phone: address.phone,
+            detail: address.street,
+            provinceCode: address.provinceCode,
+            wardCode: address.wardCode,
+          }
+        });
+        createdAddressId = newAddress.id;
+      }
+
+      // 4. Create the order
       const order = await tx.order.create({
         data: {
           userId,
@@ -111,6 +181,11 @@ export const orderService = {
           paymentMethod: paymentMethod === "cod" ? "COD" : paymentMethod === "banking" ? "SEPAY" : undefined,
           idempotencyKey,
           items: { create: enrichedItems },
+          couponId,
+          couponCode: payload.couponCode ? payload.couponCode.trim().toUpperCase() : null,
+          discountAmount: new Prisma.Decimal(discountAmount),
+          finalAmount: new Prisma.Decimal(finalAmount),
+          addressId: createdAddressId
         },
         include: {
           items: {
@@ -123,22 +198,14 @@ export const orderService = {
               },
             },
           },
-        },
-      });
-
-      // 4. Save the address if provided
-      if (address) {
-        await tx.address.create({
-          data: {
-            userId,
-            name: address.name,
-            phone: address.phone,
-            detail: address.street,
-            provinceCode: address.provinceCode,
-            wardCode: address.wardCode,
+          address: {
+            include: {
+              province: true,
+              ward: true,
+            }
           }
-        });
-      }
+        }
+      });
 
       return order;
     });
@@ -149,6 +216,7 @@ export const orderService = {
       where: { userId },
       orderBy: { createdAt: "desc" },
       include: {
+        user: { select: { id: true, name: true, email: true } },
         items: {
           include: {
             variant: {
@@ -158,6 +226,12 @@ export const orderService = {
               },
             },
           },
+        },
+        address: {
+          include: {
+            province: true,
+            ward: true,
+          }
         },
       },
     });
@@ -178,6 +252,12 @@ export const orderService = {
           },
         },
         user: { select: { id: true, name: true, email: true } },
+        address: {
+          include: {
+            province: true,
+            ward: true,
+          }
+        },
       },
     });
 
@@ -202,6 +282,12 @@ export const orderService = {
               },
             },
           },
+        },
+        address: {
+          include: {
+            province: true,
+            ward: true,
+          }
         },
       },
     });

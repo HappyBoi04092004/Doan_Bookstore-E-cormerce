@@ -21,9 +21,11 @@ function formatPrice(n: number) {
   return n.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 }
 
-
 // ── Detail Panel ──────────────────────────────────────────────────────────────
 function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => void }) {
+  const discount = order.discountAmount ? Number(order.discountAmount) : 0;
+  const finalAmt = order.finalAmount ? Number(order.finalAmount) : order.total;
+
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -42,35 +44,29 @@ function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => voi
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-2xl mb-auto">×</button>
         </div>
-        
+
         <div className="p-6 space-y-6">
           {/* Customer Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-gray-50 p-4 rounded-xl">
             <div>
               <p className="text-gray-500 mb-1">Khách hàng</p>
-              <p className="font-medium text-gray-900">{order.user?.name ?? "—"}</p>
-              <p className="text-gray-600">{order.user?.email}</p>
+              <p className="font-semibold text-gray-800">{order.user?.name ?? "—"}</p>
+              <p className="text-gray-500">{order.user?.email}</p>
             </div>
             {order.address && (
               <div>
                 <p className="text-gray-500 mb-1">Địa chỉ giao hàng</p>
-                <p className="font-medium text-gray-900">{order.address.name} - {order.address.phone}</p>
-                <p className="text-gray-600">
-                  {order.address.detail}, {order.address.wardCode}, {order.address.provinceCode}
+                <p className="font-semibold text-gray-800">
+                  {order.address.name} - {order.address.phone}
+                </p>
+                <p className="text-gray-500">
+                  {order.address.detail}, {order.address.ward?.name || order.address.wardCode}, {order.address.province?.name || order.address.provinceCode}
                 </p>
               </div>
             )}
-            <div>
-              <p className="text-gray-500 mb-1">Phương thức thanh toán</p>
-              <p className="font-medium text-gray-900">
-                {order.paymentMethod === "COD" || order.paymentMethod === "cod" ? "Thanh toán khi nhận hàng (COD)" :
-                 order.paymentMethod === "SEPAY" || order.paymentMethod === "banking" ? "Chuyển khoản SePay QR" :
-                 order.paymentMethod}
-              </p>
-            </div>
           </div>
 
-          {/* Products Table */}
+          {/* Items */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-3">Sản phẩm ({order.items.length})</h3>
             <div className="overflow-x-auto border border-gray-100 rounded-xl">
@@ -88,46 +84,71 @@ function OrderDetailPanel({ order, onClose }: { order: Order; onClose: () => voi
                     <tr key={item.id}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <img 
-                            src={getProductImage(item.variant, item.variant.book)} 
-                            alt={item.variant.book.title} 
-                            className="w-10 h-14 object-cover rounded flex-shrink-0 border border-gray-200"
-                            onError={useFallbackBookImage}
-                          />
+                          {(() => {
+                            const book = item.variant.book;
+                            const image = getProductImage(item.variant, book);
+                            return (
+                              <img
+                                src={image}
+                                alt={book.title}
+                                className="w-12 h-16 object-cover rounded-md flex-shrink-0 border border-gray-200"
+                                onError={useFallbackBookImage}
+                              />
+                            );
+                          })()}
                           <div>
                             <p className="text-sm font-medium text-gray-900">{item.variant.book.title}</p>
                             <p className="text-xs text-indigo-600">{item.variant.name}</p>
-                            <p className="text-xs text-gray-500">{typeof item.variant.book.author === 'object' ? item.variant.book.author?.name : item.variant.book.author}</p>
+                            <p className="text-xs text-gray-500">
+                              {typeof item.variant.book.author === "object"
+                                ? item.variant.book.author?.name
+                                : item.variant.book.author}
+                            </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right text-sm text-gray-600">{formatPrice(item.price)}</td>
                       <td className="px-4 py-3 text-center text-sm font-medium text-gray-700">{item.qty}</td>
-                      <td className="px-4 py-3 text-right text-sm font-semibold text-indigo-600">{formatPrice(item.price * item.qty)}</td>
+                      <td className="px-4 py-3 text-right text-sm font-semibold text-indigo-600">
+                        {formatPrice(item.price * item.qty)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
-          
+
+          {/* Price Summary */}
           <div className="flex justify-end pt-2">
             <div className="w-1/2 min-w-[200px] space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tạm tính</span>
                 <span className="font-medium text-gray-900">{formatPrice(order.total)}</span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">
+                    Giảm giá{" "}
+                    {order.couponCode && (
+                      <span className="font-mono bg-green-50 text-green-700 px-1 rounded text-xs">
+                        {order.couponCode}
+                      </span>
+                    )}
+                  </span>
+                  <span className="font-medium text-green-600">-{formatPrice(discount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Phí giao hàng</span>
                 <span className="font-medium text-gray-900">{formatPrice(0)}</span>
               </div>
               <div className="border-t pt-2 flex justify-between">
                 <span className="font-bold text-gray-900">Tổng cộng</span>
-                <span className="font-bold text-lg text-indigo-600">{formatPrice(order.total)}</span>
+                <span className="font-bold text-lg text-indigo-600">{formatPrice(finalAmt)}</span>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -141,7 +162,6 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "ALL">("ALL");
   const [detailOrder, setDetailOrder] = useState<Order | null>(null);
 
-
   const { data: orders, isLoading, isError } = useQuery({
     queryKey: ["adminOrders"],
     queryFn: orderService.adminGetAllOrders,
@@ -152,8 +172,6 @@ export default function AdminOrdersPage() {
       orderService.adminUpdateOrderStatus(id, status),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["adminOrders"] }),
   });
-
-
 
   const filtered = (orders ?? []).filter((o) => {
     const q = search.toLowerCase();
@@ -213,7 +231,7 @@ export default function AdminOrdersPage() {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50">
               <tr>
-                {["ID", "Khách hàng", "Sản phẩm", "Tổng tiền", "Trạng thái", "Ngày tạo", "Hành động"].map((h) => (
+                {["ID", "Khách hàng", "Sản phẩm", "Tổng tiền", "Mã giảm giá", "Trạng thái", "Ngày tạo", "Hành động"].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     {h}
                   </th>
@@ -221,43 +239,62 @@ export default function AdminOrdersPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-50">
-              {filtered.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 text-sm font-bold text-indigo-600">#{order.id}</td>
-                  <td className="px-4 py-3">
-                    <p className="text-sm font-medium text-gray-800">{order.user?.name ?? "—"}</p>
-                    <p className="text-xs text-gray-400">{order.user?.email}</p>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{order.items.length} sách</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-gray-800">{formatPrice(order.total)}</td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={order.status}
-                      onChange={(e) =>
-                        updateMutation.mutate({ id: order.id, status: e.target.value as OrderStatus })
-                      }
-                      className={`text-xs font-semibold rounded-full border px-2.5 py-1 cursor-pointer focus:outline-none ${statusColor[order.status]}`}
-                    >
-                      <option value="PENDING">Chờ xử lý</option>
-                      <option value="PAID">Đã thanh toán</option>
-                      <option value="FAILED">Thất bại</option>
-                    </select>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
-                    {new Date(order.createdAt).toLocaleDateString("vi-VN")}
-                  </td>
-                  <td className="px-4 py-3 text-left">
-                    <div className="flex items-center justify-start">
-                      <button
-                        onClick={() => setDetailOrder(order)}
-                        className="text-sm font-semibold px-3 py-1.5 bg-indigo-50 rounded-md text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 transition-colors"
+              {filtered.map((order) => {
+                const finalAmt = order.finalAmount ? Number(order.finalAmount) : order.total;
+                return (
+                  <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-sm font-bold text-indigo-600">#{order.id}</td>
+                    <td className="px-4 py-3">
+                      <p className="text-sm font-medium text-gray-800">{order.user?.name ?? "—"}</p>
+                      <p className="text-xs text-gray-400">{order.user?.email}</p>
+                      {order.address && (
+                        <p className="text-xs text-gray-500 mt-1 max-w-[220px] truncate" title={`${order.address.name} (${order.address.phone}) - ${order.address.detail}, ${order.address.ward?.name || order.address.wardCode}, ${order.address.province?.name || order.address.provinceCode}`}>
+                          📍 {order.address.detail}, {order.address.ward?.name || order.address.wardCode}, {order.address.province?.name || order.address.provinceCode}
+                        </p>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{order.items.length} sách</td>
+                    <td className="px-4 py-3 text-sm font-semibold text-gray-800">
+                      {formatPrice(finalAmt)}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {order.couponCode ? (
+                        <span className="font-mono text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
+                          {order.couponCode}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={order.status}
+                        onChange={(e) =>
+                          updateMutation.mutate({ id: order.id, status: e.target.value as OrderStatus })
+                        }
+                        className={`text-xs font-semibold rounded-full border px-2.5 py-1 cursor-pointer focus:outline-none ${statusColor[order.status]}`}
                       >
-                        Chi tiết
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        <option value="PENDING">Chờ xử lý</option>
+                        <option value="PAID">Đã thanh toán</option>
+                        <option value="FAILED">Thất bại</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+                      {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                    </td>
+                    <td className="px-4 py-3 text-left">
+                      <div className="flex items-center justify-start">
+                        <button
+                          onClick={() => setDetailOrder(order)}
+                          className="text-sm font-semibold px-3 py-1.5 bg-indigo-50 rounded-md text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 transition-colors"
+                        >
+                          Chi tiết
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -265,7 +302,6 @@ export default function AdminOrdersPage() {
 
       {/* Modals */}
       {detailOrder && <OrderDetailPanel order={detailOrder} onClose={() => setDetailOrder(null)} />}
-
     </div>
   );
 }

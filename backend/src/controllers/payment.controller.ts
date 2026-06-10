@@ -10,6 +10,14 @@ const createSePayPaymentSchema = z.object({
     variantId: z.number().int().positive("variantId must be a positive integer"),
     quantity: z.number().int().positive("quantity must be a positive integer").max(100),
   })).min(1, "items must be a non-empty array"),
+  couponCode: z.string().optional(),
+  address: z.object({
+    name: z.string(),
+    phone: z.string().regex(/^\d{10}$/, "Số điện thoại phải có đúng 10 chữ số"),
+    street: z.string(),
+    provinceCode: z.number().int(),
+    wardCode: z.number().int(),
+  }).optional(),
 });
 
 const htmlResultPage = (title: string, message: string, status: "success" | "error" | "cancel") => {
@@ -57,6 +65,31 @@ export const createSePayPayment = async (req: Request, res: Response): Promise<v
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ message: "Invalid payment request", errors: error.issues });
+      return;
+    }
+
+    if (error.message === "COUPON_NOT_FOUND") {
+      res.status(404).json({ message: "Mã giảm giá không tồn tại" });
+      return;
+    }
+
+    if (error.message === "COUPON_INACTIVE") {
+      res.status(400).json({ message: "Mã giảm giá đã bị vô hiệu hóa" });
+      return;
+    }
+
+    if (error.message === "COUPON_EXPIRED") {
+      res.status(400).json({ message: "Mã giảm giá chưa có hiệu lực hoặc đã hết hạn" });
+      return;
+    }
+
+    if (error.message === "COUPON_LIMIT_REACHED") {
+      res.status(400).json({ message: "Mã giảm giá đã đạt giới hạn sử dụng" });
+      return;
+    }
+
+    if (error.message === "COUPON_MIN_ORDER_NOT_MET") {
+      res.status(400).json({ message: "Đơn hàng chưa đạt giá trị tối thiểu" });
       return;
     }
 

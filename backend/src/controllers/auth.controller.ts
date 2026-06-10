@@ -5,10 +5,15 @@ import jwt from "jsonwebtoken";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, phone } = req.body;
 
-    if (!email || !password || !name) {
+    if (!email || !password || !name || !phone) {
       res.status(400).json({ message: "Thiếu thông tin" });
+      return;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+      res.status(400).json({ message: "Số điện thoại phải có đúng 10 chữ số" });
       return;
     }
 
@@ -32,6 +37,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       data: {
         email,
         name,
+        phone,
         password: hashed,
         roleId: roleRecord.id,
       },
